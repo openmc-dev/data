@@ -2,11 +2,14 @@
 
 import argparse
 from collections import defaultdict
-import glob
-import os
+from pathlib import Path
+import sys
 
 import openmc.data
 
+
+# Make sure Python version is sufficient
+assert sys.version_info >= (3, 6), "Python 3.6+ is required"
 
 description = """
 Convert ENDF/B-VIII.0 ACE data from LANL into an HDF5 library
@@ -25,23 +28,24 @@ parser = argparse.ArgumentParser(
     description=description,
     formatter_class=CustomFormatter
 )
-parser.add_argument('-o', '--output_dir', default='lib80x_hdf5',
+parser.add_argument('-d', '--destination', type=Path, default=Path('lib80x_hdf5'),
                     help='Directory to create new library in')
 parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='earliest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
-parser.add_argument('--datadir', help='Directory containing Lib80x and ENDF80SaB',
-                    default=os.curdir)
+parser.add_argument('datadir', type=Path,
+                    help='Directory containing Lib80x and ENDF80SaB')
+
 args = parser.parse_args()
-assert os.path.isdir(args.datadir)
+assert args.datadir.is_dir()
 
 # Get a list of all ACE files
-lib80x = glob.glob(os.path.join(args.datadir, 'Lib80x', '**', '*.80?nc'), recursive=True)
-lib80sab = glob.glob(os.path.join(args.datadir, 'ENDF80SaB', '**', '*.??t'), recursive=True)
+lib80x = list(args.datadir.glob('Lib80x/**/*.80?nc'))
+lib80sab = list(args.datadir.glob('ENDF80SaB/**/*.??t'))
 
 # Find and fix B10 ACE files
-b10files = glob.glob(os.path.join(args.datadir, 'Lib80x', '**', '5010.80?nc'), recursive=True)
+b10files = list(args.datadir.glob('Lib80x/**/5010.80?nc'))
 nxs1_position = 523
 for filename in b10files:
     with open(filename, 'r+') as fh:
@@ -56,44 +60,39 @@ for filename in b10files:
             fh.write(str(nxs1 + 53))
 
 # Group together tables for the same nuclide
-suffixes = defaultdict(list)
-for filename in sorted(lib80x + lib80sab):
-    dirname, basename = os.path.split(filename)
-    zaid, xs = basename.split('.')
-    suffixes[os.path.join(dirname, zaid)].append(xs)
+tables = defaultdict(list)
+for p in sorted(lib80x + lib80sab):
+    tables[p.stem].append(p)
 
 # Create output directory if it doesn't exist
-if not os.path.isdir(args.output_dir):
-    os.mkdir(args.output_dir)
+args.destination.mkdir(parents=True, exist_ok=True)
 
 library = openmc.data.DataLibrary()
 
-for basename, xs_list in sorted(suffixes.items()):
+for name, paths in sorted(tables.items()):
     # Convert first temperature for the table
-    filename = '.'.join((basename, xs_list[0]))
-    print('Converting: ' + filename)
-    if filename.endswith('t'):
-        data = openmc.data.ThermalScattering.from_ace(filename)
+    p = paths[0]
+    print(f'Converting: {p}')
+    if p.name.endswith('t'):
+        data = openmc.data.ThermalScattering.from_ace(p)
     else:
-        data = openmc.data.IncidentNeutron.from_ace(filename, 'mcnp')
+        data = openmc.data.IncidentNeutron.from_ace(p, 'mcnp')
 
     # For each higher temperature, add cross sections to the existing table
-    for xs in xs_list[1:]:
-        filename = '.'.join((basename, xs))
-        print('Adding: ' + filename)
-        if filename.endswith('t'):
-            data.add_temperature_from_ace(filename)
+    for p in paths[1:]:
+        print(f'Adding: {p}')
+        if p.name.endswith('t'):
+            data.add_temperature_from_ace(p)
         else:
-            data.add_temperature_from_ace(filename, 'mcnp')
+            data.add_temperature_from_ace(p, 'mcnp')
 
     # Export HDF5 file
-    h5_file = os.path.join(args.output_dir, data.name + '.h5')
-    print('Writing {}...'.format(h5_file))
+    h5_file = args.destination / f'{data.name}.h5'
+    print(f'Writing {h5_file}...')
     data.export_to_hdf5(h5_file, 'w', libver=args.libver)
 
     # Register with library
     library.register_file(h5_file)
 
 # Write cross_sections.xml
-libpath = os.path.join(args.output_dir, 'cross_sections.xml')
-library.export_to_xml(libpath)
+library.export_to_xml(args.destination / 'cross_sections.xml')
