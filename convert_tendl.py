@@ -137,7 +137,6 @@ library = openmc.data.DataLibrary()
 for filename in sorted(neutron_files):
 
     # this is a fix for the TENDL-2017 release where the B10 ACE file which has an error on one of the values
-    print('info', library_name, args.release, os.path.basename(filename))
     if library_name == 'tendl' and args.release == '2017' and os.path.basename(filename) == 'B010':
         text = open(filename, 'r').read()
         if text[423:428] == '86843':
