@@ -11,6 +11,7 @@ from string import digits
 from urllib.request import urlopen
 
 import openmc.data
+from openmc._utils import download
 
 
 description = """
@@ -44,11 +45,11 @@ args = parser.parse_args()
 
 
 
-library = 'tendl' #this could be added as an argument to allow different libraries to be downloaded 
-ace_files_dir = '-'.join([library,args.release,'ace'])
+library_name = 'tendl' #this could be added as an argument to allow different libraries to be downloaded 
+ace_files_dir = '-'.join([library_name, args.release, 'ace'])
 # the destination is decided after the release is know to avoid putting the release in a folder with a misleading name
 if args.destination == None:
-    args.destination = '-'.join([library, args.release, 'hdf5'])
+    args.destination = '-'.join([library_name, args.release, 'hdf5'])
 
 # This dictionary contains all the unique information about each release. This can be exstened to accommodated new releases
 release_details = {'2015': {'base_url': 'https://tendl.web.psi.ch/tendl_2015//tar_files/',
@@ -88,39 +89,10 @@ files_complete = []
 for f in release_details[args.release]['files']:
     # Establish connection to URL
     url = release_details[args.release]['base_url'] + f
-    req = urlopen(url)
+    downloaded_file = download(url)
+    files_complete.append(downloaded_file)
 
-    # Get file size from header
-    if sys.version_info[0] < 3:
-        file_size = int(req.info().getheaders('Content-Length')[0])
-    else:
-        file_size = req.length
-    downloaded = 0
-
-    # Check if file already downloaded
-    if os.path.exists(f):
-        if os.path.getsize(f) == file_size:
-            print('Skipping {}, already downloaded'.format(f))
-            files_complete.append(f)
-            continue
-        else:
-            overwrite = input('Overwrite {}? ([y]/n) '.format(f))
-            if overwrite.lower().startswith('n'):
-                continue
-
-    # Copy file to disk
-    print('Downloading {}... '.format(f), end='')
-    with open(f, 'wb') as fh:
-        while True:
-            chunk = req.read(block_size)
-            if not chunk: break
-            fh.write(chunk)
-            downloaded += len(chunk)
-            status = '{:10}  [{:3.2f}%]'.format(downloaded, downloaded * 100. / file_size)
-            print(status + chr(8)*len(status), end='')
-        print('')
-        files_complete.append(f)
-
+print('files_complete', files_complete)
 # ==============================================================================
 # EXTRACT FILES FROM TGZ
 
@@ -165,7 +137,8 @@ library = openmc.data.DataLibrary()
 for filename in sorted(neutron_files):
 
     # this is a fix for the TENDL-2017 release where the B10 ACE file which has an error on one of the values
-    if library == 'tendl' and args.release == '2017' and os.path.basename(filename) == 'B010':
+    print('info', library_name, args.release, os.path.basename(filename))
+    if library_name == 'tendl' and args.release == '2017' and os.path.basename(filename) == 'B010':
         text = open(filename, 'r').read()
         if text[423:428] == '86843':
             print('Manual fix for incorrect value in ACE file') # see OpenMC user group issue for more details

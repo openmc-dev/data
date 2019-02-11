@@ -44,11 +44,11 @@ parser.add_argument('-r', '--release', choices=['3.1a', '3.1d'],
 args = parser.parse_args()
 
 # this could be added as an argument to allow different libraries to be downloaded
-library = 'fendl'
-ace_files_dir = '-'.join([library, args.release, 'ace'])
+library_name = 'fendl'
+ace_files_dir = '-'.join([library_name, args.release, 'ace'])
 # the destination is decided after the release is know to avoid putting the release in a folder with a misleading name
 if args.destination == None:
-    args.destination = '-'.join([library, args.release, 'hdf5'])
+    args.destination = '-'.join([library_name, args.release, 'hdf5'])
 
 # This dictionary contains all the unique information about each release. This can be exstened to accommodated new releases
 release_details = {'3.1a': {'base_url': 'https://www-nds.iaea.org/fendl31/data/neutron/',
