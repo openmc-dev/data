@@ -7,6 +7,7 @@ import tarfile
 import zipfile
 import glob
 import argparse
+import ssl
 from string import digits
 from urllib.request import urlopen, Request
 
@@ -33,7 +34,7 @@ parser.add_argument('-b', '--batch', action='store_true',
 parser.add_argument('-d', '--destination', default=None,
                     help='Directory to create new library in')
 parser.add_argument('--libver', choices=['earliest', 'latest'],
-                    default='latest', help="Output HDF5 versioning. Use "
+                    default='earliest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
 parser.add_argument('-r', '--release', choices=['3.1a', '3.1d'],
@@ -81,6 +82,7 @@ block_size = 16384
 # DOWNLOAD FILES FROM IAEA SITE
 
 # The fendl website requires the web browser to be mocked
+ssl._create_default_https_context = ssl._create_unverified_context
 user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
 headers = {'User-Agent': user_agent, }
 
