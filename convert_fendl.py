@@ -8,6 +8,7 @@ import zipfile
 import glob
 import argparse
 import ssl
+import subprocess
 from string import digits
 from urllib.request import urlopen, Request
 
@@ -134,7 +135,7 @@ for f in release_details[args.release]['files']:
     # unfortunatly which is incompatible with the standard python zipfile library
     # therefore the following system command is used
 
-    os.system('unzip -o ' + f + ' -d '+ ace_files_dir) 
+    subprocess.call(['unzip', '-o', f, '-d', ace_files_dir])
 
 
 # # ==============================================================================
