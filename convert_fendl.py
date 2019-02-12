@@ -82,16 +82,12 @@ block_size = 16384
 # ==============================================================================
 # DOWNLOAD FILES FROM IAEA SITE
 
-# The fendl website requires the web browser to be mocked
-ssl._create_default_https_context = ssl._create_unverified_context
-user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
-headers = {'User-Agent': user_agent, }
-
 files_complete = []
 for f in release_details[args.release]['files']:
     # Establish connection to URL
     url = release_details[args.release]['base_url'] + f
-    req = urlopen(Request(url, None, headers))
+    # req = urlopen(Request(url, None, headers))
+    req = urlopen(url, context=ssl._create_unverified_context())
 
     # Get file size from header
     if sys.version_info[0] < 3:
