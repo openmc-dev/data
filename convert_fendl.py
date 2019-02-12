@@ -86,7 +86,6 @@ files_complete = []
 for f in release_details[args.release]['files']:
     # Establish connection to URL
     url = release_details[args.release]['base_url'] + f
-    # req = urlopen(Request(url, None, headers))
     req = urlopen(url, context=ssl._create_unverified_context())
 
     # Get file size from header
