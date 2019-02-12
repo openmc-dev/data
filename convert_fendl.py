@@ -13,6 +13,7 @@ from string import digits
 from urllib.request import urlopen, Request
 
 import openmc.data
+from openmc._utils import download
 
 
 description = """
@@ -86,38 +87,10 @@ files_complete = []
 for f in release_details[args.release]['files']:
     # Establish connection to URL
     url = release_details[args.release]['base_url'] + f
-    req = urlopen(url, context=ssl._create_unverified_context())
+    downloaded_file = download(url, context=ssl._create_unverified_context())
+    files_complete.append(downloaded_file)
 
-    # Get file size from header
-    if sys.version_info[0] < 3:
-        file_size = int(req.info().getheaders('Content-Length')[0])
-    else:
-        file_size = req.length
-    downloaded = 0
-
-    # Check if file already downloaded
-    if os.path.exists(f):
-        if os.path.getsize(f) == file_size:
-            print('Skipping {}, already downloaded'.format(f))
-            files_complete.append(f)
-            continue
-        else:
-            overwrite = input('Overwrite {}? ([y]/n) '.format(f))
-            if overwrite.lower().startswith('n'):
-                continue
-
-    # Copy file to disk
-    print('Downloading {}... '.format(f), end='')
-    with open(f, 'wb') as fh:
-        while True:
-            chunk = req.read(block_size)
-            if not chunk: break
-            fh.write(chunk)
-            downloaded += len(chunk)
-            status = '{:10}  [{:3.2f}%]'.format(downloaded, downloaded * 100. / file_size)
-            print(status + chr(8)*len(status), end='')
-        print('')
-        files_complete.append(f)
+print('files_complete', files_complete)
 
 # ==============================================================================
 # EXTRACT FILES FROM TGZ
