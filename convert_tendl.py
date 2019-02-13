@@ -15,16 +15,16 @@ from openmc._utils import download
 
 
 description = """
-Download TENDL 2017 or TENDL 2015 ACE data from PSI and convert it to a HDF5 library for 
+Download TENDL 2017 or TENDL 2015 ACE data from PSI and convert it to a HDF5 library for
 use with OpenMC.
 
 """
 
 
-
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
                       argparse.RawDescriptionHelpFormatter):
     pass
+
 
 parser = argparse.ArgumentParser(
     description=description,
@@ -45,31 +45,34 @@ args = parser.parse_args()
 
 
 
-library_name = 'tendl' #this could be added as an argument to allow different libraries to be downloaded 
+library_name = 'tendl' #this could be added as an argument to allow different libraries to be downloaded
 ace_files_dir = '-'.join([library_name, args.release, 'ace'])
 # the destination is decided after the release is know to avoid putting the release in a folder with a misleading name
 if args.destination == None:
     args.destination = '-'.join([library_name, args.release, 'hdf5'])
 
 # This dictionary contains all the unique information about each release. This can be exstened to accommodated new releases
-release_details = {'2015': {'base_url': 'https://tendl.web.psi.ch/tendl_2015//tar_files/',
-                            'files': ['ACE-n.tgz'],
-                            'neutron_files': os.path.join(ace_files_dir, 'neutron_file', '*', '*', 'lib', 'endf', '*-n.ace'),
-                            'metastables': os.path.join(ace_files_dir, 'neutron_file', '*', '*', 'lib', 'endf', '*m-n.ace'),
-                            'compressed_file_size': '5.1 GB',
-                            'uncompressed_file_size': '40 GB'
-                            },
-                   '2017': {'base_url': 'https://tendl.web.psi.ch/tendl_2017/tar_files/',
-                            'files': ['tendl17c.tar.bz2'],
-                            'neutron_files': os.path.join(ace_files_dir, 'ace-17', '*'),
-                            'metastables': os.path.join(ace_files_dir, 'ace-17', '*m'),
-                            'compressed_file_size': '2.1 GB',
-                            'uncompressed_file_size': '14 GB'
-                           }
-                  }
+release_details = {
+    '2015': {
+        'base_url': 'https://tendl.web.psi.ch/tendl_2015/tar_files/',
+        'files': ['ACE-n.tgz'],
+        'neutron_files': os.path.join(ace_files_dir, 'neutron_file', '*', '*', 'lib', 'endf', '*-n.ace'),
+        'metastables': os.path.join(ace_files_dir, 'neutron_file', '*', '*', 'lib', 'endf', '*m-n.ace'),
+        'compressed_file_size': '5.1 GB',
+        'uncompressed_file_size': '40 GB'
+    },
+    '2017': {
+        'base_url': 'https://tendl.web.psi.ch/tendl_2017/tar_files/',
+        'files': ['tendl17c.tar.bz2'],
+        'neutron_files': os.path.join(ace_files_dir, 'ace-17', '*'),
+        'metastables': os.path.join(ace_files_dir, 'ace-17', '*m'),
+        'compressed_file_size': '2.1 GB',
+        'uncompressed_file_size': '14 GB'
+    }
+}
 
 download_warning = """
-WARNING: This script will download {} of data. 
+WARNING: This script will download {} of data.
 Extracting and processing the data requires {} of additional free disk space.
 
 Are you sure you want to continue? ([y]/n)
@@ -92,7 +95,6 @@ for f in release_details[args.release]['files']:
     downloaded_file = download(url)
     files_complete.append(downloaded_file)
 
-print('files_complete', files_complete)
 # ==============================================================================
 # EXTRACT FILES FROM TGZ
 
@@ -107,7 +109,6 @@ for f in release_details[args.release]['files']:
         print('Extracting {0}...'.format(f))
         tgz.extractall(path=os.path.join(ace_files_dir, suffix))
 
-
 # ==============================================================================
 # CHANGE ZAID FOR METASTABLES
 
@@ -119,8 +120,6 @@ for path in metastables:
     if mass_first_digit <= 2:
         text = text[:3] + str(mass_first_digit + 4) + text[4:]
         open(path, 'w').write(text)
-
-
 
 # ==============================================================================
 # GENERATE HDF5 LIBRARY -- NEUTRON FILES
@@ -143,7 +142,7 @@ for filename in sorted(neutron_files):
             print('Manual fix for incorrect value in ACE file') # see OpenMC user group issue for more details
             text = ''.join(text[:423])+'86896'+''.join(text[428:])
             open(filename, 'w').write(text)
-    
+
     print('Converting: ' + filename)
     data = openmc.data.IncidentNeutron.from_ace(filename)
 

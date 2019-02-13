@@ -17,7 +17,7 @@ from openmc._utils import download
 
 
 description = """
-Download FENDL 3.1d or FENDL 3.1c ACE data from the IAEA and convert it to a HDF5 library for 
+Download FENDL 3.1d or FENDL 3.1c ACE data from the IAEA and convert it to a HDF5 library for
 use with OpenMC.
 
 """
@@ -26,6 +26,7 @@ use with OpenMC.
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
                       argparse.RawDescriptionHelpFormatter):
     pass
+
 
 parser = argparse.ArgumentParser(
     description=description,
@@ -52,22 +53,25 @@ if args.destination == None:
     args.destination = '-'.join([library_name, args.release, 'hdf5'])
 
 # This dictionary contains all the unique information about each release. This can be exstened to accommodated new releases
-release_details = {'3.1a': {'base_url': 'https://www-nds.iaea.org/fendl31/data/neutron/',
-                            'files': ['fendl31a-neutron-ace.zip'],
-                            'neutron_files': os.path.join(ace_files_dir, '*'),
-                            'compressed_file_size': '0.4 GB',
-                            'uncompressed_file_size': '3 GB'
-                            },
-                   '3.1d': {'base_url': 'https://www-nds.iaea.org/fendl/data/neutron/',
-                            'files': ['fendl31d-neutron-ace.zip'],
-                            'neutron_files': os.path.join(ace_files_dir, 'fendl31d_ACE', '*'),
-                            'compressed_file_size': '0.5 GB',
-                            'uncompressed_file_size': '3 GB'
-                            }
-                   }
+release_details = {
+    '3.1a': {
+        'base_url': 'https://www-nds.iaea.org/fendl31/data/neutron/',
+        'files': ['fendl31a-neutron-ace.zip'],
+        'neutron_files': os.path.join(ace_files_dir, '*'),
+        'compressed_file_size': '0.4 GB',
+        'uncompressed_file_size': '3 GB'
+    },
+    '3.1d': {
+        'base_url': 'https://www-nds.iaea.org/fendl/data/neutron/',
+        'files': ['fendl31d-neutron-ace.zip'],
+        'neutron_files': os.path.join(ace_files_dir, 'fendl31d_ACE', '*'),
+        'compressed_file_size': '0.5 GB',
+        'uncompressed_file_size': '3 GB'
+    }
+}
 
 download_warning = """
-WARNING: This script will download {} of data. 
+WARNING: This script will download {} of data.
 Extracting and processing the data requires {} of additional free disk space.
 
 Are you sure you want to continue? ([y]/n)
@@ -90,8 +94,6 @@ for f in release_details[args.release]['files']:
     downloaded_file = download(url, context=ssl._create_unverified_context())
     files_complete.append(downloaded_file)
 
-print('files_complete', files_complete)
-
 # ==============================================================================
 # EXTRACT FILES FROM TGZ
 
@@ -105,12 +107,15 @@ for f in release_details[args.release]['files']:
 
     subprocess.call(['unzip', '-o', f, '-d', ace_files_dir])
 
-
-# # ==============================================================================
-# # GENERATE HDF5 LIBRARY -- NEUTRON FILES
+# ==============================================================================
+# GENERATE HDF5 LIBRARY -- NEUTRON FILES
 
 # Get a list of all ACE files, excluding files ending with _ which are old incorrect files kept in the release for backwards compatability
-neutron_files = [f for f in glob.glob(release_details[args.release]['neutron_files']) if not f.endswith('_') and not f.endswith('.xsd')]
+neutron_files = [
+    f
+    for f in glob.glob(release_details[args.release]['neutron_files'])
+    if not f.endswith('_') and not f.endswith('.xsd')
+]
 
 # Create output directory if it doesn't exist
 if not os.path.isdir(args.destination):
@@ -119,7 +124,7 @@ if not os.path.isdir(args.destination):
 library = openmc.data.DataLibrary()
 
 for filename in sorted(neutron_files):
-    
+
     print('Converting: ' + filename)
     data = openmc.data.IncidentNeutron.from_ace(filename)
 
