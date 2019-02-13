@@ -27,6 +27,8 @@ for temperature-dependent cross section lookups on-the-fly.
 
 """
 
+temperatures = [250.0, 293.6, 600.0, 900.0, 1200.0, 2500.0]
+
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
                       argparse.RawDescriptionHelpFormatter):
     pass
@@ -36,7 +38,7 @@ parser = argparse.ArgumentParser(
     description=description,
     formatter_class=CustomFormatter
 )
-parser.add_argument('-d', '--destination', type=Path, default=Path('mcnp_endfb71'),
+parser.add_argument('-d', '--destination', type=Path, default=Path('endfb71_hdf5'),
                     help='Directory to create new library in')
 parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='earliest', help="Output HDF5 versioning. Use "
@@ -136,12 +138,10 @@ thermal_paths = [
     (neutron_dir / 'n-092_U_238.endf', thermal_dir / 'tsl-UinUO2.endf')
 ]
 
-temperatures = [250.0, 293.6, 600.0, 900.0, 1200.0, 2500.0]
 pwd = Path.cwd()
-output_dir = pwd / 'endf71_hdf5'
 
-(output_dir / 'photon').mkdir(parents=True, exist_ok=True)
-(output_dir / 'wmp').mkdir(parents=True, exist_ok=True)
+(args.destination / 'photon').mkdir(parents=True, exist_ok=True)
+(args.destination / 'wmp').mkdir(parents=True, exist_ok=True)
 
 with tempfile.TemporaryDirectory() as tmpdir:
     # Save current working directory and temporarily change dir
@@ -170,15 +170,15 @@ with tempfile.TemporaryDirectory() as tmpdir:
         neutron_paths = neutron_dir.glob('*.endf')
         results = []
         for p in neutron_paths:
-            r = pool.apply_async(process_neutron, (p, output_dir))
+            r = pool.apply_async(process_neutron, (p, args.destination))
             results.append(r)
         for p_neut, p_therm in thermal_paths:
-            r = pool.apply_async(process_thermal, (p_neut, p_therm, output_dir))
+            r = pool.apply_async(process_thermal, (p_neut, p_therm, args.destination))
             results.append(r)
         for r in results:
             r.wait()
 
-    for p in sorted(output_dir.glob('*.h5'), key=sort_key):
+    for p in sorted(args.destination.glob('*.h5'), key=sort_key):
         library.register_file(p)
 
     # =========================================================================
@@ -194,7 +194,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
         data = openmc.data.IncidentPhoton.from_endf(photo_file, atom_file)
 
         # Write HDF5 file and register it
-        outfile = output_dir / 'photon' / f'{element}.h5'
+        outfile = args.destination / 'photon' / f'{element}.h5'
         data.export_to_hdf5(outfile, 'w', libver=args.libver)
         library.register_file(outfile)
 
@@ -210,11 +210,11 @@ with tempfile.TemporaryDirectory() as tmpdir:
 
     # Add multipole data to library
     for src in Path('WMP_Library').glob('*.h5'):
-        dst = output_dir / 'wmp' / src.name
+        dst = args.destination / 'wmp' / src.name
         shutil.copy2(src, dst)
         library.register_file(dst)
 
-    library.export_to_xml(output_dir / 'cross_sections.xml')
+    library.export_to_xml(args.destination / 'cross_sections.xml')
 
     # Change back to original directory
     if args.tmpdir:
