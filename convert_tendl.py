@@ -4,11 +4,8 @@ import os
 from collections import defaultdict
 import sys
 import tarfile
-import zipfile
 import glob
 import argparse
-from string import digits
-from urllib.request import urlopen
 
 import openmc.data
 from openmc._utils import download
