@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 
-import os
-from collections import defaultdict
-import sys
-import zipfile
-import glob
 import argparse
+import glob
+import os
 import ssl
 import subprocess
+import sys
+import zipfile
 
 import openmc.data
 from openmc._utils import download
-
 
 description = """
 Download FENDL 3.1d or FENDL 3.1c ACE data from the IAEA and convert it to a HDF5 library for

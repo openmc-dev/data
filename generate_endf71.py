@@ -1,20 +1,19 @@
 #!/usr/bin/env python3
 
 import argparse
-from multiprocessing import Pool
 import os
-from pathlib import Path
 import shutil
 import sys
 import tarfile
 import tempfile
-from urllib.parse import urljoin
 import warnings
 import zipfile
+from multiprocessing import Pool
+from pathlib import Path
+from urllib.parse import urljoin
 
 import openmc.data
 from openmc._utils import download
-
 
 # Make sure Python version is sufficient
 assert sys.version_info >= (3, 6), "Python 3.6+ is required"

@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 
+import argparse
+import glob
 import os
-from collections import defaultdict
 import sys
 import tarfile
-import glob
-import argparse
 
 import openmc.data
 from openmc._utils import download
-
 
 description = """
 Download TENDL 2017 or TENDL 2015 ACE data from PSI and convert it to a HDF5 library for
