@@ -5,10 +5,6 @@ import glob
 import os
 import sys
 import tarfile
-import zipfile
-from collections import defaultdict
-from string import digits
-from urllib.request import urlopen
 
 import openmc.data
 from openmc._utils import download
