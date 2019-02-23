@@ -54,7 +54,7 @@ release_details = {
         'neutron_files': os.path.join(endf_files_dir, 'jendl40-or-up_20160106', '*.dat'),
         'metastables': os.path.join(endf_files_dir, 'jendl40-or-up_20160106', '*m.dat'),
         'compressed_file_size': '0.2 GB',
-        'uncompressed_file_size': '? GB'
+        'uncompressed_file_size': '2 GB'
     }
 }
 
