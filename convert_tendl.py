@@ -48,7 +48,7 @@ args = parser.parse_args()
 library_name = 'tendl' #this could be added as an argument to allow different libraries to be downloaded
 ace_files_dir = '-'.join([library_name, args.release, 'ace'])
 # the destination is decided after the release is know to avoid putting the release in a folder with a misleading name
-if args.destination == None:
+if args.destination is None:
     args.destination = '-'.join([library_name, args.release, 'hdf5'])
 
 # This dictionary contains all the unique information about each release. This can be exstened to accommodated new releases
