@@ -43,7 +43,7 @@ args = parser.parse_args()
 library_name = 'jendl' #this could be added as an argument to allow different libraries to be downloaded
 endf_files_dir = '-'.join([library_name, args.release, 'endf'])
 # the destination is decided after the release is known to avoid putting the release in a folder with a misleading name
-if args.destination == None:
+if args.destination is None:
     args.destination = '-'.join([library_name, args.release, 'hdf5'])
 
 # This dictionary contains all the unique information about each release. This can be exstened to accommodated new releases
@@ -69,8 +69,6 @@ Are you sure you want to continue? ([y]/n)
 response = input(download_warning) if not args.batch else 'y'
 if response.lower().startswith('n'):
     sys.exit()
-
-block_size = 16384
 
 # ==============================================================================
 # DOWNLOAD FILES FROM WEBSITE
@@ -110,14 +108,6 @@ if not os.path.isdir(args.destination):
 library = openmc.data.DataLibrary()
 
 for filename in sorted(neutron_files):
-
-    # this is a fix for the TENDL-2017 release where the B10 ACE file which has an error on one of the values
-    if library_name == 'tendl' and args.release == '2017' and os.path.basename(filename) == 'B010':
-        text = open(filename, 'r').read()
-        if text[423:428] == '86843':
-            print('Manual fix for incorrect value in ACE file') # see OpenMC user group issue for more details
-            text = ''.join(text[:423])+'86896'+''.join(text[428:])
-            open(filename, 'w').write(text)
 
     print('Converting: ' + filename)
     data = openmc.data.IncidentNeutron.from_njoy(filename)
