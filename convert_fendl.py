@@ -3,14 +3,11 @@
 import os
 from collections import defaultdict
 import sys
-import tarfile
 import zipfile
 import glob
 import argparse
 import ssl
 import subprocess
-from string import digits
-from urllib.request import urlopen, Request
 
 import openmc.data
 from openmc._utils import download
