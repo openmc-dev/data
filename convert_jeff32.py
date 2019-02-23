@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 
+import argparse
+import glob
 import os
-from collections import defaultdict
 import sys
 import tarfile
 import zipfile
-import glob
-import argparse
+from collections import defaultdict
 from string import digits
-from urllib.request import urlopen
 
 import openmc.data
-
+from openmc._utils import download
 
 description = """
 Download JEFF 3.2 ACE data from OECD/NEA and convert it to a multi-temperature
@@ -64,8 +63,6 @@ files = ['JEFF32-ACE-293K.tar.gz',
          'JEFF32-ACE-1800K.tar.gz',
          'TSLs.tar.gz']
 
-block_size = 16384
-
 # ==============================================================================
 # DOWNLOAD FILES FROM OECD SITE
 
@@ -73,38 +70,8 @@ files_complete = []
 for f in files:
     # Establish connection to URL
     url = base_url + f
-    req = urlopen(url)
-
-    # Get file size from header
-    if sys.version_info[0] < 3:
-        file_size = int(req.info().getheaders('Content-Length')[0])
-    else:
-        file_size = req.length
-    downloaded = 0
-
-    # Check if file already downloaded
-    if os.path.exists(f):
-        if os.path.getsize(f) == file_size:
-            print('Skipping {}, already downloaded'.format(f))
-            files_complete.append(f)
-            continue
-        else:
-            overwrite = input('Overwrite {}? ([y]/n) '.format(f))
-            if overwrite.lower().startswith('n'):
-                continue
-
-    # Copy file to disk
-    print('Downloading {}... '.format(f), end='')
-    with open(f, 'wb') as fh:
-        while True:
-            chunk = req.read(block_size)
-            if not chunk: break
-            fh.write(chunk)
-            downloaded += len(chunk)
-            status = '{:10}  [{:3.2f}%]'.format(downloaded, downloaded * 100. / file_size)
-            print(status + chr(8)*len(status), end='')
-        print('')
-        files_complete.append(f)
+    downloaded_file = download(url)
+    files_complete.append(f)
 
 # ==============================================================================
 # EXTRACT FILES FROM TGZ

@@ -6,17 +6,17 @@ from NNDC and convert it to an HDF5 library for use with OpenMC. This data is
 used for OpenMC's regression test suite.
 """
 
+import argparse
+import glob
+import hashlib
 import os
 import shutil
 import subprocess
 import sys
 import tarfile
-import glob
-import hashlib
-import argparse
-from urllib.request import urlopen
 
 import openmc.data
+from openmc._utils import download
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
@@ -42,7 +42,6 @@ files = ['ENDF-B-VII.1-neutron-293.6K.tar.gz',
          'ENDF-B-VII.1-tsl.tar.gz']
 checksums = ['9729a17eb62b75f285d8a7628ace1449',
              'e17d827c92940a30f22f096d910ea186']
-block_size = 16384
 
 # ==============================================================================
 # DOWNLOAD FILES FROM NNDC SITE
@@ -51,36 +50,8 @@ files_complete = []
 for f in files:
     # Establish connection to URL
     url = base_url + f
-    req = urlopen(url)
-
-    # Get file size from header
-    file_size = req.length
-    downloaded = 0
-
-    # Check if file already downloaded
-    if os.path.exists(f):
-        if os.path.getsize(f) == file_size:
-            print('Skipping ' + f)
-            files_complete.append(f)
-            continue
-        else:
-            overwrite = input('Overwrite {}? ([y]/n) '.format(f))
-            if overwrite.lower().startswith('n'):
-                continue
-
-    # Copy file to disk
-    print('Downloading {}... '.format(f), end='')
-    with open(f, 'wb') as fh:
-        while True:
-            chunk = req.read(block_size)
-            if not chunk: break
-            fh.write(chunk)
-            downloaded += len(chunk)
-            status = '{0:10}  [{1:3.2f}%]'.format(
-                downloaded, downloaded * 100. / file_size)
-            print(status + chr(8)*len(status), end='')
-        print('')
-        files_complete.append(f)
+    downloaded_file = download(url)
+    files_complete.append(f)
 
 # ==============================================================================
 # VERIFY MD5 CHECKSUMS

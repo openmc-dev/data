@@ -1,20 +1,15 @@
 #!/usr/bin/env python3
 
-import os
-from collections import defaultdict
-import sys
-import tarfile
-import zipfile
-import glob
 import argparse
+import glob
+import os
 import ssl
 import subprocess
-from string import digits
-from urllib.request import urlopen, Request
+import sys
+import zipfile
 
 import openmc.data
 from openmc._utils import download
-
 
 description = """
 Download FENDL 3.1d or FENDL 3.1c ACE data from the IAEA and convert it to a HDF5 library for
@@ -49,7 +44,7 @@ args = parser.parse_args()
 library_name = 'fendl'
 ace_files_dir = '-'.join([library_name, args.release, 'ace'])
 # the destination is decided after the release is know to avoid putting the release in a folder with a misleading name
-if args.destination == None:
+if args.destination is None:
     args.destination = '-'.join([library_name, args.release, 'hdf5'])
 
 # This dictionary contains all the unique information about each release. This can be exstened to accommodated new releases
@@ -81,8 +76,6 @@ Are you sure you want to continue? ([y]/n)
 response = input(download_warning) if not args.batch else 'y'
 if response.lower().startswith('n'):
     sys.exit()
-
-block_size = 16384
 
 # ==============================================================================
 # DOWNLOAD FILES FROM IAEA SITE
