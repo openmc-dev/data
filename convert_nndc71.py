@@ -42,7 +42,6 @@ files = ['ENDF-B-VII.1-neutron-293.6K.tar.gz',
          'ENDF-B-VII.1-tsl.tar.gz']
 checksums = ['9729a17eb62b75f285d8a7628ace1449',
              'e17d827c92940a30f22f096d910ea186']
-block_size = 16384
 
 # ==============================================================================
 # DOWNLOAD FILES FROM NNDC SITE

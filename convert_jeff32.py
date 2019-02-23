@@ -63,8 +63,6 @@ files = ['JEFF32-ACE-293K.tar.gz',
          'JEFF32-ACE-1800K.tar.gz',
          'TSLs.tar.gz']
 
-block_size = 16384
-
 # ==============================================================================
 # DOWNLOAD FILES FROM OECD SITE
 

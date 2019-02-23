@@ -79,8 +79,6 @@ response = input(download_warning) if not args.batch else 'y'
 if response.lower().startswith('n'):
     sys.exit()
 
-block_size = 16384
-
 # ==============================================================================
 # DOWNLOAD FILES FROM IAEA SITE
 
