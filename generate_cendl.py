@@ -98,7 +98,7 @@ for f in release_details[args.release]['files']:
 # ==============================================================================
 # GENERATE HDF5 LIBRARY -- NEUTRON FILES
 
-# Get a list of all ACE files
+# Get a list of all ENDF files
 neutron_files = glob.glob(release_details[args.release]['neutron_files'])
 
 # Create output directory if it doesn't exist
@@ -112,14 +112,12 @@ for filename in sorted(neutron_files):
     # this is a fix for the CENDL 3.1 release where the 22-Ti-047.C31 and 5-B-010.C31 files contain non-ASCII characters
     if library_name == 'cendl' and args.release == '3.1' and os.path.basename(filename) in  ['22-Ti-047.C31','5-B-010.C31']:
         print('Manual fix for incorrect value in ENDF file')
-        text = open(filename, 'rb').read().decode('utf-8','ignore')
-        text_lines=text.split('\r\n')
+        text = open(filename, 'rb').read().decode('utf-8','ignore').split('\r\n')
         if os.path.basename(filename) == '22-Ti-047.C31':
-            text_lines[205] = ' 8) YUAN Junqian,WANG Yongchang,etc.               ,16,(1),57,92012228 1451  205'
+            text[205] = ' 8) YUAN Junqian,WANG Yongchang,etc.               ,16,(1),57,92012228 1451  205'
         if os.path.basename(filename) == '5-B-010.C31':
-            text_lines[203] = '21)   Day R.B. and Walt M.  Phys.rev.117,1330 (1960)               525 1451  203'
-        #file_string = b"".join(text).decode("utf-8") 
-        open(filename, 'w').write('\r\n'.join(text_lines))
+            text[203] = '21)   Day R.B. and Walt M.  Phys.rev.117,1330 (1960)               525 1451  203'
+        open(filename, 'w').write('\r\n'.join(text))
 
     print('Converting: ' + filename)
     data = openmc.data.IncidentNeutron.from_njoy(filename)
