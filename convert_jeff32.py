@@ -18,18 +18,11 @@ HDF5 library for use with OpenMC.
 
 """
 
-download_warning = """
-WARNING: This script will download approximately 9 GB of data. Extracting and
-processing the data may require as much as 40 GB of additional free disk
-space. Note that if you don't need all 11 temperatures, you can modify the
-'files' list in the script to download only the data you want.
-
-Are you sure you want to continue? ([y]/n)
-"""
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
                       argparse.RawDescriptionHelpFormatter):
     pass
+
 
 parser = argparse.ArgumentParser(
     description=description,
@@ -43,40 +36,65 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='latest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
+parser.add_argument('-r', '--release', choices=['3.2'],
+                    default='3.2', help="The nuclear data library release version. "
+                    "The currently supported option is 3.2")                    
 args = parser.parse_args()
+
+# This dictionary contains all the unique information about each release. This can be exstened to accommodated new releases
+release_details = {
+    '3.2':{
+        'base_url': 'https://www.oecd-nea.org/dbforms/data/eva/evatapes/jeff_32/Processed/',
+        'files': ['JEFF32-ACE-293K.tar.gz',
+                'JEFF32-ACE-400K.tar.gz',
+                'JEFF32-ACE-500K.tar.gz',
+                'JEFF32-ACE-600K.tar.gz',
+                'JEFF32-ACE-700K.tar.gz',
+                'JEFF32-ACE-800K.zip',
+                'JEFF32-ACE-900K.tar.gz',
+                'JEFF32-ACE-1000K.tar.gz',
+                'JEFF32-ACE-1200K.tar.gz',
+                'JEFF32-ACE-1500K.tar.gz',
+                'JEFF32-ACE-1800K.tar.gz',
+                'TSLs.tar.gz'],
+        'neutron_files': os.path.join('jeff-3.2', '*', '*.ACE'),
+        'metastables': os.path.join('jeff-3.2', '**', '*M.ACE'),
+        'sab_files': os.path.join('jeff-3.2', 'ANNEX_6_3_STLs', '*', '*.ace'),
+        'redundant': os.path.join('jeff-3.2', 'ACEs_293K', '*-293.ACE'),
+        'compressed_file_size': '9 GB',
+        'uncompressed_file_size': '40 GB'
+    }
+}
+
+download_warning = """
+WARNING: This script will download approximately {} of data. Extracting and
+processing the data may require as much as {} of additional free disk
+space. Note that if you don't need all 11 temperatures, you can modify the
+'files' list in the script to download only the data you want.
+
+Are you sure you want to continue? ([y]/n)
+""".format(release_details[args.release]['compressed_file_size'],
+           release_details[args.release]['uncompressed_file_size'])
+
 
 response = input(download_warning) if not args.batch else 'y'
 if response.lower().startswith('n'):
     sys.exit()
 
-base_url = 'https://www.oecd-nea.org/dbforms/data/eva/evatapes/jeff_32/Processed/'
-files = ['JEFF32-ACE-293K.tar.gz',
-         'JEFF32-ACE-400K.tar.gz',
-         'JEFF32-ACE-500K.tar.gz',
-         'JEFF32-ACE-600K.tar.gz',
-         'JEFF32-ACE-700K.tar.gz',
-         'JEFF32-ACE-800K.zip',
-         'JEFF32-ACE-900K.tar.gz',
-         'JEFF32-ACE-1000K.tar.gz',
-         'JEFF32-ACE-1200K.tar.gz',
-         'JEFF32-ACE-1500K.tar.gz',
-         'JEFF32-ACE-1800K.tar.gz',
-         'TSLs.tar.gz']
-
 # ==============================================================================
 # DOWNLOAD FILES FROM OECD SITE
 
 files_complete = []
-for f in files:
+for f in release_details[args.release]['files']:
     # Establish connection to URL
-    url = base_url + f
+    url = release_details[args.release]['base_url'] + f
     downloaded_file = download(url)
     files_complete.append(f)
 
 # ==============================================================================
 # EXTRACT FILES FROM TGZ
 
-for f in files:
+for f in release_details[args.release]['files']:
     if f not in files_complete:
         continue
 
@@ -95,13 +113,13 @@ for f in files:
         # Remove thermal scattering tables from 293K data since they are
         # redundant
         if '293' in f:
-            for path in glob.glob(os.path.join('jeff-3.2', 'ACEs_293K', '*-293.ACE')):
+            for path in glob.glob(release_details[args.release]['redundant']):
                 os.remove(path)
 
 # ==============================================================================
 # CHANGE ZAID FOR METASTABLES
 
-metastables = glob.glob(os.path.join('jeff-3.2', '**', '*M.ACE'))
+metastables = glob.glob(release_details[args.release]['metastables'])
 for path in metastables:
     print('    Fixing {} (ensure metastable)...'.format(path))
     text = open(path, 'r').read()
@@ -114,7 +132,7 @@ for path in metastables:
 # GENERATE HDF5 LIBRARY -- NEUTRON FILES
 
 # Get a list of all ACE files
-neutron_files = glob.glob(os.path.join('jeff-3.2', '*', '*.ACE'))
+neutron_files = glob.glob(release_details[args.release]['neutron_files'])
 
 # Group together tables for same nuclide
 tables = defaultdict(list)
@@ -155,7 +173,7 @@ for name, filenames in sorted(tables.items()):
 # ==============================================================================
 # GENERATE HDF5 LIBRARY -- S(A,B) FILES
 
-sab_files = glob.glob(os.path.join('jeff-3.2', 'ANNEX_6_3_STLs', '*', '*.ace'))
+sab_files = glob.glob(release_details[args.release]['sab_files'])
 
 # Group together tables for same nuclide
 tables = defaultdict(list)
