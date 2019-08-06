@@ -73,7 +73,7 @@ release_details = {
     '3.3':{
         'base_url': 'https://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/',
         'files': ['JEFF33-n.tgz',
-                'JEFF33-n_tsl-ace.tgz'],
+                  'JEFF33-n_tsl-ace.tgz'],
         # 'neutron_files': os.path.join('jeff-3.3', '*', '*.ACE'),
         # 'metastables': os.path.join('jeff-3.3', '**', '*M.ACE'),
         # 'sab_files': os.path.join('jeff-3.3', 'ANNEX_6_3_STLs', '*', '*.ace'),
