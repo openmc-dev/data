@@ -36,10 +36,17 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='latest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
-parser.add_argument('-r', '--release', choices=['3.2', '3.3'],
+parser.add_argument('-r', '--release', choices=['3.2'],
                     default='3.2', help="The nuclear data library release version. "
-                    "The currently supported options are 3.2 and 3.3")                    
+                    "The currently supported options are 3.2")
+parser.add_argument('-t', '--temperatures', 
+                    choices=['293', '400', '500', '600', '700', '800', '900', 
+                             '1000', '1200', '1500', '1800'],
+                    default=['293', '400', '500', '600', '700', '800', '900',
+                             '1000', '1200', '1500', '1800'], 
+                    help="Temperatures to download in Kelvin", nargs='+',)    
 args = parser.parse_args()
+
 
 library_name = 'jeff'
 ace_files_dir = '-'.join([library_name, args.release, 'ace'])
@@ -51,43 +58,20 @@ if args.destination is None:
 release_details = {
     '3.2':{
         'base_url': 'https://www.oecd-nea.org/dbforms/data/eva/evatapes/jeff_32/Processed/',
-        'files': ['JEFF32-ACE-293K.tar.gz',
-                  'JEFF32-ACE-400K.tar.gz',
-                  'JEFF32-ACE-500K.tar.gz',
-                  'JEFF32-ACE-600K.tar.gz',
-                  'JEFF32-ACE-700K.tar.gz',
-                  'JEFF32-ACE-800K.zip',
-                  'JEFF32-ACE-900K.tar.gz',
-                  'JEFF32-ACE-1000K.tar.gz',
-                  'JEFF32-ACE-1200K.tar.gz',
-                  'JEFF32-ACE-1500K.tar.gz',
-                  'JEFF32-ACE-1800K.tar.gz',
-                  'TSLs.tar.gz'],
-        'neutron_files': os.path.join('jeff-3.2', '*', '*.ACE'),
-        'metastables': os.path.join('jeff-3.2', '**', '*M.ACE'),
-        'sab_files': os.path.join('jeff-3.2', 'ANNEX_6_3_STLs', '*', '*.ace'),
-        'redundant': os.path.join('jeff-3.2', 'ACEs_293K', '*-293.ACE'),
+        'files':['JEFF32-ACE-'+temperature+'K.tar.gz' for temperature in args.temperatures]+['TSLs.tar.gz'],
+        'neutron_files': os.path.join(ace_files_dir, '*', '*.ACE'),
+        'metastables': os.path.join(ace_files_dir, '**', '*M.ACE'),
+        'sab_files': os.path.join(ace_files_dir, 'ANNEX_6_3_STLs', '*', '*.ace'),
+        'redundant': os.path.join(ace_files_dir, 'ACEs_293K', '*-293.ACE'),
         'compressed_file_size': '9 GB',
         'uncompressed_file_size': '40 GB'
-    },
-    '3.3':{
-        'base_url': 'https://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/',
-        'files': ['JEFF33-n.tgz',
-                  'JEFF33-n_tsl-ace.tgz'],
-        # 'neutron_files': os.path.join('jeff-3.3', '*', '*.ACE'),
-        # 'metastables': os.path.join('jeff-3.3', '**', '*M.ACE'),
-        # 'sab_files': os.path.join('jeff-3.3', 'ANNEX_6_3_STLs', '*', '*.ace'),
-        # 'redundant': os.path.join('jeff-3.3', 'ACEs_293K', '*-293.ACE'),
-        'compressed_file_size': '2 GB',
-        'uncompressed_file_size': '? GB'
     }
 }
 
 download_warning = """
 WARNING: This script will download approximately {} of data. Extracting and
 processing the data may require as much as {} of additional free disk
-space. Note that if you don't need all 11 temperatures, you can modify the
-'files' list in the script to download only the data you want.
+space.
 
 Are you sure you want to continue? ([y]/n)
 """.format(release_details[args.release]['compressed_file_size'],
@@ -131,7 +115,9 @@ for f in release_details[args.release]['files']:
         # redundant
         if '293' in f:
             for path in glob.glob(release_details[args.release]['redundant']):
+                print('deleting',path)
                 os.remove(path)
+
 
 # ==============================================================================
 # CHANGE ZAID FOR METASTABLES
