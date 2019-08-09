@@ -33,7 +33,7 @@ parser = argparse.ArgumentParser(
     description=description,
     formatter_class=CustomFormatter
 )
-parser.add_argument('-d', '--destination', default='jeff-3.2-hdf5',
+parser.add_argument('-d', '--destination', default=None,
                     help='Directory to create new library in')
 parser.add_argument('--download', action='store_true',
                     help='Download files from OECD-NEA')
@@ -50,27 +50,47 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
 parser.add_argument('-r', '--release', choices=['3.2'],
                     default='3.2', help="The nuclear data library release version. "
                     "The currently supported options are 3.2")
+parser.add_argument('-t', '--temperatures', 
+                    choices=['293', '400', '500', '600', '700', '800', '900', 
+                             '1000', '1200', '1500', '1800'],
+                    default=['293', '400', '500', '600', '700', '800', '900',
+                             '1000', '1200', '1500', '1800'], 
+                    help="Temperatures to download in Kelvin", nargs='+',)    
 parser.set_defaults(download=True, extract=True)
 args = parser.parse_args()
 
 library_name = 'jeff'
 ace_files_dir = '-'.join([library_name, args.release, 'ace'])
+# the destination is decided after the release is know to avoid putting the release in a folder with a misleading name
+if args.destination is None:
+    args.destination = '-'.join([library_name, args.release, 'hdf5'])
 
+# This dictionary contains all the unique information about each release. This can be exstened to accommodated new releases
+release_details = {
+    '3.2':{
+        'base_url': 'https://www.oecd-nea.org/dbforms/data/eva/evatapes/jeff_32/Processed/',
+        'files':['JEFF32-ACE-'+temperature+'K.tar.gz' for temperature in args.temperatures]+['TSLs.tar.gz'],
+        'neutron_files': os.path.join(ace_files_dir, '*', '*.ACE'),
+        'metastables': os.path.join(ace_files_dir, '**', '*M.ACE'),
+        'sab_files': os.path.join(ace_files_dir, 'ANNEX_6_3_STLs', '*', '*.ace'),
+        'redundant': os.path.join(ace_files_dir, 'ACEs_293K', '*-293.ACE'),
+        'compressed_file_size': '9 GB',
+        'uncompressed_file_size': '40 GB'
+    }
+}
+
+download_warning = """
+WARNING: This script will download approximately {} of data. Extracting and
+processing the data may require as much as {} of additional free disk
+space.
+
+Are you sure you want to continue? ([y]/n)
+""".format(release_details[args.release]['compressed_file_size'],
+           release_details[args.release]['uncompressed_file_size'])
+           
 print(download_warning)
 
-base_url = 'https://www.oecd-nea.org/dbforms/data/eva/evatapes/jeff_32/Processed/'
-files = ['JEFF32-ACE-293K.tar.gz',
-         'JEFF32-ACE-400K.tar.gz',
-         'JEFF32-ACE-500K.tar.gz',
-         'JEFF32-ACE-600K.tar.gz',
-         'JEFF32-ACE-700K.tar.gz',
-         'JEFF32-ACE-800K.zip',
-         'JEFF32-ACE-900K.tar.gz',
-         'JEFF32-ACE-1000K.tar.gz',
-         'JEFF32-ACE-1200K.tar.gz',
-         'JEFF32-ACE-1500K.tar.gz',
-         'JEFF32-ACE-1800K.tar.gz',
-         'TSLs.tar.gz']
+
 
 # ==============================================================================
 # DOWNLOAD FILES FROM OECD SITE
