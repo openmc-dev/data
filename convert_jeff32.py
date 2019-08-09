@@ -3,11 +3,11 @@
 import argparse
 import glob
 import os
-import sys
 import tarfile
 import zipfile
 from collections import defaultdict
 from string import digits
+from urllib.parse import urljoin
 
 import openmc.data
 from openmc._utils import download
@@ -23,8 +23,6 @@ WARNING: This script will download approximately 9 GB of data. Extracting and
 processing the data may require as much as 40 GB of additional free disk
 space. Note that if you don't need all 11 temperatures, you can modify the
 'files' list in the script to download only the data you want.
-
-Are you sure you want to continue? ([y]/n)
 """
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
@@ -35,19 +33,24 @@ parser = argparse.ArgumentParser(
     description=description,
     formatter_class=CustomFormatter
 )
-parser.add_argument('-b', '--batch', action='store_true',
-                    help='supresses standard in')
-parser.add_argument('-d', '--destination', default='jeff-3.2-hdf5',
+parser.add_argument('-d', '--destination', default='jeff32_hdf5',
                     help='Directory to create new library in')
+parser.add_argument('--download', action='store_true',
+                    help='Download files from OECD-NEA')
+parser.add_argument('--no-download', dest='download', action='store_false',
+                    help='Do not download files from OECD-NEA')
+parser.add_argument('--extract', action='store_true',
+                    help='Extract tar/zip files')
+parser.add_argument('--no-extract', dest='extract', action='store_false',
+                    help='Do not extract tar/zip files')
 parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='latest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
+parser.set_defaults(download=True, extract=True)
 args = parser.parse_args()
 
-response = input(download_warning) if not args.batch else 'y'
-if response.lower().startswith('n'):
-    sys.exit()
+print(download_warning)
 
 base_url = 'https://www.oecd-nea.org/dbforms/data/eva/evatapes/jeff_32/Processed/'
 files = ['JEFF32-ACE-293K.tar.gz',
@@ -66,37 +69,32 @@ files = ['JEFF32-ACE-293K.tar.gz',
 # ==============================================================================
 # DOWNLOAD FILES FROM OECD SITE
 
-files_complete = []
-for f in files:
-    # Establish connection to URL
-    url = base_url + f
-    downloaded_file = download(url)
-    files_complete.append(f)
+if args.download:
+    for f in files:
+        download(urljoin(base_url, f))
 
 # ==============================================================================
 # EXTRACT FILES FROM TGZ
 
-for f in files:
-    if f not in files_complete:
-        continue
+if args.extract:
+    for f in files:
+        # Extract files
+        if f.endswith('.zip'):
+            with zipfile.ZipFile(f, 'r') as zipf:
+                print('Extracting {}...'.format(f))
+                zipf.extractall('jeff-3.2')
 
-    # Extract files
-    if f.endswith('.zip'):
-        with zipfile.ZipFile(f, 'r') as zipf:
-            print('Extracting {}...'.format(f))
-            zipf.extractall('jeff-3.2')
+        else:
+            suffix = 'ACEs_293K' if '293' in f else ''
+            with tarfile.open(f, 'r') as tgz:
+                print('Extracting {}...'.format(f))
+                tgz.extractall(os.path.join('jeff-3.2', suffix))
 
-    else:
-        suffix = 'ACEs_293K' if '293' in f else ''
-        with tarfile.open(f, 'r') as tgz:
-            print('Extracting {}...'.format(f))
-            tgz.extractall(os.path.join('jeff-3.2', suffix))
-
-        # Remove thermal scattering tables from 293K data since they are
-        # redundant
-        if '293' in f:
-            for path in glob.glob(os.path.join('jeff-3.2', 'ACEs_293K', '*-293.ACE')):
-                os.remove(path)
+            # Remove thermal scattering tables from 293K data since they are
+            # redundant
+            if '293' in f:
+                for path in glob.glob(os.path.join('jeff-3.2', 'ACEs_293K', '*-293.ACE')):
+                    os.remove(path)
 
 # ==============================================================================
 # CHANGE ZAID FOR METASTABLES
