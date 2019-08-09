@@ -47,8 +47,14 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='latest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
+parser.add_argument('-r', '--release', choices=['3.2'],
+                    default='3.2', help="The nuclear data library release version. "
+                    "The currently supported options are 3.2")
 parser.set_defaults(download=True, extract=True)
 args = parser.parse_args()
+
+library_name = 'jeff'
+ace_files_dir = '-'.join([library_name, args.release, 'ace'])
 
 print(download_warning)
 
@@ -82,13 +88,13 @@ if args.extract:
         if f.endswith('.zip'):
             with zipfile.ZipFile(f, 'r') as zipf:
                 print('Extracting {}...'.format(f))
-                zipf.extractall('jeff-3.2')
+                zipf.extractall(ace_files_dir)
 
         else:
             suffix = 'ACEs_293K' if '293' in f else ''
             with tarfile.open(f, 'r') as tgz:
                 print('Extracting {}...'.format(f))
-                tgz.extractall(os.path.join('jeff-3.2', suffix))
+                tgz.extractall(os.path.join(ace_files_dir, suffix))
 
             # Remove thermal scattering tables from 293K data since they are
             # redundant
