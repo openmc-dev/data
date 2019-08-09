@@ -33,7 +33,7 @@ parser = argparse.ArgumentParser(
     description=description,
     formatter_class=CustomFormatter
 )
-parser.add_argument('-d', '--destination', default='jeff32_hdf5',
+parser.add_argument('-d', '--destination', default='jeff-3.2-hdf5',
                     help='Directory to create new library in')
 parser.add_argument('--download', action='store_true',
                     help='Download files from OECD-NEA')
