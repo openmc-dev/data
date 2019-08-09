@@ -142,7 +142,6 @@ for filename in sorted(neutron_files):
 
 # Sort temperatures from lowest to highest
 for name, filenames in sorted(tables.items()):
-    print(filenames)
     filenames.sort(key=lambda x: int(
         x.split(os.path.sep)[1].split('_')[1][:-1]))
 
