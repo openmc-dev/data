@@ -6,6 +6,7 @@ import os
 import tarfile
 import zipfile
 from collections import defaultdict
+from pathlib import Path
 from string import digits
 from urllib.parse import urljoin
 
@@ -27,7 +28,7 @@ parser = argparse.ArgumentParser(
     description=description,
     formatter_class=CustomFormatter
 )
-parser.add_argument('-d', '--destination', default=None,
+parser.add_argument('-d', '--destination', type=Path, default=None,
                     help='Directory to create new library in')
 parser.add_argument('--download', action='store_true',
                     help='Download files from OECD-NEA')
@@ -54,27 +55,28 @@ parser.set_defaults(download=True, extract=True)
 args = parser.parse_args()
 
 library_name = 'jeff'
-ace_files_dir = '-'.join([library_name, args.release, 'ace'])
+ace_files_dir = Path('-'.join([library_name, args.release, 'ace']))
 # the destination is decided after the release is know to avoid putting the release in a folder with a misleading name
 if args.destination is None:
-    args.destination = '-'.join([library_name, args.release, 'hdf5'])
+    args.destination = Path('-'.join([library_name, args.release, 'hdf5']))
 
 # This dictionary contains all the unique information about each release. This can be exstened to accommodated new releases
 release_details = {
     '3.2':{
         'base_url': 'https://www.oecd-nea.org/dbforms/data/eva/evatapes/jeff_32/Processed/',
-        'files':['JEFF32-ACE-'+temperature+'K.tar.gz' for temperature in args.temperatures]+['TSLs.tar.gz'],
-        'neutron_files': os.path.join(ace_files_dir, '*', '*.ACE'),
-        'metastables': os.path.join(ace_files_dir, '**', '*M.ACE'),
-        'sab_files': os.path.join(ace_files_dir, 'ANNEX_6_3_STLs', '*', '*.ace'),
-        'redundant': os.path.join(ace_files_dir, 'ACEs_293K', '*-293.ACE'),
+        'files':['JEFF32-ACE-'+temperature+'K.tar.gz' for temperature in args.temperatures]
+                +['TSLs.tar.gz'],
+        'neutron_files':ace_files_dir.rglob('*.ACE'),
+        'metastables': ace_files_dir.rglob('*M.ACE'),
+        'sab_files': ace_files_dir.glob('ANNEX_6_3_STLs/*/*.ace'),
+        'redundant': ace_files_dir.glob('ACEs_293K/*-293.ACE'),
         'compressed_file_size': '9 GB',
         'uncompressed_file_size': '40 GB'
     }
 }
 
 download_warning = """
-WARNING: This script will download approximately {} GB of data. Extracting and
+WARNING: This script will download up to {} GB of data. Extracting and
 processing the data may require as much as {} GB of additional free disk
 space. Note that if you don't need all 11 temperatures, you can modify the
 'files' list in the script to download only the data you want.
@@ -105,18 +107,19 @@ if args.extract:
             suffix = 'ACEs_293K' if '293' in f else ''
             with tarfile.open(f, 'r') as tgz:
                 print('Extracting {}...'.format(f))
-                tgz.extractall(os.path.join(ace_files_dir, suffix))
+                tgz.extractall(ace_files_dir.joinpath(suffix))
 
             # Remove thermal scattering tables from 293K data since they are
             # redundant
             if '293' in f:
-                for path in glob.glob(release_details[args.release]['redundant']):
+                for path in release_details[args.release]['redundant']:
+                    print('removing ', path)
                     os.remove(path)
 
 # ==============================================================================
 # CHANGE ZAID FOR METASTABLES
 
-metastables = glob.glob(release_details[args.release]['metastables'])
+metastables = release_details[args.release]['metastables']
 for path in metastables:
     print('    Fixing {} (ensure metastable)...'.format(path))
     text = open(path, 'r').read()
@@ -129,17 +132,17 @@ for path in metastables:
 # GENERATE HDF5 LIBRARY -- NEUTRON FILES
 
 # Get a list of all ACE files
-neutron_files = glob.glob(release_details[args.release]['neutron_files'])
+neutron_files = release_details[args.release]['neutron_files']
 
 # Group together tables for same nuclide
 tables = defaultdict(list)
 for filename in sorted(neutron_files):
-    dirname, basename = os.path.split(filename)
-    name = basename.split('.')[0]
-    tables[name].append(filename)
+    name = filename.stem
+    tables[name].append(filename.as_posix())
 
 # Sort temperatures from lowest to highest
 for name, filenames in sorted(tables.items()):
+    print(filenames)
     filenames.sort(key=lambda x: int(
         x.split(os.path.sep)[1].split('_')[1][:-1]))
 
@@ -159,7 +162,7 @@ for name, filenames in sorted(tables.items()):
         data.add_temperature_from_ace(filename)
 
     # Export HDF5 file
-    h5_file = os.path.join(args.destination, data.name + '.h5')
+    h5_file = args.destination.joinpath(data.name + '.h5')
     print('Writing {}...'.format(h5_file))
     data.export_to_hdf5(h5_file, 'w', libver=args.libver)
 
@@ -169,14 +172,12 @@ for name, filenames in sorted(tables.items()):
 # ==============================================================================
 # GENERATE HDF5 LIBRARY -- S(A,B) FILES
 
-sab_files = glob.glob(release_details[args.release]['sab_files'])
-
 # Group together tables for same nuclide
 tables = defaultdict(list)
-for filename in sorted(sab_files):
+for filename in sorted(release_details[args.release]['sab_files']):
     dirname, basename = os.path.split(filename)
     name = basename.split('-')[0]
-    tables[name].append(filename)
+    tables[name].append(filename.as_posix())
 
 # Sort temperatures from lowest to highest
 for name, filenames in sorted(tables.items()):
@@ -202,7 +203,7 @@ for name, filenames in sorted(tables.items()):
         data.add_temperature_from_ace(table)
 
     # Export HDF5 file
-    h5_file = os.path.join(args.destination, data.name + '.h5')
+    h5_file = args.destination.joinpath(data.name + '.h5')
     print('Writing {}...'.format(h5_file))
     data.export_to_hdf5(h5_file, 'w', libver=args.libver)
 
@@ -210,5 +211,4 @@ for name, filenames in sorted(tables.items()):
     library.register_file(h5_file)
 
 # Write cross_sections.xml
-libpath = os.path.join(args.destination, 'cross_sections.xml')
-library.export_to_xml(libpath)
+library.export_to_xml(args.destination.joinpath('cross_sections.xml'))
