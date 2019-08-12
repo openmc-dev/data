@@ -210,4 +210,4 @@ for name, filenames in sorted(tables.items()):
     library.register_file(h5_file)
 
 # Write cross_sections.xml
-library.export_to_xml(args.destination.joinpath('cross_sections.xml'))
+library.export_to_xml(args.destination / 'cross_sections.xml')
