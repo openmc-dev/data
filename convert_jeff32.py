@@ -64,7 +64,7 @@ if args.destination is None:
 release_details = {
     '3.2':{
         'base_url': 'https://www.oecd-nea.org/dbforms/data/eva/evatapes/jeff_32/Processed/',
-        'files':['JEFF32-ACE-'+temperature+'K.tar.gz' for temperature in args.temperatures]
+        'files': [f'JEFF32-ACE-{temperature}K.tar.gz' for temperature in args.temperatures]
                 +['TSLs.tar.gz'],
         'neutron_files':ace_files_dir.rglob('*.ACE'),
         'metastables': ace_files_dir.rglob('*M.ACE'),
