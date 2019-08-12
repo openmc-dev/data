@@ -176,7 +176,7 @@ tables = defaultdict(list)
 for filename in sorted(release_details[args.release]['sab_files']):
     dirname, basename = os.path.split(filename)
     name = basename.split('-')[0]
-    tables[name].append(filename.as_posix())
+    tables[name].append(str(filename))
 
 # Sort temperatures from lowest to highest
 for name, filenames in sorted(tables.items()):
