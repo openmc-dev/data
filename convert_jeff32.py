@@ -113,7 +113,7 @@ if args.extract:
             # redundant
             if '293' in f:
                 for path in release_details[args.release]['redundant']:
-                    print('removing ', path)
+                    print(f'removing {path}')
                     os.remove(path)
 
 # ==============================================================================
