@@ -138,7 +138,7 @@ neutron_files = release_details[args.release]['neutron_files']
 tables = defaultdict(list)
 for filename in sorted(neutron_files):
     name = filename.stem
-    tables[name].append(filename.as_posix())
+    tables[name].append(str(filename))
 
 # Sort temperatures from lowest to highest
 for name, filenames in sorted(tables.items()):
