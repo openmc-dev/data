@@ -64,8 +64,8 @@ if args.destination is None:
 release_details = {
     '3.2':{
         'base_url': 'https://www.oecd-nea.org/dbforms/data/eva/evatapes/jeff_32/Processed/',
-        'files': [f'JEFF32-ACE-{temperature}K.tar.gz' for temperature in args.temperatures]
-                +['TSLs.tar.gz'],
+        'files': [f'JEFF32-ACE-{t}K.zip' if t=='800' else f'JEFF32-ACE-{t}K.tar.gz' for t in args.temperatures] 
+                  +['TSLs.tar.gz'],
         'neutron_files':ace_files_dir.rglob('*.ACE'),
         'metastables': ace_files_dir.rglob('*M.ACE'),
         'sab_files': ace_files_dir.glob('ANNEX_6_3_STLs/*/*.ace'),
@@ -78,17 +78,16 @@ release_details = {
 download_warning = """
 WARNING: This script will download up to {} GB of data. Extracting and
 processing the data may require as much as {} GB of additional free disk
-space. Note that if you don't need all 11 temperatures, you can modify the
-'files' list in the script to download only the data you want.
+space. Note that if you don't need all 11 temperatures, you can used the 
+--temperature argument to download only the temperatures you want.
 """.format(release_details[args.release]['compressed_file_size'],
            release_details[args.release]['uncompressed_file_size'])
-
-print(download_warning)
 
 # ==============================================================================
 # DOWNLOAD FILES FROM OECD SITE
 
 if args.download:
+    print(download_warning)
     for f in release_details[args.release]['files']:
         download(urljoin(release_details[args.release]['base_url'], f))
 
