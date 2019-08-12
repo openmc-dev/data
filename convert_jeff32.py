@@ -202,7 +202,7 @@ for name, filenames in sorted(tables.items()):
         data.add_temperature_from_ace(table)
 
     # Export HDF5 file
-    h5_file = args.destination.joinpath(data.name + '.h5')
+    h5_file = args.destination / f'{data.name}.h5'
     print('Writing {}...'.format(h5_file))
     data.export_to_hdf5(h5_file, 'w', libver=args.libver)
 
