@@ -107,7 +107,7 @@ if args.extract:
             suffix = 'ACEs_293K' if '293' in f else ''
             with tarfile.open(f, 'r') as tgz:
                 print('Extracting {}...'.format(f))
-                tgz.extractall(ace_files_dir.joinpath(suffix))
+                tgz.extractall(ace_files_dir / suffix)
 
             # Remove thermal scattering tables from 293K data since they are
             # redundant
