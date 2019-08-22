@@ -9,126 +9,219 @@ used for OpenMC's regression test suite.
 import argparse
 import glob
 import hashlib
-import os
 import shutil
 import subprocess
 import sys
 import tarfile
+import zipfile
+from pathlib import Path
 
 import openmc.data
 from openmc._utils import download
 
+# Make sure Python version is sufficient
+assert sys.version_info >= (3, 6), "Python 3.6+ is required"
+
+description = """
+Download ENDF/B-VII.1 incident neutron ACE data and incident photon ENDF data
+from NNDC and convert it to an HDF5 library for use with OpenMC. This data is
+used for OpenMC's regression test suite.
+"""
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
                       argparse.RawDescriptionHelpFormatter):
     pass
 
 parser = argparse.ArgumentParser(
-    description=__doc__,
+    description=description,
     formatter_class=CustomFormatter
 )
-parser.add_argument('-b', '--batch', action='store_true',
-                    help='supresses standard in')
-parser.add_argument('-n', '--neutron-only', action='store_true',
-                    help='Whether to exclude photon interaction/atomic data')
+
+parser.add_argument('-d', '--destination', type=Path, default='nndc-b7.1-hdf5',
+                    help='Directory to create new library in')
+parser.add_argument('--download', action='store_true',
+                    help='Download tarball from NNDC-BNL')
+parser.add_argument('--no-download', dest='download', action='store_false',
+                    help='Do not download tarball from NNDC-BNL')
+parser.add_argument('--extract', action='store_true',
+                    help='Extract compressed files')
+parser.add_argument('--no-extract', dest='extract', action='store_false',
+                    help='Do not extract compressed file if it has already been extracted')
 parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='earliest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
+parser.add_argument('-r', '--release', choices=['b7.1'],
+                    default='b7.1', help="The nuclear data library release version. "
+                    "The currently supported options are b7.1")
+parser.add_argument('-p', '--particles', choices=['neutron', 'photon'], nargs='+',
+                    default=['neutron', 'photon'], help="Incident particles to include")   
+parser.set_defaults(download=True, extract=True)
 args = parser.parse_args()
 
-base_url = 'http://www.nndc.bnl.gov/endf/b7.1/aceFiles/'
-files = ['ENDF-B-VII.1-neutron-293.6K.tar.gz',
-         'ENDF-B-VII.1-tsl.tar.gz']
-checksums = ['9729a17eb62b75f285d8a7628ace1449',
-             'e17d827c92940a30f22f096d910ea186']
+library_name = 'nndc'
+ace_files_dir = Path('-'.join([library_name, args.release, 'ace']))
+endf_files_dir = Path('-'.join([library_name, args.release, 'endf']))
+
+# This dictionary contains all the unique information about each release. This can be exstened to accommodated new releases
+release_details = {
+    'b7.1': 
+        {
+        'neutron': 
+            {
+            'base_url': 'http://www.nndc.bnl.gov/endf/b7.1/aceFiles/',
+            'compressed_files': ['ENDF-B-VII.1-neutron-293.6K.tar.gz',
+                                'ENDF-B-VII.1-tsl.tar.gz'],
+            'checksums': ['9729a17eb62b75f285d8a7628ace1449',
+                        'e17d827c92940a30f22f096d910ea186'],
+            'file_type': 'ace',   
+            'ace_files': ace_files_dir.rglob('[aA-zZ]*.ace'), #adding a * to the end gets acer sab files as well
+            'sab_files': ace_files_dir.rglob('*.acer'),
+            'compressed_file_size': 497,
+            'uncompressed_file_size': 0.1
+            },
+        'photon': 
+            {
+            'base_url': 'http://www.nndc.bnl.gov/endf/b7.1/zips/',
+            'compressed_files': ['ENDF-B-VII.1-photoat.zip', 
+                                 'ENDF-B-VII.1-atomic_relax.zip'],
+            'file_type': 'endf',   
+            'photo_file': endf_files_dir.joinpath('photoat').rglob('*.endf'),
+            'atom_file': endf_files_dir.joinpath('atomic_relax').rglob('*.endf'),
+            'compressed_file_size': 9,
+            'uncompressed_file_size': 0.1
+            }
+        }
+    
+}
+
+
+compressed_file_size, uncompressed_file_size = 0, 0
+for p in ['neutron','photon']: 
+    compressed_file_size += release_details['b7.1'][p]['compressed_file_size']
+    uncompressed_file_size += release_details['b7.1'][p]['uncompressed_file_size']
+
+download_warning = """
+WARNING: This script will download up to {} MB of data. Extracting and
+processing the data may require as much as {} MB of additional free disk
+space. This script downloads ENDF/B-VII.1 incident neutron ACE data and 
+incident photon ENDF data from NNDC and convert it to an HDF5 library 
+for use with OpenMC. This data is used for OpenMC's regression test suite.
+""".format(compressed_file_size, uncompressed_file_size)
+
 
 # ==============================================================================
 # DOWNLOAD FILES FROM NNDC SITE
 
-files_complete = []
-for f in files:
-    # Establish connection to URL
-    url = base_url + f
-    downloaded_file = download(url)
-    files_complete.append(f)
+if args.download:
+    for particle in args.particles:
+        print(download_warning)
+        for f in release_details[args.release][particle]['compressed_files']:
+            # Establish connection to URL
+            url = release_details[args.release][particle]['base_url'] + f
+            print(url)
+            downloaded_file = download(url)
+
 
 # ==============================================================================
 # VERIFY MD5 CHECKSUMS
 
-print('Verifying MD5 checksums...')
-for f, checksum in zip(files, checksums):
-    downloadsum = hashlib.md5(open(f, 'rb').read()).hexdigest()
-    if downloadsum != checksum:
-        raise IOError("MD5 checksum for {} does not match. If this is your first "
-                      "time receiving this message, please re-run the script. "
-                      "Otherwise, please contact OpenMC developers by emailing "
-                      "openmc-users@googlegroups.com.".format(f))
+if args.download:
+    print('Verifying MD5 checksums...')
+    for particle in args.particles:
+        if 'checksums' in release_details[args.release].keys():
+            for f, checksum in zip(release_details[args.release]['compressed_files'], 
+                                    release_details[args.release]['checksums']):
+                downloadsum = hashlib.md5(open(f, 'rb').read()).hexdigest()
+                print(downloadsum,f)
+            if downloadsum != checksum:
+                raise IOError("MD5 checksum for {} does not match. If this is your first "
+                            "time receiving this message, please re-run the script. "
+                            "Otherwise, please contact OpenMC developers by emailing "
+                            "openmc-users@googlegroups.com.".format(f))
+
 
 # ==============================================================================
 # EXTRACT FILES FROM TGZ
 
-for f in files:
-    if f not in files_complete:
-        continue
+if args.extract:
+    for particle in args.particles:
 
-    # Extract files
-    suffix = f[f.rindex('-') + 1:].rstrip('.tar.gz')
-    with tarfile.open(f, 'r') as tgz:
-        print('Extracting {}...'.format(f))
-        tgz.extractall(path='nndc/' + suffix)
+        if release_details[args.release][particle]['file_type'] == 'ace':
+            extraction_dir = ace_files_dir
+        elif release_details[args.release][particle]['file_type'] == 'endf':
+            extraction_dir = endf_files_dir
 
-# Move ACE files down one level
-for filename in glob.glob('nndc/293.6K/ENDF-B-VII.1-neutron-293.6K/*'):
-    shutil.move(filename, 'nndc/293.6K/' + os.path.basename(filename))
+        for f in release_details[args.release][particle]['compressed_files']:
+            # Extract files
+
+            if f.endswith('.zip'):
+                with zipfile.ZipFile(f, 'r') as zipf:
+                    print('Extracting {}...'.format(f))
+                    zipf.extractall(extraction_dir)
+            else:
+                with tarfile.open(f, 'r') as tgz:
+                    print('Extracting {}...'.format(f))
+                    tgz.extractall(path = extraction_dir)
+
 
 # ==============================================================================
 # FIX ZAID ASSIGNMENTS FOR VARIOUS S(A,B) TABLES
 
 def fix_zaid(table, old, new):
-    filename = os.path.join('nndc', 'tsl', table)
+    filename = ace_files_dir / table
     with open(filename, 'r') as fh:
         text = fh.read()
     text = text.replace(old, new, 1)
     with open(filename, 'w') as fh:
         fh.write(text)
 
-print('Fixing ZAIDs for S(a,b) tables')
-fix_zaid('bebeo.acer', '8016', '   0')
-fix_zaid('obeo.acer', '4009', '   0')
+if 'neutrons' in args.particles:
+    print('Fixing ZAIDs for S(a,b) tables')
+    fix_zaid('bebeo.acer', '8016', '   0')
+    fix_zaid('obeo.acer', '4009', '   0')
 
-# ==============================================================================
-# PROMPT USER TO DELETE .TAR.GZ FILES
-
-# Ask user to delete
-if not args.batch:
-    response = input('Delete *.tar.gz files? ([y]/n) ')
-else:
-    response = 'y'
-
-# Delete files if requested
-if not response or response.lower().startswith('y'):
-    for f in files:
-        if os.path.exists(f):
-            print('Removing {}...'.format(f))
-            os.remove(f)
 
 # ==============================================================================
 # GENERATE HDF5 LIBRARY
 
-# get a list of all ACE files
-ace_files = sorted(glob.glob(os.path.join('nndc', '**', '*.ace*')))
+# Create output directory if it doesn't exist
+args.destination.mkdir(parents=True, exist_ok=True)
 
-# Call the ace-to-hdf5 conversion script
-pwd = os.path.dirname(os.path.realpath(__file__))
-ace2hdf5 = os.path.join(pwd, 'openmc-ace-to-hdf5')
-subprocess.call([ace2hdf5,
-                 '-d', 'nndc_hdf5',
-                 '--libver', args.libver] + ace_files)
+library = openmc.data.DataLibrary()
 
-# Generate photo interaction library files
-if not args.neutron_only:
-    pwd = os.path.dirname(os.path.realpath(__file__))
-    photo_endf = os.path.join(pwd, 'openmc-get-photon-data')
-    subprocess.call([photo_endf, '-c', 'cross_sections.xml'],
-                    cwd='nndc_hdf5')
+for particle in args.particles: 
+    if particle == 'neutron':
+        for filename in sorted(release_details[args.release][particle]['ace_files']):
+
+            print('Converting: ' , filename)
+            data = openmc.data.IncidentNeutron.from_ace(filename)
+
+            # Export HDF5 file
+            h5_file = args.destination.joinpath(data.name + '.h5')
+            data.export_to_hdf5(h5_file, 'w', libver=args.libver)
+
+            # Register with library
+            library.register_file(h5_file)
+
+
+    elif particle == 'photon':
+        print(particle)
+        for photo_file, atom_file in zip(sorted(release_details[args.release][particle]['photo_file']),
+                                         sorted(release_details[args.release][particle]['atom_file'])):
+    
+            print('Converting: ' , photo_file, atom_file)
+            
+            # Generate instance of IncidentPhoton
+            data = openmc.data.IncidentPhoton.from_endf(photo_file, atom_file)
+
+            # Export HDF5 file
+            h5_file = args.destination.joinpath(data.name + '.h5')
+            data.export_to_hdf5(h5_file, 'w', libver=args.libver)
+
+            # Register with library
+            library.register_file(h5_file)
+        
+
+# Write cross_sections.xml
+library.export_to_xml(args.destination / 'cross_sections.xml')
