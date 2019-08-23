@@ -97,7 +97,7 @@ release_details = {
 
 
 compressed_file_size, uncompressed_file_size = 0, 0
-for p in ['neutron','photon']: 
+for p in ('neutron', 'photon'): 
     compressed_file_size += release_details['b7.1'][p]['compressed_file_size']
     uncompressed_file_size += release_details['b7.1'][p]['uncompressed_file_size']
 
