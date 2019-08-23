@@ -22,18 +22,12 @@ from openmc._utils import download
 # Make sure Python version is sufficient
 assert sys.version_info >= (3, 6), "Python 3.6+ is required"
 
-description = """
-Download ENDF/B-VII.1 incident neutron ACE data and incident photon ENDF data
-from NNDC and convert it to an HDF5 library for use with OpenMC. This data is
-used for OpenMC's regression test suite.
-"""
-
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
                       argparse.RawDescriptionHelpFormatter):
     pass
 
 parser = argparse.ArgumentParser(
-    description=description,
+    description=__doc__,
     formatter_class=CustomFormatter
 )
 
