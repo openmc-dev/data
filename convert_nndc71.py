@@ -92,8 +92,8 @@ release_details = {
 
 compressed_file_size, uncompressed_file_size = 0, 0
 for p in ('neutron', 'photon'): 
-    compressed_file_size += release_details['b7.1'][p]['compressed_file_size']
-    uncompressed_file_size += release_details['b7.1'][p]['uncompressed_file_size']
+    compressed_file_size += release_details[args.release][p]['compressed_file_size']
+    uncompressed_file_size += release_details[args.release][p]['uncompressed_file_size']
 
 download_warning = """
 WARNING: This script will download up to {} MB of data. Extracting and
@@ -113,7 +113,6 @@ if args.download:
         for f in release_details[args.release][particle]['compressed_files']:
             # Establish connection to URL
             url = release_details[args.release][particle]['base_url'] + f
-            print(url)
             downloaded_file = download(url)
 
 
