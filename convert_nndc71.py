@@ -15,6 +15,7 @@ import sys
 import tarfile
 import zipfile
 from pathlib import Path
+from string import digits
 
 import openmc.data
 from openmc._utils import download
@@ -67,7 +68,7 @@ release_details = {
             'checksums': ['9729a17eb62b75f285d8a7628ace1449',
                         'e17d827c92940a30f22f096d910ea186'],
             'file_type': 'ace',   
-            'ace_files': ace_files_dir.rglob('[aA-zZ]*.ace'), #adding a * to the end gets acer sab files as well
+            'ace_files': ace_files_dir.rglob('[aA-zZ]*.ace'),
             'sab_files': ace_files_dir.rglob('*.acer'),
             'compressed_file_size': 497,
             'uncompressed_file_size': 0.1
@@ -183,8 +184,23 @@ library = openmc.data.DataLibrary()
 
 for particle in args.particles: 
     if particle == 'neutron':
-        for filename in sorted(release_details[release][particle]['ace_files']):
+        for filename in sorted(release_details[release][particle]['sab_files']):
 
+            print('Converting: ' , filename)
+            table = openmc.data.ace.get_table(filename)
+            name, xs = table.name.split('.')
+            table.name = '.'.join((name.strip(digits), xs))
+            data = openmc.data.ThermalScattering.from_ace(table)
+            
+            # Export HDF5 file
+            h5_file = args.destination.joinpath(data.name + '.h5')
+            data.export_to_hdf5(h5_file, 'w', libver=args.libver)
+            
+            # Register with library
+            library.register_file(h5_file)
+
+        for filename in sorted(release_details[release][particle]['ace_files']):
+        
             print('Converting: ' , filename)
             data = openmc.data.IncidentNeutron.from_ace(filename)
 
