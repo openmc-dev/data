@@ -213,7 +213,6 @@ for particle in args.particles:
 
 
     elif particle == 'photon':
-        print(particle)
         for photo_file, atom_file in zip(sorted(release_details[release][particle]['photo_file']),
                                          sorted(release_details[release][particle]['atom_file'])):
     
