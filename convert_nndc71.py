@@ -45,17 +45,15 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='earliest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
-parser.add_argument('-r', '--release', choices=['b7.1'],
-                    default='b7.1', help="The nuclear data library release version. "
-                    "The currently supported options are b7.1")
 parser.add_argument('-p', '--particles', choices=['neutron', 'photon'], nargs='+',
                     default=['neutron', 'photon'], help="Incident particles to include")   
 parser.set_defaults(download=True, extract=True)
 args = parser.parse_args()
 
 library_name = 'nndc'
-ace_files_dir = Path('-'.join([library_name, args.release, 'ace']))
-endf_files_dir = Path('-'.join([library_name, args.release, 'endf']))
+release = 'b7.1'
+ace_files_dir = Path('-'.join([library_name, release, 'ace']))
+endf_files_dir = Path('-'.join([library_name, release, 'endf']))
 
 # This dictionary contains all the unique information about each release. This can be exstened to accommodated new releases
 release_details = {
@@ -92,8 +90,8 @@ release_details = {
 
 compressed_file_size, uncompressed_file_size = 0, 0
 for p in ('neutron', 'photon'): 
-    compressed_file_size += release_details[args.release][p]['compressed_file_size']
-    uncompressed_file_size += release_details[args.release][p]['uncompressed_file_size']
+    compressed_file_size += release_details[release][p]['compressed_file_size']
+    uncompressed_file_size += release_details[release][p]['uncompressed_file_size']
 
 download_warning = """
 WARNING: This script will download up to {} MB of data. Extracting and
@@ -110,9 +108,9 @@ for use with OpenMC. This data is used for OpenMC's regression test suite.
 if args.download:
     for particle in args.particles:
         print(download_warning)
-        for f in release_details[args.release][particle]['compressed_files']:
+        for f in release_details[release][particle]['compressed_files']:
             # Establish connection to URL
-            url = release_details[args.release][particle]['base_url'] + f
+            url = release_details[release][particle]['base_url'] + f
             downloaded_file = download(url)
 
 
@@ -122,9 +120,9 @@ if args.download:
 if args.download:
     print('Verifying MD5 checksums...')
     for particle in args.particles:
-        if 'checksums' in release_details[args.release].keys():
-            for f, checksum in zip(release_details[args.release]['compressed_files'], 
-                                    release_details[args.release]['checksums']):
+        if 'checksums' in release_details[release].keys():
+            for f, checksum in zip(release_details[release]['compressed_files'], 
+                                    release_details[release]['checksums']):
                 downloadsum = hashlib.md5(open(f, 'rb').read()).hexdigest()
                 print(downloadsum,f)
             if downloadsum != checksum:
@@ -140,12 +138,12 @@ if args.download:
 if args.extract:
     for particle in args.particles:
 
-        if release_details[args.release][particle]['file_type'] == 'ace':
+        if release_details[release][particle]['file_type'] == 'ace':
             extraction_dir = ace_files_dir
-        elif release_details[args.release][particle]['file_type'] == 'endf':
+        elif release_details[release][particle]['file_type'] == 'endf':
             extraction_dir = endf_files_dir
 
-        for f in release_details[args.release][particle]['compressed_files']:
+        for f in release_details[release][particle]['compressed_files']:
             # Extract files
 
             if f.endswith('.zip'):
@@ -185,7 +183,7 @@ library = openmc.data.DataLibrary()
 
 for particle in args.particles: 
     if particle == 'neutron':
-        for filename in sorted(release_details[args.release][particle]['ace_files']):
+        for filename in sorted(release_details[release][particle]['ace_files']):
 
             print('Converting: ' , filename)
             data = openmc.data.IncidentNeutron.from_ace(filename)
@@ -200,8 +198,8 @@ for particle in args.particles:
 
     elif particle == 'photon':
         print(particle)
-        for photo_file, atom_file in zip(sorted(release_details[args.release][particle]['photo_file']),
-                                         sorted(release_details[args.release][particle]['atom_file'])):
+        for photo_file, atom_file in zip(sorted(release_details[release][particle]['photo_file']),
+                                         sorted(release_details[release][particle]['atom_file'])):
     
             print('Converting: ' , photo_file, atom_file)
             
