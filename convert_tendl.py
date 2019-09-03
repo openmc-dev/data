@@ -25,10 +25,16 @@ parser = argparse.ArgumentParser(
     description=description,
     formatter_class=CustomFormatter
 )
-parser.add_argument('-b', '--batch', action='store_true',
-                    help='supresses standard in')
 parser.add_argument('-d', '--destination', default=None,
                     help='Directory to create new library in')
+parser.add_argument('--download', action='store_true',
+                    help='Download tarball from PSI')
+parser.add_argument('--no-download', dest='download', action='store_false',
+                    help='Do not download tarball from PSI')
+parser.add_argument('--extract', action='store_true',
+                    help='Extract compressed files')
+parser.add_argument('--no-extract', dest='extract', action='store_false',
+                    help='Do not extract compressed file if it has already been extracted')
 parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='latest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
@@ -36,6 +42,7 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
 parser.add_argument('-r', '--release', choices=['2015', '2017'],
                     default='2017', help="The nuclear data library release version. "
                     "The currently supported options are 2015 and 2017")
+parser.set_defaults(download=True, extract=True)
 args = parser.parse_args()
 
 
