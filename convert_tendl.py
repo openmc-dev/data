@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 
+"""
+Download TENDL 2017 or TENDL 2015 ACE data from PSI and convert it to a HDF5 library for
+use with OpenMC.
+"""
+
 import argparse
 import glob
 import os
 import sys
 import tarfile
+import pathlib
 
 import openmc.data
 from openmc._utils import download
-
-description = """
-Download TENDL 2017 or TENDL 2015 ACE data from PSI and convert it to a HDF5 library for
-use with OpenMC.
-
-"""
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
@@ -48,7 +48,8 @@ args = parser.parse_args()
 
 
 library_name = 'tendl' #this could be added as an argument to allow different libraries to be downloaded
-ace_files_dir = '-'.join([library_name, args.release, 'ace'])
+ace_files_dir = Path('-'.join([library_name, release, 'ace']))
+
 # the destination is decided after the release is know to avoid putting the release in a folder with a misleading name
 if args.destination is None:
     args.destination = '-'.join([library_name, args.release, 'hdf5'])
@@ -62,6 +63,7 @@ release_details = {
         'metastables': os.path.join(ace_files_dir, 'neutron_file', '*', '*', 'lib', 'endf', '*m-n.ace'),
         'compressed_file_size': '5.1 GB',
         'uncompressed_file_size': '40 GB'
+        # https://tendl.web.psi.ch/tendl_2015/tar_files/ACE-g.tgz
     },
     '2017': {
         'base_url': 'https://tendl.web.psi.ch/tendl_2017/tar_files/',
@@ -70,8 +72,10 @@ release_details = {
         'metastables': os.path.join(ace_files_dir, 'ace-17', '*m'),
         'compressed_file_size': '2.1 GB',
         'uncompressed_file_size': '14 GB'
+        #https://tendl.web.psi.ch/tendl_2017/tar_files/TENDL-283-g.tgz
     }
 }
+
 
 download_warning = """
 WARNING: This script will download {} of data.
@@ -81,33 +85,26 @@ Are you sure you want to continue? ([y]/n)
 """.format(release_details[args.release]['compressed_file_size'],
            release_details[args.release]['uncompressed_file_size'])
 
-response = input(download_warning) if not args.batch else 'y'
-if response.lower().startswith('n'):
-    sys.exit()
 
 # ==============================================================================
 # DOWNLOAD FILES FROM WEBSITE
-
-files_complete = []
-for f in release_details[args.release]['files']:
-    # Establish connection to URL
-    url = release_details[args.release]['base_url'] + f
-    downloaded_file = download(url)
-    files_complete.append(downloaded_file)
+if args.download:
+    print(download_warning)
+    for f in release_details[args.release]['files']:
+        # Establish connection to URL
+        url = release_details[args.release]['base_url'] + f
+        downloaded_file = download(url)
 
 # ==============================================================================
 # EXTRACT FILES FROM TGZ
 
-for f in release_details[args.release]['files']:
-    if f not in files_complete:
-        continue
-
-    # Extract files
-
-    suffix = ''
-    with tarfile.open(f, 'r') as tgz:
-        print('Extracting {0}...'.format(f))
-        tgz.extractall(path=os.path.join(ace_files_dir, suffix))
+if args.extract:
+    for f in release_details[args.release]['files']:
+        for f in release_details[args.release]['compressed_files']:
+            # Extract files
+            with tarfile.open(f, 'r') as tgz:
+                print('Extracting {}...'.format(f))
+                tgz.extractall(path = ace_files_dir)
 
 # ==============================================================================
 # CHANGE ZAID FOR METASTABLES
