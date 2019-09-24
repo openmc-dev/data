@@ -178,7 +178,10 @@ if 'neutrons' in args.particles:
 # GENERATE HDF5 LIBRARY
 
 # Create output directory if it doesn't exist
-args.destination.mkdir(parents=True, exist_ok=True)
+for particle in args.particles:
+    particle_destination = args.destination / particle
+    particle_destination.mkdir(parents=True, exist_ok=True)
+
 
 library = openmc.data.DataLibrary()
 
@@ -193,7 +196,7 @@ for particle in args.particles:
             data = openmc.data.ThermalScattering.from_ace(table)
             
             # Export HDF5 file
-            h5_file = args.destination.joinpath(data.name + '.h5')
+            h5_file = args.destination.joinpath(particle, data.name + '.h5')
             data.export_to_hdf5(h5_file, 'w', libver=args.libver)
             
             # Register with library
@@ -205,7 +208,7 @@ for particle in args.particles:
             data = openmc.data.IncidentNeutron.from_ace(filename)
 
             # Export HDF5 file
-            h5_file = args.destination.joinpath(data.name + '.h5')
+            h5_file = args.destination.joinpath(particle, data.name + '.h5')
             data.export_to_hdf5(h5_file, 'w', libver=args.libver)
 
             # Register with library
@@ -222,7 +225,7 @@ for particle in args.particles:
             data = openmc.data.IncidentPhoton.from_endf(photo_file, atom_file)
 
             # Export HDF5 file
-            h5_file = args.destination.joinpath(data.name + '.h5')
+            h5_file = args.destination.joinpath(particle, data.name + '.h5')
             data.export_to_hdf5(h5_file, 'w', libver=args.libver)
 
             # Register with library
