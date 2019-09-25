@@ -65,8 +65,10 @@ release_details = {
             {
             'base_url': 'https://tendl.web.psi.ch/tendl_2015/tar_files/',
             'compressed_files': ['ACE-n.tgz'],
+            
             # 'ace_files': ace_files_dir.rglob('neutron_file', '*', '*', 'lib', 'endf', '*-n.ace'),
             # 'metastables': ace_files_dir.rglob('neutron_file', '*', '*', 'lib', 'endf', '*m-n.ace'),
+            'metastables': ace_files_dir.rglob('*m-n.ace'),
             'compressed_file_size': 50000,
             'uncompressed_file_size': 40000
             },
@@ -85,7 +87,9 @@ release_details = {
             'base_url': 'https://tendl.web.psi.ch/tendl_2017/tar_files/',
             'compressed_files': ['tendl17c.tar.bz2'],
             # 'ace_files': ace_files_dir.rglob('ace-17/*'),
+            'ace_files': ace_files_dir.rglob('ace-17/*'),
             # 'metastables': ace_files_dir.rglob('ace-17/*m'),
+            'metastables': ace_files_dir.rglob('ace-17/*m'),
             'compressed_file_size': 2100,
             'uncompressed_file_size': 14000
             },
@@ -134,31 +138,32 @@ if args.extract:
                     print('Extracting {}...'.format(f))
                     tgz.extractall(path = ace_files_dir)
 
-input()
-
 # ==============================================================================
 # CHANGE ZAID FOR METASTABLES
 
-metastables = glob.glob(release_details[args.release]['metastables'])
-for path in metastables:
-    print('    Fixing {} (ensure metastable)...'.format(path))
-    text = open(path, 'r').read()
-    mass_first_digit = int(text[3])
-    if mass_first_digit <= 2:
-        text = text[:3] + str(mass_first_digit + 4) + text[4:]
-        open(path, 'w').write(text)
+if 'neutron' in args.particles:
+    for path in release_details[args.release]['neutron']['metastables']:     
+        print('    Fixing {} (ensure metastable)...'.format(path))
+        text = open(path, 'r').read()
+        mass_first_digit = int(text[3])
+        if mass_first_digit <= 2:
+            text = text[:3] + str(mass_first_digit + 4) + text[4:]
+            open(path, 'w').write(text)
+
 
 # ==============================================================================
 # GENERATE HDF5 LIBRARY -- NEUTRON FILES
 
 # Create output directory if it doesn't exist
-args.destination.mkdir(parents=True, exist_ok=True)
+for particle in args.particles:
+    particle_destination = args.destination / particle
+    particle_destination.mkdir(parents=True, exist_ok=True)
 
 library = openmc.data.DataLibrary()
 
 for particle in args.particles: 
     if particle == 'neutron':
-        for filename in sorted(release_details[release][particle]['ace_files']):
+        for filename in sorted(release_details[args.release][particle]['ace_files']):
         
             # this is a fix for the TENDL-2017 release where the B10 ACE file which has an error on one of the values
             if library_name == 'tendl' and args.release == '2017' and os.path.basename(filename) == 'B010':
@@ -168,20 +173,19 @@ for particle in args.particles:
                     text = ''.join(text[:423])+'86896'+''.join(text[428:])
                     open(filename, 'w').write(text)
 
-            print('Converting: ' + filename)
+            print('Converting: ', filename)
             data = openmc.data.IncidentNeutron.from_ace(filename)
 
             # Export HDF5 file
-            h5_file = args.destination.joinpath(data.name + '.h5')
-            print('Writing {}...'.format(h5_file))
+            h5_file = args.destination.joinpath(particle, data.name + '.h5')
             data.export_to_hdf5(h5_file, 'w', libver=args.libver)
 
             # Register with library
             library.register_file(h5_file)
 
     elif particle == 'photon':
-        for photo_file, atom_file in zip(sorted(release_details[release][particle]['photo_file']),
-                                         sorted(release_details[release][particle]['atom_file'])):
+        for photo_file, atom_file in zip(sorted(release_details[args.release][particle]['photo_file']),
+                                         sorted(release_details[args.release][particle]['atom_file'])):
     
             print('Converting: ' , photo_file, atom_file)
             
@@ -189,7 +193,7 @@ for particle in args.particles:
             data = openmc.data.IncidentPhoton.from_endf(photo_file, atom_file)
 
             # Export HDF5 file
-            h5_file = args.destination.joinpath(data.name + '.h5')
+            h5_file = args.destination.joinpath(particle, data.name + '.h5')
             data.export_to_hdf5(h5_file, 'w', libver=args.libver)
 
             # Register with library
@@ -197,4 +201,4 @@ for particle in args.particles:
 
 # Write cross_sections.xml
 library.export_to_xml(args.destination / 'cross_sections.xml')
-
+print('written ',args.destination / 'cross_sections.xml')
