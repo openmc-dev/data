@@ -191,10 +191,7 @@ for particle in args.particles:
 
             print('Converting: ' , filename)
             table = openmc.data.ace.get_table(filename)
-            name, xs = table.name.split('.')
-            table.name = '.'.join((name.strip(digits), xs))
             data = openmc.data.ThermalScattering.from_ace(table)
-            
             # Export HDF5 file
             h5_file = args.destination.joinpath(particle, data.name + '.h5')
             data.export_to_hdf5(h5_file, 'w', libver=args.libver)
@@ -234,3 +231,4 @@ for particle in args.particles:
 
 # Write cross_sections.xml
 library.export_to_xml(args.destination / 'cross_sections.xml')
+print('written ',args.destination / 'cross_sections.xml')
