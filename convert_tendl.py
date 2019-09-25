@@ -65,7 +65,8 @@ release_details = {
             {
             'base_url': 'https://tendl.web.psi.ch/tendl_2015/tar_files/',
             'compressed_files': ['ACE-n.tgz'],
-            
+            'ace_files': ace_files_dir.rglob('*-n.ace'),
+            'metastables': ace_files_dir.rglob('*m-n.ace'),
             # 'ace_files': ace_files_dir.rglob('neutron_file', '*', '*', 'lib', 'endf', '*-n.ace'),
             # 'metastables': ace_files_dir.rglob('neutron_file', '*', '*', 'lib', 'endf', '*m-n.ace'),
             'metastables': ace_files_dir.rglob('*m-n.ace'),
@@ -86,9 +87,7 @@ release_details = {
             {
             'base_url': 'https://tendl.web.psi.ch/tendl_2017/tar_files/',
             'compressed_files': ['tendl17c.tar.bz2'],
-            # 'ace_files': ace_files_dir.rglob('ace-17/*'),
             'ace_files': ace_files_dir.rglob('ace-17/*'),
-            # 'metastables': ace_files_dir.rglob('ace-17/*m'),
             'metastables': ace_files_dir.rglob('ace-17/*m'),
             'compressed_file_size': 2100,
             'uncompressed_file_size': 14000
@@ -132,11 +131,10 @@ if args.download:
 if args.extract:
     for particle in args.particles:
         for f in release_details[args.release][particle]['compressed_files']:
-            for f in release_details[args.release]['compressed_files']:
-                # Extract files
-                with tarfile.open(f, 'r') as tgz:
-                    print('Extracting {}...'.format(f))
-                    tgz.extractall(path = ace_files_dir)
+            # Extract files
+            with tarfile.open(f, 'r') as tgz:
+                print('Extracting {}...'.format(f))
+                tgz.extractall(path = ace_files_dir)
 
 # ==============================================================================
 # CHANGE ZAID FOR METASTABLES
