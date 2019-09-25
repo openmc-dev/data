@@ -71,7 +71,7 @@ release_details = {
             'ace_files': ace_files_dir.rglob('[aA-zZ]*.ace'),
             'sab_files': ace_files_dir.rglob('*.acer'),
             'compressed_file_size': 497,
-            'uncompressed_file_size': 0.1
+            'uncompressed_file_size': 1200
             },
         'photon': 
             {
@@ -82,7 +82,7 @@ release_details = {
             'photo_file': endf_files_dir.joinpath('photoat').rglob('*.endf'),
             'atom_file': endf_files_dir.joinpath('atomic_relax').rglob('*.endf'),
             'compressed_file_size': 9,
-            'uncompressed_file_size': 0.1
+            'uncompressed_file_size': 45
             }
         }
     
