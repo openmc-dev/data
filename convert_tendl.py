@@ -70,15 +70,15 @@ release_details = {
             # 'ace_files': ace_files_dir.rglob('neutron_file', '*', '*', 'lib', 'endf', '*-n.ace'),
             # 'metastables': ace_files_dir.rglob('neutron_file', '*', '*', 'lib', 'endf', '*m-n.ace'),
             'metastables': ace_files_dir.rglob('*m-n.ace'),
-            'compressed_file_size': 50000,
-            'uncompressed_file_size': 40000
+            'compressed_file_size': 5100,
+            'uncompressed_file_size': 26800
             },
         'photon':
             {
             'base_url': 'https://tendl.web.psi.ch/tendl_2015/tar_files/',
             'compressed_files': ['ACE-g.tgz'],
-            'compressed_file_size': 0,
-            'uncompressed_file_size': 0
+            'compressed_file_size': 818,
+            'uncompressed_file_size': 3900
             },
         },
     '2017': 
@@ -95,7 +95,7 @@ release_details = {
         'photon':
             {
             'base_url': 'https://tendl.web.psi.ch/tendl_2017/tar_files/',
-            'compressed_files': ['TENDL-283-g.tgz'],
+            'compressed_files': ['TENDL-g.tgz'],
             'compressed_file_size': 0,
             'uncompressed_file_size': 0
             }
