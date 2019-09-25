@@ -52,6 +52,7 @@ args = parser.parse_args()
 
 library_name = 'tendl' #this could be added as an argument to allow different libraries to be downloaded
 ace_files_dir = Path('-'.join([library_name, args.release, 'ace']))
+endf_files_dir = Path('-'.join([library_name, args.release, 'endf']))
 
 # the destination is decided after the release is know to avoid putting the release in a folder with a misleading name
 if args.destination is None:
@@ -65,6 +66,7 @@ release_details = {
             {
             'base_url': 'https://tendl.web.psi.ch/tendl_2015/tar_files/',
             'compressed_files': ['ACE-n.tgz'],
+            'file_type': 'ace',
             'ace_files': ace_files_dir.rglob('*-n.ace'),
             'metastables': ace_files_dir.rglob('*m-n.ace'),
             # 'ace_files': ace_files_dir.rglob('neutron_file', '*', '*', 'lib', 'endf', '*-n.ace'),
@@ -77,6 +79,8 @@ release_details = {
             {
             'base_url': 'https://tendl.web.psi.ch/tendl_2015/tar_files/',
             'compressed_files': ['ACE-g.tgz'],
+            'file_type': 'ace',
+            'ace_files': ace_files_dir.joinpath('gamma_file').rglob('*.ace'),
             'compressed_file_size': 818,
             'uncompressed_file_size': 3900
             },
@@ -87,6 +91,7 @@ release_details = {
             {
             'base_url': 'https://tendl.web.psi.ch/tendl_2017/tar_files/',
             'compressed_files': ['tendl17c.tar.bz2'],
+            'file_type': 'ace',
             'ace_files': ace_files_dir.rglob('ace-17/*'),
             'metastables': ace_files_dir.rglob('ace-17/*m'),
             'compressed_file_size': 2100,
@@ -96,6 +101,8 @@ release_details = {
             {
             'base_url': 'https://tendl.web.psi.ch/tendl_2017/tar_files/',
             'compressed_files': ['TENDL-g.tgz'],
+            'ace_files': endf_files_dir.joinpath('gamma_file').rglob('*.tendl'),
+            'file_type': 'endf',
             'compressed_file_size': 0,
             'uncompressed_file_size': 0
             }
@@ -130,11 +137,17 @@ if args.download:
 
 if args.extract:
     for particle in args.particles:
+
+        if release_details[args.release][particle]['file_type'] == 'ace':
+            extraction_dir = ace_files_dir
+        elif release_details[args.release][particle]['file_type'] == 'endf':
+            extraction_dir = endf_files_dir
+
         for f in release_details[args.release][particle]['compressed_files']:
             # Extract files
             with tarfile.open(f, 'r') as tgz:
                 print('Extracting {}...'.format(f))
-                tgz.extractall(path = ace_files_dir)
+                tgz.extractall(path = extraction_dir)
 
 # ==============================================================================
 # CHANGE ZAID FOR METASTABLES
@@ -182,13 +195,15 @@ for particle in args.particles:
             library.register_file(h5_file)
 
     elif particle == 'photon':
-        for photo_file, atom_file in zip(sorted(release_details[args.release][particle]['photo_file']),
-                                         sorted(release_details[args.release][particle]['atom_file'])):
+        for photo_file in sorted(release_details[args.release][particle]['ace_files']):
     
-            print('Converting: ' , photo_file, atom_file)
+            print('Converting: ' , photo_file)
             
             # Generate instance of IncidentPhoton
-            data = openmc.data.IncidentPhoton.from_endf(photo_file, atom_file)
+            if release_details[args.release][particle]['file_type'] == 'endf':
+                data = openmc.data.IncidentPhoton.from_endf(photo_file)
+            elif release_details[args.release][particle]['file_type'] == 'ace':
+                data = openmc.data.IncidentPhoton.from_ace(photo_file)
 
             # Export HDF5 file
             h5_file = args.destination.joinpath(particle, data.name + '.h5')
