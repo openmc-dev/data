@@ -155,7 +155,7 @@ if args.extract:
 
 if 'neutron' in args.particles:
     print('Fixing ZAIDs for S(a,b) tables')
-    fixes = [('bebeo.acer', '8016', '   0')
+    fixes = [('bebeo.acer', '8016', '   0'),
              ('obeo.acer', '4009', '   0')]
     for table, old, new in fixes:
         filename = ace_files_dir / table
