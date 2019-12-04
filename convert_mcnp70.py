@@ -14,7 +14,9 @@ assert sys.version_info >= (3, 6), "Python 3.6+ is required"
 description = """
 Convert ENDF/B-VII.0 ACE data from the MCNP5/6 distribution into an HDF5 library
 that can be used by OpenMC. This assumes that you have a directory containing
-files named endf70[a-k], endf70sab, and mcplib84.
+files named endf70[a-k] and endf70sab. Optionally, if a recent photoatomic
+library (e.g., eprdata14) is available, it can also be converted using the
+--photon argument.
 
 """
 
@@ -34,10 +36,16 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='earliest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
+parser.add_argument('-p', '--photon', type=Path,
+                    help='Path to photoatomic data library (eprdata12 or later)')
 parser.add_argument('mcnpdata', type=Path,
                     help="Directory containing endf70[a-k], endf70sab, and mcplib")
 args = parser.parse_args()
-assert args.mcnpdata.is_dir()
+
+# Check arguments to make sure they're valid
+assert args.mcnpdata.is_dir(), 'mcnpdata argument must be a directory'
+if args.photon is not None:
+    assert args.photon.is_file(), 'photon argument must be an existing file'
 
 # Get a list of all neutron ACE files
 endf70 = args.mcnpdata.glob('endf70[a-k]')
@@ -105,9 +113,8 @@ if endf70sab.exists():
         library.register_file(h5_file)
 
 # Handle photoatomic data
-mcplib = args.mcnpdata / 'mcplib84'
-if mcplib.exists():
-    lib = openmc.data.ace.Library(mcplib)
+if args.photon is not None:
+    lib = openmc.data.ace.Library(args.photon)
 
     for table in lib.tables:
         # Convert first temperature for the table
