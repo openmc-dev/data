@@ -7,6 +7,8 @@ import ssl
 import subprocess
 import sys
 import zipfile
+from urllib.parse import urljoin
+from pathlib import Path
 
 import openmc.data
 from openmc._utils import download
@@ -27,10 +29,17 @@ parser = argparse.ArgumentParser(
     description=description,
     formatter_class=CustomFormatter
 )
-parser.add_argument('-b', '--batch', action='store_true',
-                    help='supresses standard in')
+
 parser.add_argument('-d', '--destination', default=None,
                     help='Directory to create new library in')
+parser.add_argument('--download', action='store_true',
+                    help='Download files from IAEA-NDS')
+parser.add_argument('--no-download', dest='download', action='store_false',
+                    help='Do not download files from IAEA-NDS')
+parser.add_argument('--extract', action='store_true',
+                    help='Extract tar/zip files')
+parser.add_argument('--no-extract', dest='extract', action='store_false',
+                    help='Do not extract tar/zip files')
 parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='earliest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
@@ -38,6 +47,7 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
 parser.add_argument('-r', '--release', choices=['3.1a', '3.1d'],
                     default='3.1d', help="The nuclear data library release version. "
                     "The currently supported options are 3.1a and 3.1d")
+parser.set_defaults(download=True, extract=True)
 args = parser.parse_args()
 
 # this could be added as an argument to allow different libraries to be downloaded
@@ -68,38 +78,30 @@ release_details = {
 download_warning = """
 WARNING: This script will download {} of data.
 Extracting and processing the data requires {} of additional free disk space.
-
-Are you sure you want to continue? ([y]/n)
 """.format(release_details[args.release]['compressed_file_size'],
            release_details[args.release]['uncompressed_file_size'])
-
-response = input(download_warning) if not args.batch else 'y'
-if response.lower().startswith('n'):
-    sys.exit()
 
 # ==============================================================================
 # DOWNLOAD FILES FROM IAEA SITE
 
-files_complete = []
-for f in release_details[args.release]['files']:
-    # Establish connection to URL
-    url = release_details[args.release]['base_url'] + f
-    downloaded_file = download(url, as_browser=True,
-                               context=ssl._create_unverified_context())
-    files_complete.append(downloaded_file)
+if args.download:
+    print(download_warning)
+    for f in release_details[args.release]['files']:
+        download(urljoin(release_details[args.release]['base_url'], f),
+                    as_browser=True, context=ssl._create_unverified_context())
 
 # ==============================================================================
 # EXTRACT FILES FROM TGZ
+if args.extract:
+    for f in release_details[args.release]['files']:
+        if not Path(f).exists():
+            continue
 
-for f in release_details[args.release]['files']:
-    if f not in files_complete:
-        continue
+        # Extract files, the fendl release was compressed using type 9 zip format
+        # unfortunatly which is incompatible with the standard python zipfile library
+        # therefore the following system command is used
 
-    # Extract files, the fendl release was compressed using type 9 zip format
-    # unfortunatly which is incompatible with the standard python zipfile library
-    # therefore the following system command is used
-
-    subprocess.call(['unzip', '-o', f, '-d', ace_files_dir])
+        subprocess.call(['unzip', '-o', f, '-d', ace_files_dir])
 
 # ==============================================================================
 # GENERATE HDF5 LIBRARY -- NEUTRON FILES
