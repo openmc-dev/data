@@ -8,7 +8,6 @@ import subprocess
 import sys
 import zipfile
 from urllib.parse import urljoin
-from pathlib import Path
 
 import openmc.data
 from openmc._utils import download
@@ -49,6 +48,7 @@ parser.add_argument('-r', '--release', choices=['3.1a', '3.1d'],
                     "The currently supported options are 3.1a and 3.1d")
 parser.set_defaults(download=True, extract=True)
 args = parser.parse_args()
+
 
 # this could be added as an argument to allow different libraries to be downloaded
 library_name = 'fendl'
@@ -94,9 +94,6 @@ if args.download:
 # EXTRACT FILES FROM TGZ
 if args.extract:
     for f in release_details[args.release]['files']:
-        if not Path(f).exists():
-            continue
-
         # Extract files, the fendl release was compressed using type 9 zip format
         # unfortunatly which is incompatible with the standard python zipfile library
         # therefore the following system command is used
