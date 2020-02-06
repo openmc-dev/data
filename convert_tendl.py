@@ -69,8 +69,8 @@ release_details = {
         'files': ['tendl19c.tar.bz2'],
         'neutron_files': os.path.join(ace_files_dir, 'tendl19c', '*'),
         'metastables': os.path.join(ace_files_dir, 'tendl19c', '*m'),
-        'compressed_file_size': '2.2 GB',
-        'uncompressed_file_size': '6.8 GB'
+        'compressed_file_size': '2.3 GB',
+        'uncompressed_file_size': '10.1 GB'
     }
 }
 
