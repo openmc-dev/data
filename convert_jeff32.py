@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-import glob
-import os
 import tarfile
 import zipfile
 from collections import defaultdict
@@ -113,7 +111,7 @@ if args.extract:
             if '293' in f:
                 for path in release_details[args.release]['redundant']:
                     print(f'removing {path}')
-                    os.remove(path)
+                    path.unlink()
 
 # ==============================================================================
 # CHANGE ZAID FOR METASTABLES
@@ -137,12 +135,12 @@ neutron_files = release_details[args.release]['neutron_files']
 tables = defaultdict(list)
 for filename in sorted(neutron_files):
     name = filename.stem
-    tables[name].append(str(filename))
+    tables[name].append(filename)
 
 # Sort temperatures from lowest to highest
 for name, filenames in sorted(tables.items()):
     filenames.sort(key=lambda x: int(
-        x.split(os.path.sep)[1].split('_')[1][:-1]))
+        x.parts[1].split('_')[1][:-1]))
 
 # Create output directory if it doesn't exist
 args.destination.mkdir(parents=True, exist_ok=True)
@@ -151,12 +149,12 @@ library = openmc.data.DataLibrary()
 
 for name, filenames in sorted(tables.items()):
     # Convert first temperature for the table
-    print('Converting: ' + filenames[0])
+    print('Converting: ' + str(filenames[0]))
     data = openmc.data.IncidentNeutron.from_ace(filenames[0])
 
     # For each higher temperature, add cross sections to the existing table
     for filename in filenames[1:]:
-        print('Adding: ' + filename)
+        print('Adding: ' + str(filename))
         data.add_temperature_from_ace(filename)
 
     # Export HDF5 file
@@ -173,18 +171,17 @@ for name, filenames in sorted(tables.items()):
 # Group together tables for same nuclide
 tables = defaultdict(list)
 for filename in sorted(release_details[args.release]['sab_files']):
-    dirname, basename = os.path.split(filename)
-    name = basename.split('-')[0]
-    tables[name].append(str(filename))
+    name = filename.name.split('-')[0]
+    tables[name].append(filename)
 
 # Sort temperatures from lowest to highest
 for name, filenames in sorted(tables.items()):
     filenames.sort(key=lambda x: int(
-        os.path.split(x)[1].split('-')[1].split('.')[0]))
+        x.name.split('-')[1].split('.')[0]))
 
 for name, filenames in sorted(tables.items()):
     # Convert first temperature for the table
-    print('Converting: ' + filenames[0])
+    print('Converting: ' + str(filenames[0]))
 
     # Take numbers out of table name, e.g. lw10.32t -> lw.32t
     table = openmc.data.ace.get_table(filenames[0])
@@ -194,7 +191,7 @@ for name, filenames in sorted(tables.items()):
 
     # For each higher temperature, add cross sections to the existing table
     for filename in filenames[1:]:
-        print('Adding: ' + filename)
+        print('Adding: ' + str(filename))
         table = openmc.data.ace.get_table(filename)
         name, xs = table.name.split('.')
         table.name = '.'.join((name.strip(digits), xs))
