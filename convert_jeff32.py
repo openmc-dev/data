@@ -154,7 +154,7 @@ for name, filenames in sorted(tables.items()):
 
     # For each higher temperature, add cross sections to the existing table
     for filename in filenames[1:]:
-        print('Adding: ' + str(filename))
+        print(f'Adding: {filename}')
         data.add_temperature_from_ace(filename)
 
     # Export HDF5 file
