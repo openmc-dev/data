@@ -132,7 +132,7 @@ for filename in sorted(neutron_files):
             text = ''.join(text[:423])+'86896'+''.join(text[428:])
             open(filename, 'w').write(text)
 
-    print('Converting: ' + str(filename))
+    print(f'Converting: {filename}')
     data = openmc.data.IncidentNeutron.from_ace(filename)
 
     # Export HDF5 file
