@@ -181,7 +181,7 @@ for name, filenames in sorted(tables.items()):
 
 for name, filenames in sorted(tables.items()):
     # Convert first temperature for the table
-    print('Converting: ' + str(filenames[0]))
+    print(f'Converting: {filenames[0]}')
 
     # Take numbers out of table name, e.g. lw10.32t -> lw.32t
     table = openmc.data.ace.get_table(filenames[0])
