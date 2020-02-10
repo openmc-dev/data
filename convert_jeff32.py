@@ -191,7 +191,7 @@ for name, filenames in sorted(tables.items()):
 
     # For each higher temperature, add cross sections to the existing table
     for filename in filenames[1:]:
-        print('Adding: ' + str(filename))
+        print(f'Adding: {filename}')
         table = openmc.data.ace.get_table(filename)
         name, xs = table.name.split('.')
         table.name = '.'.join((name.strip(digits), xs))
