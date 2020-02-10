@@ -116,7 +116,7 @@ for filename in sorted(neutron_files):
             text[203] = '21)   Day R.B. and Walt M.  Phys.rev.117,1330 (1960)               525 1451  203'
         open(filename, 'w').write('\r\n'.join(text))
 
-    print('Converting: ' + str(filename))
+    print(f'Converting: {filename}')
     data = openmc.data.IncidentNeutron.from_njoy(filename)
 
     # Export HDF5 file
