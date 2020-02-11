@@ -66,8 +66,8 @@ release_details = {
     '2019': {
         'base_url': 'https://tendl.web.psi.ch/tendl_2019/tar_files/',
         'files': ['tendl19c.tar.bz2'],
-        'neutron_files': os.path.join(ace_files_dir, 'tendl19c', '*'),
-        'metastables': os.path.join(ace_files_dir, 'tendl19c', '*m'),
+        'neutron_files': ace_files_dir.glob('tendl19c/*'),
+        'metastables': ace_files_dir.glob('tendl19c/*m'),
         'compressed_file_size': '2.3 GB',
         'uncompressed_file_size': '10.1 GB'
     }
