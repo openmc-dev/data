@@ -279,5 +279,15 @@ CASL_CHAIN = {
 # When building the depletion chain, we generally ensure that the sum of
 # branching ratios is one. However, in a few cases, this doesn't make sense and
 # would end up producing incorrect concentrations downstream by overproducing
-# certain nuclides.
+# certain nuclides. For example, take the case of Rh102:
+#
+# Pd102
+#       🡔
+#         Rh102
+#               🡖
+#                 Ru102
+#
+# Rh102 decays 78% by EC/beta+ to Ru102 (which is in the chain) and 22% by beta-
+# to Pd102 (which isn't in the chain and is stable). If we modified the
+# branching ratio of the EC/beta+ mode, we'd end up producing too much Ru102.
 UNMODIFIED_DECAY_BR = {'Rh102', 'Ag110', 'I128', 'Tm170', 'Am244_m1'}
