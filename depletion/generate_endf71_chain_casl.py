@@ -22,7 +22,7 @@ from openmc.deplete.nuclide import Nuclide, DecayTuple, ReactionTuple, \
     FissionYieldDistribution
 from openmc._utils import download
 
-from casl_chain import CASL_CHAIN, DONT_MODIFY_BR
+from casl_chain import CASL_CHAIN, UNMODIFIED_DECAY_BR
 
 URLS = [
     'https://www.nndc.bnl.gov/endf/b7.1/zips/ENDF-B-VII.1-neutrons.zip',
@@ -124,7 +124,7 @@ def main():
             # Ensure sum of branching ratios is unity by slightly modifying last
             # value if necessary
             sum_br = sum(m.branching_ratio for m in nuclide.decay_modes)
-            if sum_br != 1.0 and nuclide.decay_modes and parent not in DONT_MODIFY_BR:
+            if sum_br != 1.0 and nuclide.decay_modes and parent not in UNMODIFIED_DECAY_BR:
                 decay_type, target, br = nuclide.decay_modes.pop()
                 br = 1.0 - sum(m.branching_ratio for m in nuclide.decay_modes)
                 nuclide.decay_modes.append(DecayTuple(decay_type, target, br))

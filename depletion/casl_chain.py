@@ -280,4 +280,4 @@ CASL_CHAIN = {
 # branching ratios is one. However, in a few cases, this doesn't make sense and
 # would end up producing incorrect concentrations downstream by overproducing
 # certain nuclides.
-DONT_MODIFY_BR = {'Rh102', 'Ag110', 'I128', 'Tm170', 'Am244_m1'}
+UNMODIFIED_DECAY_BR = {'Rh102', 'Ag110', 'I128', 'Tm170', 'Am244_m1'}
