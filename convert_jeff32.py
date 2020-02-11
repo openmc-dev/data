@@ -154,7 +154,7 @@ for name, filenames in sorted(tables.items()):
 
     # For each higher temperature, add cross sections to the existing table
     for filename in filenames[1:]:
-        print('Adding: ' + str(filename))
+        print(f'Adding: {filename}')
         data.add_temperature_from_ace(filename)
 
     # Export HDF5 file
@@ -181,7 +181,7 @@ for name, filenames in sorted(tables.items()):
 
 for name, filenames in sorted(tables.items()):
     # Convert first temperature for the table
-    print('Converting: ' + str(filenames[0]))
+    print(f'Converting: {filenames[0]}')
 
     # Take numbers out of table name, e.g. lw10.32t -> lw.32t
     table = openmc.data.ace.get_table(filenames[0])
@@ -191,7 +191,7 @@ for name, filenames in sorted(tables.items()):
 
     # For each higher temperature, add cross sections to the existing table
     for filename in filenames[1:]:
-        print('Adding: ' + str(filename))
+        print(f'Adding: {filename}')
         table = openmc.data.ace.get_table(filename)
         name, xs = table.name.split('.')
         table.name = '.'.join((name.strip(digits), xs))

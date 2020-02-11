@@ -10,7 +10,7 @@ import openmc.data
 from openmc._utils import download
 
 description = """
-Download TENDL 2017 or TENDL 2015 ACE data from PSI and convert it to a HDF5 library for
+Download TENDL 2019/2017/2015 ACE files from PSI and convert them to HDF5 libraries for
 use with OpenMC.
 
 """
@@ -39,10 +39,9 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='latest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
-parser.add_argument('-r', '--release', choices=['2015', '2017'],
-                    default='2017', help="The nuclear data library release version. "
-                    "The currently supported options are 2015 and 2017")
-parser.set_defaults(download=True, extract=True)
+parser.add_argument('-r', '--release', choices=['2015', '2017', '2019'],
+                    default='2019', help="The nuclear data library release version. "
+                    "The currently supported options are 2015, 2017, and 2019.")
 args = parser.parse_args()
 
 
@@ -70,6 +69,14 @@ release_details = {
         'metastables': ace_files_dir.glob('ace-17/*m'),
         'compressed_file_size': '2.1 GB',
         'uncompressed_file_size': '14 GB'
+    },
+    '2019': {
+        'base_url': 'https://tendl.web.psi.ch/tendl_2019/tar_files/',
+        'files': ['tendl19c.tar.bz2'],
+        'neutron_files': ace_files_dir.glob('tendl19c/*'),
+        'metastables': ace_files_dir.glob('tendl19c/*m'),
+        'compressed_file_size': '2.3 GB',
+        'uncompressed_file_size': '10.1 GB'
     }
 }
 
@@ -130,7 +137,7 @@ for filename in sorted(neutron_files):
             text = ''.join(text[:423])+'86896'+''.join(text[428:])
             open(filename, 'w').write(text)
 
-    print('Converting: ' + str(filename))
+    print(f'Converting: {filename}')
     data = openmc.data.IncidentNeutron.from_ace(filename)
 
     # Export HDF5 file

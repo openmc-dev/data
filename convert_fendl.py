@@ -115,7 +115,7 @@ library = openmc.data.DataLibrary()
 
 for filename in sorted(neutron_files):
 
-    print('Converting: ' + str(filename))
+    print(f'Converting: {filename}')
     data = openmc.data.IncidentNeutron.from_ace(filename)
 
     # Export HDF5 file
