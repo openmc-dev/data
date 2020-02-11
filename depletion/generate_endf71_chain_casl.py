@@ -22,7 +22,7 @@ from openmc.deplete.nuclide import Nuclide, DecayTuple, ReactionTuple, \
     FissionYieldDistribution
 from openmc._utils import download
 
-from casl_chain import CASL_CHAIN
+from casl_chain import CASL_CHAIN, UNMODIFIED_DECAY_BR
 
 URLS = [
     'https://www.nndc.bnl.gov/endf/b7.1/zips/ENDF-B-VII.1-neutrons.zip',
@@ -109,7 +109,7 @@ def main():
             nuclide.decay_energy = sum(E.nominal_value for E in
                                        data.average_energies.values())
             sum_br = 0.0
-            for i, mode in enumerate(data.modes):
+            for mode in data.modes:
                 decay_type = ','.join(mode.modes)
                 if mode.daughter in decay_data:
                     target = mode.daughter
@@ -117,15 +117,16 @@ def main():
                     missing_daughter.append((parent, mode))
                     continue
 
-                # Write branching ratio, taking care to ensure sum is unity by
-                # slightly modifying last value if necessary
-                br = mode.branching_ratio.nominal_value
-                sum_br += br
-                if i == len(data.modes) - 1 and sum_br != 1.0:
-                    br = 1.0 - sum(m.branching_ratio.nominal_value
-                                   for m in data.modes[:-1])
-
                 # Append decay mode
+                br = mode.branching_ratio.nominal_value
+                nuclide.decay_modes.append(DecayTuple(decay_type, target, br))
+
+            # Ensure sum of branching ratios is unity by slightly modifying last
+            # value if necessary
+            sum_br = sum(m.branching_ratio for m in nuclide.decay_modes)
+            if sum_br != 1.0 and nuclide.decay_modes and parent not in UNMODIFIED_DECAY_BR:
+                decay_type, target, br = nuclide.decay_modes.pop()
+                br = 1.0 - sum(m.branching_ratio for m in nuclide.decay_modes)
                 nuclide.decay_modes.append(DecayTuple(decay_type, target, br))
 
         # If nuclide has incident neutron data, we need to list what
@@ -197,15 +198,6 @@ def main():
                                 print('No cumulative fission yields found for {} in {}'.format(product, parent))
                             else:
                                 yields[product] += table_yc[product].nominal_value
-                        # -1 for independent (stable + metastable)
-                        elif ifpy == -1:
-                            if product not in table_yd:
-                                print('No independent fission yields found for {} in {}'.format(product, parent))
-                            else:
-                                yields[product] += table_yc[product].nominal_value
-                                product_meta = '{}_m1'.format(product)
-                                if product_meta in table_yd:
-                                    yields[product] += table_yc[product_meta].nominal_value
                         # 3 for special treatment with weight fractions
                         elif ifpy == 3:
                             for name_i, weight_i, ifpy_i in CASL_CHAIN[product][3]:

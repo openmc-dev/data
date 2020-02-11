@@ -6,8 +6,6 @@
 # Note 32 of the 255 nuclides appear twice as they are both activation
 # nuclides (category 1) and fission product nuclides (category 3).
 
-# Te129 has been added due to its link to I129 production.
-
 CASL_CHAIN = {
     # Nuclide: (Stable, CAT, IFPY, Special yield treatment)
     # Stable: True if nuclide has no decay reactions
@@ -17,7 +15,7 @@ CASL_CHAIN = {
     #      3-Fission product nuclides
     # IFPY: Indicator of fission product yield
     #       0-Non FPY
-    #       1-Direct FPY (-1 indicates (stable+metastable) direct FPY)
+    #       1-Direct FPY
     #       2-Cumulative FPY
     #       3-Special treatment with weight fractions
     # Special yield: (nuclide_i/weight_i/IFPY_i)
@@ -142,9 +140,9 @@ CASL_CHAIN = {
     'Zr93': (False, 3, 2, None),
     'Zr95': (False, 3, 2, None),
     'Zr96': (True, 3, 2, None),
-    'Nb95': (False, 3, 3, [('Nb95',1.000, 1), ('Nb95_m1', 0.944, 1)]),
-    'Mo95': (True, 3, 3, [('Nb95_m1',0.056, 1), ('Mo95', 1.000, 1)]),
-    'Mo96': (True, 3, 3, [('Nb96',1.000, 1), ('Mo96', 1.000, 1)]),
+    'Nb95': (False, 3, 3, [('Nb95', 1.000, 1), ('Nb95_m1', 0.944, 1)]),
+    'Mo95': (True, 3, 3, [('Nb95_m1', 0.056, 1), ('Mo95', 1.000, 1)]),
+    'Mo96': (True, 3, 3, [('Nb96', 1.000, 1), ('Mo96', 1.000, 1)]),
     'Mo97': (True, 3, 2, None),
     'Mo98': (True, 3, 2, None),
     'Mo99': (False, 3, 2, None),
@@ -180,21 +178,20 @@ CASL_CHAIN = {
     'Ag110_m1': (False, 3, 2, None),
     'Ag111': (False, 3, 2, None),
     'Cd110': (True, 3, 1, None),
-    'Cd111': (True, 3, 3, [('Ag110', -1.000, 2), ('Cd110', 1.000, 2), ('Cd111', 1.000, 1)]),
+    'Cd111': (True, 3, 3, [('Ag111', -1.000, 2), ('Cd111', 1.000, 2), ('Cd111_m1', 1.000, 1)]),
     'Cd113': (True, 3, 2, None),
     'In115': (True, 3, 2, None),
     'Sb121': (True, 3, 2, None),
     'Sb123': (False, 3, 2, None),
     'Sb125': (False, 3, 2, None),
     'Sb127': (False, 3, 2, None),
-    'Te127': (False, 3, -1, None),
-    'Te127_m1': (False, 3, -1, None),
-    'Te129': (False, 3, 1, None),
+    'Te127': (False, 3, 1, None),
+    'Te127_m1': (False, 3, 1, None),
     'Te129_m1': (False, 3, 2, None),
     'Te132': (False, 3, 2, None),
     'I127': (True, 3, 1, None),
     'I128': (False, 3, 3, [('I128', 0.931, 2)]),
-    'I129': (False, 3, 3, [('I129', 1.000, 2), ('I129', -1.000, 2)]),
+    'I129': (False, 3, 3, [('I129', 1.000, 2), ('Te129_m1', -1.000, 2)]),
     'I130': (False, 3, 2, None),
     'I131': (False, 3, 2, None),
     'I132': (False, 3, 1, None),
@@ -239,8 +236,8 @@ CASL_CHAIN = {
     'Nd150': (True, 3, 2, None),
     'Nd151': (False, 3, 2, None),
     'Pm147': (False, 3, 1, None),
-    'Pm148': (False, 3, -1, None),
-    'Pm148_m1': (False, 3, -1, None),
+    'Pm148': (False, 3, 1, None),
+    'Pm148_m1': (False, 3, 2, None),
     'Pm149': (False, 3, 1, None),
     'Pm150': (False, 3, 1, None),
     'Pm151': (False, 3, 1, None),
@@ -278,3 +275,19 @@ CASL_CHAIN = {
     'Dy165': (False, 3, 2, None),
     'Ho165': (True, 3, 3, [('Dy165_m1', 0.022, 2), ('Ho165', 1.000, 1)])
 }
+
+# When building the depletion chain, we generally ensure that the sum of
+# branching ratios is one. However, in a few cases, this doesn't make sense and
+# would end up producing incorrect concentrations downstream by overproducing
+# certain nuclides. For example, take the case of Rh102:
+#
+# Pd102
+#       🡔
+#         Rh102
+#               🡖
+#                 Ru102
+#
+# Rh102 decays 78% by EC/beta+ to Ru102 (which is in the chain) and 22% by beta-
+# to Pd102 (which isn't in the chain and is stable). If we modified the
+# branching ratio of the EC/beta+ mode, we'd end up producing too much Ru102.
+UNMODIFIED_DECAY_BR = {'Rh102', 'Ag110', 'I128', 'Tm170', 'Am244_m1'}
