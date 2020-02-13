@@ -42,6 +42,7 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
 parser.add_argument('-r', '--release', choices=['2015', '2017', '2019'],
                     default='2019', help="The nuclear data library release version. "
                     "The currently supported options are 2015, 2017, and 2019.")
+parser.set_defaults(download=True, extract=True)
 args = parser.parse_args()
 
 
