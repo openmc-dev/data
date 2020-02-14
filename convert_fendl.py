@@ -7,6 +7,7 @@ import subprocess
 import sys
 import zipfile
 from urllib.parse import urljoin
+from textwrap import dedent
 
 import openmc.data
 from openmc._utils import download
@@ -41,7 +42,7 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='earliest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
-parser.add_argument('-r', '--release', choices=['3.1a', '3.1d'],
+parser.add_argument('-r', '--release', choices=['3.1a', '3.1d', '3.0'],
                     default='3.1d', help="The nuclear data library release version. "
                     "The currently supported options are 3.1a and 3.1d")
 parser.set_defaults(download=True, extract=True)
@@ -70,6 +71,13 @@ release_details = {
         'neutron_files': ace_files_dir.joinpath('fendl31d_ACE').glob('*'),
         'compressed_file_size': '0.5 GB',
         'uncompressed_file_size': '3 GB'
+    },
+    '3.0': {
+        'base_url': 'https://www-nds.iaea.org/fendl30/data/neutron/',
+        'files': ['fendl30-neutron-ace.zip'],
+        'neutron_files': ace_files_dir.joinpath('ace').glob('*.ace'),
+        'compressed_file_size': '0.4 GB',
+        'uncompressed_file_size': '2.2 GB'
     }
 }
 
@@ -113,8 +121,23 @@ args.destination.mkdir(parents=True, exist_ok=True)
 
 library = openmc.data.DataLibrary()
 
+warn_k39 = False
+
 for filename in sorted(neutron_files):
 
+    # Check for Inf values in K-39 ace file for FENDL-3.0
+    if args.release == '3.0' and filename.name == '19K_039.ace':
+        # Check for the error in case user has provided a fixed version.
+        if 'Inf' in open(filename, 'r').read():
+            ace_error_warning = """
+            WARNING: {} contains 'Inf' values within the XSS array which 
+            prevent conversion to a hdf5 file format. This is a known issue
+            in FENDL-3.0. {} has not been added to the cross section library 
+            """.format(filename, filename.name)
+            ace_error_warning = dedent(ace_error_warning)
+            warn_k39 = True
+            continue
+    
     print(f'Converting: {filename}')
     data = openmc.data.IncidentNeutron.from_ace(filename)
 
@@ -128,3 +151,7 @@ for filename in sorted(neutron_files):
 
 # Write cross_sections.xml
 library.export_to_xml(args.destination / 'cross_sections.xml')
+
+if warn_k39:
+    print(ace_error_warning)
+
