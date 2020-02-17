@@ -129,11 +129,11 @@ if args.download:
 
     for f in release_details[args.release]['files']:
         download(urljoin(release_details[args.release]['base_url'], f),
-                    as_browser=True, context=ssl._create_unverified_context())
+                 as_browser=True, context=ssl._create_unverified_context())
     chdir(cwd)
 
 # ==============================================================================
-# EXTRACT FILES FROM TGZ
+# EXTRACT FILES FROM ZIP
 if args.extract:
     if args.release == '2.1':
         chdir(download_path)
