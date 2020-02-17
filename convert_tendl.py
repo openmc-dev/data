@@ -102,7 +102,7 @@ if args.download:
 if args.extract:
     for f in release_details[args.release]['files']:
         with tarfile.open(f, 'r') as tgz:
-            print('Extracting {0}...'.format(f))
+            print(f'Extracting {f}...')
             tgz.extractall(path=ace_files_dir)
 
 # ==============================================================================
