@@ -5,7 +5,6 @@ from pathlib import Path
 import ssl
 import subprocess
 import sys
-import zipfile
 from urllib.parse import urljoin
 from textwrap import dedent
 from os import chdir
@@ -56,7 +55,7 @@ library_name = 'fendl'
 cwd = Path.cwd()  
 
 ace_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'ace']))
-zip_path = cwd.joinpath('-'.join([library_name, args.release, 'zips']))
+download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
 # the destination is decided after the release is know to avoid putting the release in a folder with a misleading name
 if args.destination is None:
     args.destination = Path('-'.join([library_name, args.release, 'hdf5']))
@@ -82,7 +81,7 @@ release_details = {
         'files': ['fendl30-neutron-ace.zip'],
         'neutron_files': ace_files_dir.joinpath('ace').glob('*.ace'),
         'compressed_file_size': '0.4 GB',
-        'uncompressed_file_size': '2.2 GB'
+        'uncompressed_file_size': '3.3 GB'
     },
     '2.1': {
         'base_url': 'https://www-nds.iaea.org/fendl21/fendl21mc/',
@@ -105,8 +104,8 @@ release_details = {
                   'W184mc.zip',  'W186mc.zip',  'Au197mc.zip', 'Pb206mc.zip', 
                   'Pb207mc.zip', 'Pb208mc.zip', 'Bi209mc.zip'],
         'neutron_files': ace_files_dir.glob('*.ace'),
-        'compressed_file_size': '0.4 GB',
-        'uncompressed_file_size': '2.2 GB'
+        'compressed_file_size': '0.1 GB',
+        'uncompressed_file_size': '0.6 GB'
     }
 }
 
@@ -125,8 +124,8 @@ if args.download:
     if args.release == '2.1':
         # Older releases have ace files in individual zip files. Create a 
         # a directory to hold them.
-        zip_path.mkdir(exist_ok=True) 
-        chdir(zip_path)
+        download_path.mkdir(exist_ok=True) 
+        chdir(download_path)
 
     for f in release_details[args.release]['files']:
         download(urljoin(release_details[args.release]['base_url'], f),
@@ -137,7 +136,7 @@ if args.download:
 # EXTRACT FILES FROM TGZ
 if args.extract:
     if args.release == '2.1':
-        chdir(zip_path)
+        chdir(download_path)
 
     for f in release_details[args.release]['files']:
         # Extract files, the fendl release was compressed using type 9 zip format
