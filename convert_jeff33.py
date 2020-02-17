@@ -29,7 +29,7 @@ parser = argparse.ArgumentParser(
     description=description,
     formatter_class=CustomFormatter
 )
-parser.add_argument('-d', '--destination', type=Path, default=Path('jeff33_hdf5'),
+parser.add_argument('-d', '--destination', type=Path, default=Path('jeff-3.3-hdf5'),
                     help='Directory to create new library in')
 parser.add_argument('--download', action='store_true',
                     help='Download tarball from OECD-NEA')
@@ -46,6 +46,8 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
 parser.set_defaults(download=True, extract=True)
 args = parser.parse_args()
 
+ace_files_dir = Path('jeff-3.3-ace')
+
 # Download JEFF 3.3 library
 filename = 'JEFF33-n_tsl-ace.tgz'
 url = f'http://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/{filename}'
@@ -56,13 +58,13 @@ if args.download:
 if args.extract:
     with tarfile.open(filename, 'r') as tgz:
         print(f'Extracting {filename}...')
-        tgz.extractall()
+        tgz.extractall(path=ace_files_dir)
 
 # Create output directory if it doesn't exist
 args.destination.mkdir(parents=True, exist_ok=True)
 
 # Get a list of all ACE files
-paths = sorted(Path('ace').glob('*.[Aa][Cc][Ee]'))
+paths = sorted(ace_files_dir.rglob('*.[Aa][Cc][Ee]'))
 
 lib = openmc.data.DataLibrary()
 for p in sorted(paths):
