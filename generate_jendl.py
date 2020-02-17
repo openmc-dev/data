@@ -5,6 +5,7 @@ from pathlib import Path
 import ssl
 import sys
 import tarfile
+from urllib.parse import urljoin
 
 import openmc.data
 from openmc._utils import download
@@ -25,10 +26,16 @@ parser = argparse.ArgumentParser(
     description=description,
     formatter_class=CustomFormatter
 )
-parser.add_argument('-b', '--batch', action='store_true',
-                    help='supresses standard in')
 parser.add_argument('-d', '--destination', type=Path, default=None,
                     help='Directory to create new library in')
+parser.add_argument('--download', action='store_true',
+                    help='Download files from JAEA')
+parser.add_argument('--no-download', dest='download', action='store_false',
+                    help='Do not download files from JAEA')
+parser.add_argument('--extract', action='store_true',
+                    help='Extract tar/zip files')
+parser.add_argument('--no-extract', dest='extract', action='store_false',
+                    help='Do not extract tar/zip files')
 parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='latest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
@@ -36,8 +43,8 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
 parser.add_argument('-r', '--release', choices=['4.0'],
                     default='4.0', help="The nuclear data library release version. "
                     "The only option currently supported is 4.0")
+parser.set_defaults(download=True, extract=True)
 args = parser.parse_args()
-
 
 
 library_name = 'jendl' #this could be added as an argument to allow different libraries to be downloaded
@@ -61,38 +68,27 @@ release_details = {
 download_warning = """
 WARNING: This script will download {} of data.
 Extracting and processing the data requires {} of additional free disk space.
-
-Are you sure you want to continue? ([y]/n)
 """.format(release_details[args.release]['compressed_file_size'],
            release_details[args.release]['uncompressed_file_size'])
-
-response = input(download_warning) if not args.batch else 'y'
-if response.lower().startswith('n'):
-    sys.exit()
 
 # ==============================================================================
 # DOWNLOAD FILES FROM WEBSITE
 
-files_complete = []
-for f in release_details[args.release]['files']:
-    # Establish connection to URL
-    url = release_details[args.release]['base_url'] + f
-    downloaded_file = download(url, 
-                               context=ssl._create_unverified_context())
-    files_complete.append(downloaded_file)
+if args.download:
+    print(download_warning)
+    for f in release_details[args.release]['files']:
+        # Establish connection to URL
+        download(urljoin(release_details[args.release]['base_url'], f), 
+                    context=ssl._create_unverified_context())   
 
 # ==============================================================================
 # EXTRACT FILES FROM TGZ
-
-for f in release_details[args.release]['files']:
-    if f not in files_complete:
-        continue
-
-    # Extract files
-
-    with tarfile.open(f, 'r') as tgz:
-        print('Extracting {0}...'.format(f))
-        tgz.extractall(path=endf_files_dir)
+if args.extract:
+    for f in release_details[args.release]['files']:
+        # Extract files
+        with tarfile.open(f, 'r') as tgz:
+            print('Extracting {0}...'.format(f))
+            tgz.extractall(path=endf_files_dir)
 
 
 # ==============================================================================
