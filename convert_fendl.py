@@ -2,14 +2,11 @@
 
 import argparse
 from pathlib import Path
-import glob
 import ssl
 import subprocess
-import sys
 from urllib.parse import urljoin
 from textwrap import dedent
 import os
-import tempfile
 
 import openmc.data
 from openmc._utils import download
@@ -62,7 +59,6 @@ cwd = Path.cwd()
 ace_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'ace']))
 endf_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'endf']))
 
-print(f"Endf dir: {endf_files_dir}")
 download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
 # the destination is decided after the release is know to avoid putting the release in a folder with a misleading name
 if args.destination is None:
@@ -76,8 +72,8 @@ release_details = {
             'files': ['fendl31a-neutron-ace.zip'],
             'file_type': 'ace',
             'ace_files': ace_files_dir.glob('*.ace'),
-            'compressed_file_size': 400,
-            'uncompressed_file_size': 3000
+            'compressed_file_size': 384,
+            'uncompressed_file_size': 2250
         },
         'photon':{
             'base_url': 'https://www-nds.iaea.org/fendl31/data/atom/',
@@ -94,8 +90,8 @@ release_details = {
             'files': ['fendl31d-neutron-ace.zip'],
             'file_type': 'ace',
             'ace_files': ace_files_dir.joinpath('fendl31d_ACE').glob('*'),
-            'compressed_file_size': 500,
-            'uncompressed_file_size': 3000
+            'compressed_file_size': 425,
+            'uncompressed_file_size': 2290
         },
         'photon':{
             'base_url': 'https://www-nds.iaea.org/fendl/data/atom/',
@@ -112,8 +108,8 @@ release_details = {
             'files': ['fendl30-neutron-ace.zip'],
             'file_type': 'ace',
             'ace_files': ace_files_dir.joinpath('ace').glob('*.ace'),
-            'compressed_file_size': 400,
-            'uncompressed_file_size': 3300
+            'compressed_file_size': 364,
+            'uncompressed_file_size': 2200
         },
         'photon':{
             'base_url': 'https://www-nds.iaea.org/fendl30/data/atom/',
@@ -178,13 +174,14 @@ Extracting and processing the data requires {} MB of additional free disk space.
 if args.download:
     print(download_warning)
 
-    if args.release == '2.1':
-        # Older releases have ace files in individual zip files. Create a 
-        # a directory to hold them.
-        download_path.mkdir(exist_ok=True) 
-        os.chdir(download_path)
-
     for particle in args.particles:
+        if args.release == '2.1':
+            # Older releases have ace files in individual zip files. Create a 
+            # a directory to hold them.
+            particle_download_path = download_path / particle
+            particle_download_path.mkdir(parents = True, exist_ok=True) 
+            os.chdir(particle_download_path)
+
         particle_details = release_details[args.release][particle]
         for f in particle_details['files']:
             download(urljoin(particle_details['base_url'], f),
@@ -195,15 +192,15 @@ if args.download:
 # ==============================================================================
 # EXTRACT FILES FROM ZIP
 if args.extract:
-    if args.release == '2.1':
-        os.chdir(download_path)
-
     for particle in args.particles:
+        if args.release == '2.1':
+            os.chdir(download_path / particle)
+
         particle_details = release_details[args.release][particle]
         if particle_details['file_type'] == "ace":
             extraction_dir = ace_files_dir
         elif particle_details['file_type'] == "endf":
-            extraction_dir = endf_files_dir       
+            extraction_dir = endf_files_dir
 
         for f in particle_details['files']:
             # Extract files, the fendl release was compressed using type 9 zip format
@@ -217,12 +214,17 @@ if args.extract:
 # SEPERATE PHOTON ENDF FILE IF NEEDED 
 
 if args.release == '2.1' and 'photon' in args.particles:
+    # In the 2.1 release, all the photon files are in one ENDF file so the
+    # from_endf method only reads the first nuclide. 
+    # This splits the file down into seperate ENDF files for later reading.
     os.chdir(endf_files_dir)
     
     current_file_str = ''
     last_line_no = 0
 
     with open('FENDLEP.DAT', 'r') as base_file:
+        # When cut the ENDF sections don't have seperate headers. Copy the main
+        # header to include in every file
         header_line = base_file.readline()
         current_file_str += header_line
         
@@ -237,8 +239,7 @@ if args.release == '2.1' and 'photon' in args.particles:
                 new_endf.write(current_file_str)
                 new_endf.seek(0)
                 
-                # Use the ENDF evaluation method to read the name and 
-                # create a new filename
+                # Use the ENDF evaluation method to read the name
                 ev = openmc.data.endf.Evaluation(new_endf)
                 new_endf.close()
                 
@@ -260,7 +261,7 @@ if args.release == '2.1' and 'photon' in args.particles:
     os.chdir(cwd)
 
 # ==============================================================================
-# GENERATE HDF5 LIBRARY -- NEUTRON FILES
+# GENERATE HDF5 LIBRARY
 
 library = openmc.data.DataLibrary()
 
@@ -272,7 +273,7 @@ for particle in args.particles:
     particle_destination.mkdir(parents=True, exist_ok=True)
 
     particle_details = release_details[args.release][particle]
-    print(f'Release_details: {particle_details}')
+
     if particle == 'neutron':
         # Get a list of all ACE files, excluding files ending with _ which are 
         # old incorrect files kept in the release for backwards compatability
@@ -306,12 +307,7 @@ for particle in args.particles:
             # Register with library
             library.register_file(h5_file)
     elif particle == 'photon':
-        
-        photo_files = [
-            f
-            for f in particle_details['photo_files']
-        ]
-        for photo_path in sorted(photo_files):
+        for photo_path in sorted(particle_details['photo_files']):
             print(f'Converting: {photo_path}')
             data = openmc.data.IncidentPhoton.from_endf(photo_path)
 
@@ -327,6 +323,7 @@ for particle in args.particles:
 print('Writing ', args.destination / 'cross_sections.xml')
 library.export_to_xml(args.destination / 'cross_sections.xml')
 
+# Print the K-39 warning at the end so it doesn't get lost in the conversion messages
 if warn_k39:
     print(ace_error_warning)
 
