@@ -64,7 +64,8 @@ download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
 if args.destination is None:
     args.destination = Path('-'.join([library_name, args.release, 'hdf5']))
 
-# This dictionary contains all the unique information about each release. This can be exstened to accommodated new releases
+# This dictionary contains all the unique information about each release. 
+# This can be extended to accommodate new releases
 release_details = {
     '3.1a': {
         'neutron':{
