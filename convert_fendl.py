@@ -7,6 +7,7 @@ import subprocess
 from urllib.parse import urljoin
 from textwrap import dedent
 import os
+from shutil import rmtree
 
 import openmc.data
 from openmc._utils import download
@@ -48,7 +49,13 @@ parser.add_argument('-r', '--release', choices=['3.1a', '3.1d', '3.0', '2.1'],
 parser.add_argument('-p', '--particles', choices=['neutron', 'photon'], 
                     nargs='+', default=['neutron', 'photon'], 
                     help="Incident particles to include")
-parser.set_defaults(download=True, extract=True)
+parser.add_argument('--cleanup', action='store_true',
+                    help="Remove download directories when data has "
+                    "been processed")
+parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
+                    help="Do not remove download directories when data has "
+                    "been processed")
+parser.set_defaults(download=True, extract=True, cleanup=False)
 args = parser.parse_args()
 
 
@@ -208,58 +215,61 @@ if args.extract:
             # unfortunatly which is incompatible with the standard python zipfile library
             # therefore the following system command is used
             subprocess.call(['unzip', '-o', f, '-d', extraction_dir])
-    
-    os.chdir(cwd)
-
-# ==============================================================================
-# SEPERATE PHOTON ENDF FILE IF NEEDED 
-
-if args.release == '2.1' and 'photon' in args.particles:
-    # In the 2.1 release, all the photon files are in one ENDF file so the
-    # from_endf method only reads the first nuclide. 
-    # This splits the file down into seperate ENDF files for later reading.
-    os.chdir(endf_files_dir)
-    
-    current_file_str = ''
-    last_line_no = 0
-
-    with open('FENDLEP.DAT', 'r') as base_file:
-        # When cut the ENDF sections don't have seperate headers. Copy the main
-        # header to include in every file
-        header_line = base_file.readline()
-        current_file_str += header_line
+            if args.cleanup and Path(f).exists():
+                Path(f).unlink()
         
-        for line in base_file:
-            
-            current_line_no = int(line.split()[-1])
-            
-            # Start of a new nuclide
-            if current_line_no < last_line_no:
-                # Create a temporary file with the data 
-                new_endf = open('tmp', 'w+')
-                new_endf.write(current_file_str)
-                new_endf.seek(0)
-                
-                # Use the ENDF evaluation method to read the name
-                ev = openmc.data.endf.Evaluation(new_endf)
-                new_endf.close()
-                
-                z = ev.target['atomic_number']
-                a = ev.target['mass_number']
-                new_filename = openmc.data.data.ATOMIC_SYMBOL[z]
-                new_filename = new_filename + str(a) + ".endf"
-
-                os.rename('tmp', new_filename)
-                
-                # Need to add a header line if there isn't one at the start of
-                # new nuclide
-                if current_line_no == 1:
-                    current_file_str = header_line
-
-            current_file_str += line
-            last_line_no = current_line_no
-    
     os.chdir(cwd)
+    
+    if args.release == '2.1' and  args.cleanup and download_path.exists():
+        rmtree(download_path)
+
+    # Seperate photon ENDF file for 2.1 release
+    if args.release == '2.1' and 'photon' in args.particles:
+        # In the 2.1 release, all the photon files are in one ENDF file so the
+        # from_endf method only reads the first nuclide. 
+        # This splits the file down into seperate ENDF files for later reading.
+        os.chdir(endf_files_dir)
+        
+        current_file_str = ''
+        last_line_no = 0
+
+        with open('FENDLEP.DAT', 'r') as base_file:
+            # When cut the ENDF sections don't have seperate headers. Copy the main
+            # header to include in every file
+            header_line = base_file.readline()
+            current_file_str += header_line
+            
+            for line in base_file:
+                
+                current_line_no = int(line.split()[-1])
+                
+                # Start of a new nuclide
+                if current_line_no < last_line_no:
+                    # Create a temporary file with the data 
+                    new_endf = open('tmp', 'w+')
+                    new_endf.write(current_file_str)
+                    new_endf.seek(0)
+                    
+                    # Use the ENDF evaluation method to read the name
+                    ev = openmc.data.endf.Evaluation(new_endf)
+                    new_endf.close()
+                    
+                    z = ev.target['atomic_number']
+                    a = ev.target['mass_number']
+                    new_filename = openmc.data.data.ATOMIC_SYMBOL[z]
+                    new_filename = new_filename + str(a) + ".endf"
+
+                    os.rename('tmp', new_filename)
+                    
+                    # Need to add a header line if there isn't one at the start of
+                    # new nuclide
+                    if current_line_no == 1:
+                        current_file_str = header_line
+
+                current_file_str += line
+                last_line_no = current_line_no
+        
+        os.chdir(cwd)
 
 # ==============================================================================
 # GENERATE HDF5 LIBRARY
@@ -307,6 +317,11 @@ for particle in args.particles:
 
             # Register with library
             library.register_file(h5_file)
+
+        # Remove the ace files if required    
+        if args.cleanup and ace_files_dir.exists():
+            rmtree(ace_files_dir)
+
     elif particle == 'photon':
         for photo_path in sorted(particle_details['photo_files']):
             print(f'Converting: {photo_path}')
@@ -319,6 +334,10 @@ for particle in args.particles:
 
             # Register with library
             library.register_file(h5_file)
+        
+        # Remove the ENDF files if required 
+        if args.cleanup and endf_files_dir.exists():
+            rmtree(endf_files_dir)
 
 # Write cross_sections.xml
 print('Writing ', args.destination / 'cross_sections.xml')
