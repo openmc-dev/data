@@ -64,7 +64,7 @@ for lib_dir in args.libraries:
 
 i = 1
 print(f'Creating library in {args.destination.resolve()}'
-      + ' from the following nuclides in order or preference:')
+      + ' from the following nuclides in order of preference:')
 for lib_dir in args.libraries:
     print(f'{i}) {lib_dir.resolve()}')
     i += 1
