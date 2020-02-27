@@ -273,8 +273,6 @@ if args.extract:
             # unfortunatly which is incompatible with the standard python zipfile library
             # therefore the following system command is used
             subprocess.call(['unzip', '-o', f, '-d', extraction_dir])
-            if args.cleanup and Path(f).exists():
-                Path(f).unlink()
         
     os.chdir(cwd)
     
