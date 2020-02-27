@@ -13,8 +13,8 @@ import openmc.data
 from openmc._utils import download
 
 description = """
-Download FENDL 3.1d or FENDL 3.1c ACE data from the IAEA and convert it to a HDF5 library for
-use with OpenMC.
+Download FENDL-3.1d, FENDL-3.1a, FENDL-3.0 or FENDL-2.1  ACE data from the IAEA 
+and convert it to a HDF5 library for use with OpenMC.
 
 """
 
@@ -42,7 +42,7 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='earliest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
-parser.add_argument('-r', '--release', choices=['3.1a', '3.1d', '3.0', '2.1'],
+parser.add_argument('-r', '--release', choices=['3.1d', '3.1a', '3.0', '2.1'],
                     default='3.1d', help="The nuclear data library release version. "
                     "The currently supported options are 3.1d, 3.1a, 3.0 and "
                     "2.1")
@@ -254,6 +254,67 @@ release_details = {
     }
 }
 
+# Function to split an ENDF file made up of multiple evaluations into seperate
+# files, each with one evaluation.
+def split_endf(filename):
+    """Divides a file which contains multiple ENDF entries into individual 
+       ENDF files.
+
+        Parameters 
+        ----------
+        filename : str
+            Path to file with multiple ENDF records
+        
+        Returns
+        -------
+        list
+            A list of the names of files created
+    """
+        
+    with open(str(filename), 'r') as fh:
+  
+        current_file_str = ''
+        last_line_no = 0
+        created_files = []
+
+        # When cut the ENDF sections don't have seperate headers. Copy the main
+        # header to include in every file
+        header_line = fh.readline()
+        current_file_str += header_line
+
+        for line in fh:
+            
+            current_line_no = int(line.split()[-1])
+            
+            # Start of a new nuclide
+            if current_line_no < last_line_no:
+                # Create a temporary file with the data 
+                new_endf = open('tmp', 'w+')
+                new_endf.write(current_file_str)
+                new_endf.seek(0)
+
+                # Read the name of the new nuclide
+                items = openmc.data.endf.get_head_record(fh)
+                Z, A = divmod(items[0], 1000)
+
+                new_endf.close()
+                
+                new_filename = openmc.data.data.ATOMIC_SYMBOL[Z]
+                new_filename = new_filename + str(A) + ".endf"
+
+                os.rename('tmp', new_filename)
+                created_files.append(new_filename)
+                
+                # Reset for the next ENDF file
+                if current_line_no == 1:
+                    # Prepend a header if the next ENDF doesn't have one
+                    current_file_str = header_line
+
+            current_file_str += line
+            last_line_no = current_line_no
+        
+        return created_files
+
 compressed_file_size, uncompressed_file_size = 0, 0
 for p in ('neutron', 'photon'):
     if p in args.particles:
@@ -275,12 +336,10 @@ if args.download:
     print(download_warning)
 
     for particle in args.particles:
-        if args.release == '2.1':
-            # Older releases have ace files in individual zip files. Create a 
-            # a directory to hold them.
-            particle_download_path = download_path / particle
-            particle_download_path.mkdir(parents = True, exist_ok=True) 
-            os.chdir(particle_download_path)
+        # Create a directory to hold the downloads
+        particle_download_path = download_path / particle
+        particle_download_path.mkdir(parents = True, exist_ok=True) 
+        os.chdir(particle_download_path)
 
         particle_details = release_details[args.release][particle]
         for f in particle_details['files']:
@@ -295,8 +354,7 @@ if args.download:
 # EXTRACT FILES FROM ZIP
 if args.extract:
     for particle in args.particles:
-        if args.release == '2.1':
-            os.chdir(download_path / particle)
+        os.chdir(download_path / particle)
 
         particle_details = release_details[args.release][particle]
         if particle_details['file_type'] == "ace":
@@ -320,7 +378,7 @@ if args.extract:
         
     os.chdir(cwd)
     
-    if args.release == '2.1' and  args.cleanup and download_path.exists():
+    if args.cleanup and download_path.exists():
         rmtree(download_path)
 
 
