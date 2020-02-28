@@ -205,13 +205,13 @@ def split_endf(filename):
                 new_endf.seek(0)
 
                 # Read the name of the new nuclide
-                items = openmc.data.endf.get_head_record(fh)
-                Z, A = divmod(items[0], 1000)
-
+                ev = openmc.data.endf.Evaluation(new_endf)
                 new_endf.close()
                 
-                new_filename = openmc.data.data.ATOMIC_SYMBOL[Z]
-                new_filename = new_filename + str(A) + ".endf"
+                z = ev.target['atomic_number']
+                a = ev.target['mass_number']
+                new_filename = openmc.data.data.ATOMIC_SYMBOL[z]
+                new_filename = new_filename + str(a) + ".endf"
 
                 os.rename('tmp', new_filename)
                 created_files.append(new_filename)
