@@ -8,6 +8,7 @@ from urllib.parse import urljoin
 from textwrap import dedent
 import os
 from shutil import rmtree
+import warnings
 
 import openmc.data
 from openmc._utils import download
@@ -58,6 +59,37 @@ parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
 parser.set_defaults(download=True, extract=True, cleanup=False)
 args = parser.parse_args()
 
+# =============================================================================
+# FUNCTIONS FOR DEALING WITH SPECIAL CASES
+#
+# Each of these functions should take a Path object which points to the file
+# The function should return a bool which determines whether the file should be
+# ignored.
+
+# Function to check for k-39 error in FENDL-3.0
+def fendl30_k39(file_path):
+    err_msg = ''
+    skip_file = False
+    
+    if 'Inf' in open(file_path, 'r').read():
+        ace_error_warning = """ 
+        {} contains 'Inf' values within the XSS array 
+        which prevent conversion to a HDF5 file format. This is a known issue
+        in FENDL-3.0. {} has not been added to the cross section library. 
+        """.format(file_path, file_path.name)
+        err_msg = dedent(ace_error_warning)
+        skip_file = True
+
+    return {'skip_file': skip_file, 'err_msg': err_msg}
+
+# Helper function for checking if there are any special cases defined:
+# Returns the special Cases relevant to a specific part of the script. 
+# If there are no special cases, return an empty dict
+def check_special_case(particle_details, script_step):
+    if 'special_cases' in particle_details:
+        if script_step in particle_details['special_cases']:
+            return particle_details['special_cases'][script_step]
+    return {}
 
 # this could be added as an argument to allow different libraries to be downloaded
 library_name = 'fendl'
@@ -117,7 +149,10 @@ release_details = {
             'file_type': 'ace',
             'ace_files': ace_files_dir.joinpath('ace').glob('*.ace'),
             'compressed_file_size': 364,
-            'uncompressed_file_size': 2200
+            'uncompressed_file_size': 2200,
+            'special_cases': {
+                'process': {'19K_039.ace':fendl30_k39}
+            }
         },
         'photon':{
             'base_url': 'https://www-nds.iaea.org/fendl30/data/atom/',
@@ -165,68 +200,7 @@ release_details = {
     }
 }
 
-# Function to split an ENDF file made up of multiple evaluations into seperate
-# files, each with one evaluation.
-def split_endf(filename):
-    """Divides a file which contains multiple ENDF entries into individual 
-       ENDF files.
-
-        Parameters 
-        ----------
-        filename : str
-            Path to file with multiple ENDF records
-        
-        Returns
-        -------
-        list
-            A list of the names of files created
-    """
-        
-    with open(str(filename), 'r') as fh:
-  
-        current_file_str = ''
-        last_line_no = 0
-        created_files = []
-
-        # When cut the ENDF sections don't have seperate headers. Copy the main
-        # header to include in every file
-        header_line = fh.readline()
-        current_file_str += header_line
-
-        for line in fh:
-            
-            current_line_no = int(line.split()[-1])
-            
-            # Start of a new nuclide
-            if current_line_no < last_line_no:
-                # Create a temporary file with the data 
-                new_endf = open('tmp', 'w+')
-                new_endf.write(current_file_str)
-                new_endf.seek(0)
-
-                # Read the name of the new nuclide
-                ev = openmc.data.endf.Evaluation(new_endf)
-                new_endf.close()
-                
-                z = ev.target['atomic_number']
-                a = ev.target['mass_number']
-                new_filename = openmc.data.data.ATOMIC_SYMBOL[z]
-                new_filename = new_filename + str(a) + ".endf"
-
-                os.rename('tmp', new_filename)
-                created_files.append(new_filename)
-                
-                # Reset for the next ENDF file
-                if current_line_no == 1:
-                    # Prepend a header if the next ENDF doesn't have one
-                    current_file_str = header_line
-
-            current_file_str += line
-            last_line_no = current_line_no
-        
-        return created_files
-
-compressed_file_size, uncompressed_file_size = 0, 0
+compressed_file_size = uncompressed_file_size = 0
 for p in ('neutron', 'photon'):
     if p in args.particles:
         compressed_file_size += release_details[args.release][p]['compressed_file_size']
@@ -237,6 +211,9 @@ WARNING: This script will download {} MB of data.
 Extracting and processing the data requires {} MB of additional free disk space.
 """.format(compressed_file_size, uncompressed_file_size)
 
+# Warnings to be printed at the end of the script.
+output_warnings = [] 
+
 # ==============================================================================
 # DOWNLOAD FILES FROM IAEA SITE
 
@@ -246,15 +223,16 @@ if args.download:
     for particle in args.particles:
         # Create a directory to hold the downloads
         particle_download_path = download_path / particle
-        particle_download_path.mkdir(parents = True, exist_ok=True) 
+        particle_download_path.mkdir(parents=True, exist_ok=True) 
         os.chdir(particle_download_path)
 
         particle_details = release_details[args.release][particle]
         for f in particle_details['files']:
             download(urljoin(particle_details['base_url'], f),
-                    as_browser=True, context=ssl._create_unverified_context())
+                     as_browser=True, context=ssl._create_unverified_context())
     
     os.chdir(cwd)
+
 
 # ==============================================================================
 # EXTRACT FILES FROM ZIP
@@ -263,37 +241,36 @@ if args.extract:
         os.chdir(download_path / particle)
 
         particle_details = release_details[args.release][particle]
+        special_cases = check_special_case(particle_details, 'extract')
+
         if particle_details['file_type'] == "ace":
             extraction_dir = ace_files_dir
         elif particle_details['file_type'] == "endf":
             extraction_dir = endf_files_dir
 
         for f in particle_details['files']:
+            # Check if file requires special handling
+            if f in special_cases:
+                ret = special_cases[f](Path(f))
+                if len(ret['err_msg']) > 0:
+                    output_warnings.append(ret['err_msg'])
+                if ret['skip_file']:
+                    continue
+
             # Extract files, the fendl release was compressed using type 9 zip format
             # unfortunatly which is incompatible with the standard python zipfile library
             # therefore the following system command is used
             subprocess.call(['unzip', '-o', f, '-d', extraction_dir])
-        
     os.chdir(cwd)
     
     if args.cleanup and download_path.exists():
         rmtree(download_path)
 
-    # Seperate photon ENDF file for 2.1 release
-    if args.release == '2.1' and 'photon' in args.particles:
-        # In the 2.1 release, all the photon files are in one ENDF file so the
-        # from_endf method only reads the first nuclide. 
-        # This splits the file down into seperate ENDF files for later reading.
-        os.chdir(endf_files_dir)
-        split_endf('FENDLEP.DAT')
-        os.chdir(cwd)
 
 # ==============================================================================
 # GENERATE HDF5 LIBRARY
 
 library = openmc.data.DataLibrary()
-
-warn_k39 = False    # Flag for K-39 error in FENDL-3.0 release
 
 for particle in args.particles:
     # Create output directories if it doesn't exist
@@ -301,6 +278,9 @@ for particle in args.particles:
     particle_destination.mkdir(parents=True, exist_ok=True)
 
     particle_details = release_details[args.release][particle]
+    
+    # Get dictionary of special cases for particle
+    special_cases = check_special_case(particle_details, 'process')
 
     if particle == 'neutron':
         # Get a list of all ACE files, excluding files ending with _ which are 
@@ -310,18 +290,14 @@ for particle in args.particles:
             for f in particle_details['ace_files']
             if not f.name.endswith('_') and not f.name.endswith('.xsd')
         ]
+
         for filename in sorted(neutron_files):
-            # Check for Inf values in K-39 ace file for FENDL-3.0
-            if args.release == '3.0' and filename.name == '19K_039.ace':
-                # Check for the error in case user has provided a fixed version.
-                if 'Inf' in open(filename, 'r').read():
-                    ace_error_warning = """
-                    WARNING: {} contains 'Inf' values within the XSS array which 
-                    prevent conversion to a hdf5 file format. This is a known issue
-                    in FENDL-3.0. {} has not been added to the cross section library 
-                    """.format(filename, filename.name)
-                    ace_error_warning = dedent(ace_error_warning)
-                    warn_k39 = True
+            # Handling for special cases
+            if filename.name in special_cases:
+                ret = special_cases[filename.name](filename)
+                if len(ret['err_msg']) > 0:
+                    output_warnings.append(ret['err_msg'])
+                if ret['skip_file']:
                     continue
             
             print(f'Converting: {filename}')
@@ -341,13 +317,22 @@ for particle in args.particles:
 
     elif particle == 'photon':
         for photo_path in sorted(particle_details['photo_files']):
+            # Check if file requires special handling
+            if photo_path.name in special_cases:
+                ret = special_cases[photo_path.name](photo_path)
+                if len(ret['err_msg']) > 0:
+                    output_warnings.append(ret['err_msg'])
+                if ret['skip_file']:
+                    continue
+            
             print(f'Converting: {photo_path}')
-            data = openmc.data.IncidentPhoton.from_endf(photo_path)
-
-            # Export HDF5 file
-            h5_file = particle_destination / f'{data.name}.h5'
-            print(f'Writing {h5_file}...')
-            data.export_to_hdf5(h5_file, 'w', libver=args.libver)
+            evaluations = openmc.data.endf.get_evaluations(photo_path)
+            for ev in evaluations:
+                # Export HDF5 file
+                data = openmc.data.IncidentPhoton.from_endf(ev)
+                h5_file = particle_destination / f'{data.name}.h5'
+                print(f'Writing {h5_file}...')
+                data.export_to_hdf5(h5_file, 'w', libver=args.libver)
 
             # Register with library
             library.register_file(h5_file)
@@ -360,7 +345,6 @@ for particle in args.particles:
 print('Writing ', args.destination / 'cross_sections.xml')
 library.export_to_xml(args.destination / 'cross_sections.xml')
 
-# Print the K-39 warning at the end so it doesn't get lost in the conversion messages
-if warn_k39:
-    print(ace_error_warning)
-
+# Print any warnings
+for warning in output_warnings:
+        warnings.warn(warning, Warning)
