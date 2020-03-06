@@ -68,9 +68,6 @@ args = parser.parse_args()
 
 # Function to check for k-39 error in FENDL-3.0
 def fendl30_k39(file_path):
-    err_msg = ''
-    skip_file = False
-    
     if 'Inf' in open(file_path, 'r').read():
         ace_error_warning = """ 
         {} contains 'Inf' values within the XSS array 
@@ -78,9 +75,9 @@ def fendl30_k39(file_path):
         in FENDL-3.0. {} has not been added to the cross section library. 
         """.format(file_path, file_path.name)
         err_msg = dedent(ace_error_warning)
-        skip_file = True
-
-    return {'skip_file': skip_file, 'err_msg': err_msg}
+        return {'skip_file': True, 'err_msg': err_msg}
+    else:
+        return {'skip_file': False}
 
 # Helper function for checking if there are any special cases defined:
 # Returns the special Cases relevant to a specific part of the script. 
@@ -252,7 +249,7 @@ if args.extract:
             # Check if file requires special handling
             if f in special_cases:
                 ret = special_cases[f](Path(f))
-                if len(ret['err_msg']) > 0:
+                if 'err_msg' in ret:
                     output_warnings.append(ret['err_msg'])
                 if ret['skip_file']:
                     continue
@@ -295,7 +292,7 @@ for particle in args.particles:
             # Handling for special cases
             if filename.name in special_cases:
                 ret = special_cases[filename.name](filename)
-                if len(ret['err_msg']) > 0:
+                if 'err_msg' in ret:
                     output_warnings.append(ret['err_msg'])
                 if ret['skip_file']:
                     continue
@@ -320,7 +317,7 @@ for particle in args.particles:
             # Check if file requires special handling
             if photo_path.name in special_cases:
                 ret = special_cases[photo_path.name](photo_path)
-                if len(ret['err_msg']) > 0:
+                if 'err_msg' in ret:
                     output_warnings.append(ret['err_msg'])
                 if ret['skip_file']:
                     continue
@@ -347,4 +344,4 @@ library.export_to_xml(args.destination / 'cross_sections.xml')
 
 # Print any warnings
 for warning in output_warnings:
-        warnings.warn(warning, Warning)
+    warnings.warn(warning)
