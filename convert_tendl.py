@@ -3,7 +3,9 @@
 import argparse
 from pathlib import Path
 import sys
+import os
 import tarfile
+from shutil import rmtree
 from urllib.parse import urljoin
 
 import openmc.data
@@ -42,13 +44,23 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
 parser.add_argument('-r', '--release', choices=['2015', '2017', '2019'],
                     default='2019', help="The nuclear data library release version. "
                     "The currently supported options are 2015, 2017, and 2019.")
+parser.add_argument('--cleanup', action='store_true',
+                    help="Remove download directories when data has "
+                    "been processed")
+parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
+                    help="Do not remove download directories when data has "
+                    "been processed")
 parser.set_defaults(download=True, extract=True)
 args = parser.parse_args()
 
 
 
 library_name = 'tendl' #this could be added as an argument to allow different libraries to be downloaded
-ace_files_dir = Path('-'.join([library_name, args.release, 'ace']))
+
+cwd = Path.cwd()
+
+ace_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'ace']))
+download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
 # the destination is decided after the release is know to avoid putting the release in a folder with a misleading name
 if args.destination is None:
     args.destination = Path('-'.join([library_name, args.release, 'hdf5']))
@@ -93,17 +105,26 @@ Extracting and processing the data requires {} of additional free disk space.
 if args.download:
     print(download_warning)
     for f in release_details[args.release]['files']:
+        download_path.mkdir(parents=True, exist_ok=True) 
+        os.chdir(download_path)
         # Establish connection to URL
         download(urljoin(release_details[args.release]['base_url'], f))
+
+    os.chdir(cwd)
 
 # ==============================================================================
 # EXTRACT FILES FROM TGZ
 
 if args.extract:
     for f in release_details[args.release]['files']:
+        os.chdir(particle_download_path)
         with tarfile.open(f, 'r') as tgz:
             print(f'Extracting {f}...')
             tgz.extractall(path=ace_files_dir)
+    os.chdir(cwd)
+
+    if args.cleanup and download_path.exists():
+        rmtree(download_path)
 
 # ==============================================================================
 # CHANGE ZAID FOR METASTABLES
