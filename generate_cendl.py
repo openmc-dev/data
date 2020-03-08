@@ -42,12 +42,20 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
 parser.add_argument('-r', '--release', choices=['3.1'],
                     default='3.1', help="The nuclear data library release version. "
                     "The only option currently supported is 3.1")
+parser.add_argument('--cleanup', action='store_true',
+                    help="Remove download directories when data has "
+                    "been processed")
+parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
+                    help="Do not remove download directories when data has "
+                    "been processed")
 parser.set_defaults(download=True, extract=True)
 args = parser.parse_args()
 
 
 library_name = 'cendl' #this could be added as an argument to allow different libraries to be downloaded
+
 endf_files_dir = Path('-'.join([library_name, args.release, 'endf']))
+download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
 # the destination is decided after the release is known to avoid putting the release in a folder with a misleading name
 if args.destination is None:
     args.destination = Path('-'.join([library_name, args.release, 'hdf5']))
@@ -76,16 +84,24 @@ Extracting and processing the data requires {} of additional free disk space.
 if args.download:
     print(download_warning)
     for f in release_details[args.release]['files']:
+        download_path.mkdir(parents=True, exist_ok=True) 
+        os.chdir(download_path)
+        # Establish connection to URL
         download(urljoin(release_details[args.release]['base_url'], f))
+    os.chdir(cwd)
 
 # ==============================================================================
 # EXTRACT FILES FROM ZIP
 if args.extract:
-    for f in release_details[args.release]['files']:        
-        # Extract files
+    for f in release_details[args.release]['files']:
+        os.chdir(download_path)
         with zipfile.ZipFile(f) as zf:
             print('Extracting {0}...'.format(f))
             zf.extractall(path=endf_files_dir)
+    os.chdir(cwd)
+
+    if args.cleanup and download_path.exists():
+        rmtree(download_path)
 
 # ==============================================================================
 # GENERATE HDF5 LIBRARY -- NEUTRON FILES
