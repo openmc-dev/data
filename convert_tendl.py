@@ -117,7 +117,7 @@ if args.download:
 
 if args.extract:
     for f in release_details[args.release]['files']:
-        os.chdir(particle_download_path)
+        os.chdir(download_path)
         with tarfile.open(f, 'r') as tgz:
             print(f'Extracting {f}...')
             tgz.extractall(path=ace_files_dir)

@@ -48,12 +48,22 @@ parser.add_argument('-t', '--temperatures',
                              '1000', '1200', '1500', '1800'],
                     default=['293', '400', '500', '600', '700', '800', '900',
                              '1000', '1200', '1500', '1800'], 
-                    help="Temperatures to download in Kelvin", nargs='+',)    
+                    help="Temperatures to download in Kelvin", nargs='+')
+parser.add_argument('--cleanup', action='store_true',
+                    help="Remove download directories when data has "
+                    "been processed")
+parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
+                    help="Do not remove download directories when data has "
+                    "been processed")    
 parser.set_defaults(download=True, extract=True)
 args = parser.parse_args()
 
 library_name = 'jeff'
+
+cwd = Path.cwd()
+
 ace_files_dir = Path('-'.join([library_name, args.release, 'ace']))
+download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
 # the destination is decided after the release is know to avoid putting the release in a folder with a misleading name
 if args.destination is None:
     args.destination = Path('-'.join([library_name, args.release, 'hdf5']))
@@ -94,6 +104,8 @@ if args.download:
 
 if args.extract:
     for f in release_details[args.release]['files']:
+        download_path.mkdir(parents=True, exist_ok=True) 
+        os.chdir(download_path)
         # Extract files
         if f.endswith('.zip'):
             with zipfile.ZipFile(f, 'r') as zipf:
@@ -112,6 +124,7 @@ if args.extract:
                 for path in release_details[args.release]['redundant']:
                     print(f'removing {path}')
                     path.unlink()
+    os.chdir(cwd)
 
 # ==============================================================================
 # CHANGE ZAID FOR METASTABLES
