@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 
 import argparse
-from pathlib import Path
 import tarfile
 import sys
+import os
+from pathlib import Path
+from shutil import rmtree
+from urllib.parse import urljoin
 
 import openmc.data
 from openmc._utils import download
@@ -43,43 +46,91 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='earliest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
+parser.add_argument('-r', '--release', choices=['3.3'],
+                    default='3.3', help="The nuclear data library release version. "
+                    "The only currently supported option is 3.3.")
+parser.add_argument('--cleanup', action='store_true',
+                    help="Remove download directories when data has "
+                    "been processed")
+parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
+                    help="Do not remove download directories when data has "
+                    "been processed")
 parser.set_defaults(download=True, extract=True)
 args = parser.parse_args()
 
-ace_files_dir = Path('jeff-3.3-ace')
+library_name = 'jeff'
 
-# Download JEFF 3.3 library
-filename = 'JEFF33-n_tsl-ace.tgz'
-url = f'http://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/{filename}'
+cwd = Path.cwd()
+
+ace_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'ace']))
+download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
+
+# This dictionary contains all the unique information about each release. This can be exstened to accommodated new releases
+release_details = {
+    '3.3': {
+        'base_url': 'http://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/',
+        'files': ['JEFF33-n_tsl-ace.tgz'],
+        'neutron_files': sorted(ace_files_dir.rglob('*.[Aa][Cc][Ee]')),
+        'metastables': ace_files_dir.glob('neutron_file/*/*/lib/endf/*m-n.ace'),
+        'compressed_file_size': '? GB',
+        'uncompressed_file_size': '? GB'
+    }
+}
+
+
+download_warning = """
+WARNING: This script will download {} of data.
+Extracting and processing the data requires {} of additional free disk space.
+""".format(release_details[args.release]['compressed_file_size'],
+           release_details[args.release]['uncompressed_file_size'])
+
+# ==============================================================================
+# DOWNLOAD FILES FROM WEBSITE
+
 if args.download:
-    download(url)
+    print(download_warning)
+    for f in release_details[args.release]['files']:
+        download_path.mkdir(parents=True, exist_ok=True) 
+        os.chdir(download_path)
+        # Establish connection to URL
+        download(urljoin(release_details[args.release]['base_url'], f))
 
-# Extract tar file
+    os.chdir(cwd)
+
+# ==============================================================================
+# EXTRACT FILES FROM TGZ
+
 if args.extract:
-    with tarfile.open(filename, 'r') as tgz:
-        print(f'Extracting {filename}...')
-        tgz.extractall(path=ace_files_dir)
+    for f in release_details[args.release]['files']:
+        os.chdir(download_path)
+        with tarfile.open(f, 'r') as tgz:
+            print(f'Extracting {f}...')
+            tgz.extractall(path=ace_files_dir)
+    os.chdir(cwd)
+
+    if args.cleanup and download_path.exists():
+        rmtree(download_path)
 
 # Create output directory if it doesn't exist
 args.destination.mkdir(parents=True, exist_ok=True)
 
-# Get a list of all ACE files
-paths = sorted(ace_files_dir.rglob('*.[Aa][Cc][Ee]'))
+# # Get a list of all ACE files
+# paths = sorted(ace_files_dir.rglob('*.[Aa][Cc][Ee]'))
 
-lib = openmc.data.DataLibrary()
-for p in sorted(paths):
-    print(f'Converting: {p}')
-    if 'jeff33' in str(p):
-        data = openmc.data.IncidentNeutron.from_ace(p)
-        if 'm.' in str(p):
-            # Correct metastable
-            data.metastable = 1
-            data.name += '_m1'
-    else:
-        data = openmc.data.ThermalScattering.from_ace(p)
+# lib = openmc.data.DataLibrary()
+# for p in sorted(paths):
+#     print(f'Converting: {p}')
+#     if 'jeff33' in str(p):
+#         data = openmc.data.IncidentNeutron.from_ace(p)
+#         if 'm.' in str(p):
+#             # Correct metastable
+#             data.metastable = 1
+#             data.name += '_m1'
+#     else:
+#         data = openmc.data.ThermalScattering.from_ace(p)
 
-    h5_file = args.destination / f'{data.name}.h5'
-    data.export_to_hdf5(h5_file, 'w', libver=args.libver)
-    lib.register_file(h5_file)
+#     h5_file = args.destination / f'{data.name}.h5'
+#     data.export_to_hdf5(h5_file, 'w', libver=args.libver)
+#     lib.register_file(h5_file)
 
-lib.export_to_xml(args.destination / 'cross_sections.xml')
+# lib.export_to_xml(args.destination / 'cross_sections.xml')
