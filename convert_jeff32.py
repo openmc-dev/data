@@ -3,6 +3,7 @@
 import argparse
 import tarfile
 import zipfile
+import os
 from collections import defaultdict
 from pathlib import Path
 from string import digits
