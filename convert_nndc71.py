@@ -50,6 +50,12 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     "performance")
 parser.add_argument('-p', '--particles', choices=['neutron', 'photon'], nargs='+',
                     default=['neutron', 'photon'], help="Incident particles to include")
+parser.add_argument('--cleanup', action='store_true',
+                    help="Remove download directories when data has "
+                    "been processed")
+parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
+                    help="Do not remove download directories when data has "
+                    "been processed")
 parser.set_defaults(download=True, extract=True)
 args = parser.parse_args()
 
@@ -57,6 +63,7 @@ library_name = 'nndc'
 release = 'b7.1'
 ace_files_dir = Path('-'.join([library_name, release, 'ace']))
 endf_files_dir = Path('-'.join([library_name, release, 'endf']))
+download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
 
 # This dictionary contains all the unique information about each release. This
 # can be exstened to accommodated new releases
@@ -107,10 +114,14 @@ for use with OpenMC. This data is used for OpenMC's regression test suite.
 if args.download:
     print(download_warning)
     for particle in args.particles:
+        particle_download_path = download_path / particle
+        particle_download_path.mkdir(parents=True, exist_ok=True) 
+        os.chdir(download_path)
         for f in release_details[release][particle]['compressed_files']:
             # Establish connection to URL
             url = release_details[release][particle]['base_url'] + f
             downloaded_file = download(url)
+    os.chdir(cwd)
 
 # ==============================================================================
 # VERIFY MD5 CHECKSUMS
@@ -139,6 +150,8 @@ if args.extract:
             extraction_dir = endf_files_dir
 
         for f in release_details[release][particle]['compressed_files']:
+            os.chdir(download_path)
+            
             # Extract files
 
             if f.endswith('.zip'):
@@ -149,6 +162,10 @@ if args.extract:
                 with tarfile.open(f, 'r') as tgz:
                     print('Extracting {}...'.format(f))
                     tgz.extractall(path=extraction_dir)
+    os.chdir(cwd)
+
+    if args.cleanup and download_path.exists():
+        rmtree(download_path)     
 
 # ==============================================================================
 # FIX ZAID ASSIGNMENTS FOR VARIOUS S(A,B) TABLES
