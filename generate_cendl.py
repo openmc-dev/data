@@ -3,7 +3,9 @@
 import argparse
 from pathlib import Path
 import sys
+import os
 import zipfile
+from shutil import rmtree
 from urllib.parse import urljoin
 
 import openmc.data
@@ -54,6 +56,8 @@ args = parser.parse_args()
 
 library_name = 'cendl' #this could be added as an argument to allow different libraries to be downloaded
 
+cwd = Path.cwd()
+
 endf_files_dir = Path('-'.join([library_name, args.release, 'endf']))
 download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
 # the destination is decided after the release is known to avoid putting the release in a folder with a misleading name
@@ -64,7 +68,7 @@ if args.destination is None:
 release_details = {
     '3.1': {
         'base_url': 'https://www.oecd-nea.org/dbforms/data/eva/evatapes/cendl_31/',
-        'files': ['CENDL-31.zip'],
+        'compressed_files': ['CENDL-31.zip'],
         'neutron_files': endf_files_dir.glob('*.C31'),
         'metastables': endf_files_dir.glob('*m.C31'),
         'compressed_file_size': '0.03 GB',
@@ -83,7 +87,7 @@ Extracting and processing the data requires {} of additional free disk space.
 
 if args.download:
     print(download_warning)
-    for f in release_details[args.release]['files']:
+    for f in release_details[args.release]['compressed_files']:
         download_path.mkdir(parents=True, exist_ok=True) 
         os.chdir(download_path)
         # Establish connection to URL
@@ -93,7 +97,7 @@ if args.download:
 # ==============================================================================
 # EXTRACT FILES FROM ZIP
 if args.extract:
-    for f in release_details[args.release]['files']:
+    for f in release_details[args.release]['compressed_files']:
         os.chdir(download_path)
         with zipfile.ZipFile(f) as zf:
             print('Extracting {0}...'.format(f))

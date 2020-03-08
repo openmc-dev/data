@@ -53,8 +53,6 @@ parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
 parser.set_defaults(download=True, extract=True)
 args = parser.parse_args()
 
-
-
 library_name = 'tendl' #this could be added as an argument to allow different libraries to be downloaded
 
 cwd = Path.cwd()
@@ -69,7 +67,7 @@ if args.destination is None:
 release_details = {
     '2015': {
         'base_url': 'https://tendl.web.psi.ch/tendl_2015/tar_files/',
-        'files': ['ACE-n.tgz'],
+        'compressed_files': ['ACE-n.tgz'],
         'neutron_files': ace_files_dir.glob('neutron_file/*/*/lib/endf/*-n.ace'),
         'metastables': ace_files_dir.glob('neutron_file/*/*/lib/endf/*m-n.ace'),
         'compressed_file_size': '5.1 GB',
@@ -77,7 +75,7 @@ release_details = {
     },
     '2017': {
         'base_url': 'https://tendl.web.psi.ch/tendl_2017/tar_files/',
-        'files': ['tendl17c.tar.bz2'],
+        'compressed_files': ['tendl17c.tar.bz2'],
         'neutron_files': ace_files_dir.glob('ace-17/*'),
         'metastables': ace_files_dir.glob('ace-17/*m'),
         'compressed_file_size': '2.1 GB',
@@ -85,7 +83,7 @@ release_details = {
     },
     '2019': {
         'base_url': 'https://tendl.web.psi.ch/tendl_2019/tar_files/',
-        'files': ['tendl19c.tar.bz2'],
+        'compressed_files': ['tendl19c.tar.bz2'],
         'neutron_files': ace_files_dir.glob('tendl19c/*'),
         'metastables': ace_files_dir.glob('tendl19c/*m'),
         'compressed_file_size': '2.3 GB',
@@ -104,19 +102,18 @@ Extracting and processing the data requires {} of additional free disk space.
 
 if args.download:
     print(download_warning)
-    for f in release_details[args.release]['files']:
-        download_path.mkdir(parents=True, exist_ok=True) 
-        os.chdir(download_path)
+    download_path.mkdir(parents=True, exist_ok=True) 
+    os.chdir(download_path)
+    for f in release_details[args.release]['compressed_files']:
         # Establish connection to URL
         download(urljoin(release_details[args.release]['base_url'], f))
-
     os.chdir(cwd)
 
 # ==============================================================================
 # EXTRACT FILES FROM TGZ
 
 if args.extract:
-    for f in release_details[args.release]['files']:
+    for f in release_details[args.release]['compressed_files']:
         os.chdir(download_path)
         with tarfile.open(f, 'r') as tgz:
             print(f'Extracting {f}...')

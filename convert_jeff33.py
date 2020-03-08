@@ -69,7 +69,7 @@ download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
 release_details = {
     '3.3': {
         'base_url': 'http://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/',
-        'files': ['JEFF33-n_tsl-ace.tgz'],
+        'compressed_files': ['JEFF33-n_tsl-ace.tgz'],
         'neutron_files': sorted(ace_files_dir.rglob('*.[Aa][Cc][Ee]')),
         'metastables': ace_files_dir.glob('neutron_file/*/*/lib/endf/*m-n.ace'),
         'compressed_file_size': '? GB',
@@ -89,7 +89,7 @@ Extracting and processing the data requires {} of additional free disk space.
 
 if args.download:
     print(download_warning)
-    for f in release_details[args.release]['files']:
+    for f in release_details[args.release]['compressed_files']:
         download_path.mkdir(parents=True, exist_ok=True) 
         os.chdir(download_path)
         # Establish connection to URL
@@ -101,7 +101,7 @@ if args.download:
 # EXTRACT FILES FROM TGZ
 
 if args.extract:
-    for f in release_details[args.release]['files']:
+    for f in release_details[args.release]['compressed_files']:
         os.chdir(download_path)
         with tarfile.open(f, 'r') as tgz:
             print(f'Extracting {f}...')

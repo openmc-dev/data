@@ -73,7 +73,7 @@ if args.destination is None:
 release_details = {
     '3.2':{
         'base_url': 'https://www.oecd-nea.org/dbforms/data/eva/evatapes/jeff_32/Processed/',
-        'files': [f'JEFF32-ACE-{t}K.zip' if t=='800' else f'JEFF32-ACE-{t}K.tar.gz' for t in args.temperatures] 
+        'compressed_files': [f'JEFF32-ACE-{t}K.zip' if t=='800' else f'JEFF32-ACE-{t}K.tar.gz' for t in args.temperatures] 
                   +['TSLs.tar.gz'],
         'neutron_files':ace_files_dir.rglob('*.ACE'),
         'metastables': ace_files_dir.rglob('*M.ACE'),
@@ -97,14 +97,14 @@ space. Note that if you don't need all 11 temperatures, you can used the
 
 if args.download:
     print(download_warning)
-    for f in release_details[args.release]['files']:
+    for f in release_details[args.release]['compressed_files']:
         download(urljoin(release_details[args.release]['base_url'], f))
 
 # ==============================================================================
 # EXTRACT FILES FROM TGZ
 
 if args.extract:
-    for f in release_details[args.release]['files']:
+    for f in release_details[args.release]['compressed_files']:
         download_path.mkdir(parents=True, exist_ok=True) 
         os.chdir(download_path)
         # Extract files

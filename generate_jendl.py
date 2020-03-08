@@ -3,8 +3,10 @@
 import argparse
 from pathlib import Path
 import ssl
+import os
 import sys
 import tarfile
+from shutil import rmtree
 from urllib.parse import urljoin
 
 import openmc.data
@@ -67,7 +69,7 @@ if args.destination is None:
 release_details = {
     '4.0': {
         'base_url': 'https://wwwndc.jaea.go.jp/ftpnd/ftp/JENDL/',
-        'files': ['jendl40-or-up_20160106.tar.gz'],
+        'compressed_files': ['jendl40-or-up_20160106.tar.gz'],
         'neutron_files': endf_files_dir.joinpath('jendl40-or-up_20160106').glob('*.dat'),
         'metastables': endf_files_dir.joinpath('jendl40-or-up_20160106').glob('*m.dat'),
         'compressed_file_size': '0.2 GB',
@@ -86,7 +88,7 @@ Extracting and processing the data requires {} of additional free disk space.
 
 if args.download:
     print(download_warning)
-    for f in release_details[args.release]['files']:
+    for f in release_details[args.release]['compressed_files']:
         download_path.mkdir(parents=True, exist_ok=True) 
         os.chdir(download_path)
         # Establish connection to URL
@@ -97,7 +99,7 @@ if args.download:
 # ==============================================================================
 # EXTRACT FILES FROM TGZ
 if args.extract:
-    for f in release_details[args.release]['files']:
+    for f in release_details[args.release]['compressed_files']:
         os.chdir(download_path)
         with tarfile.open(f, 'r') as tgz:
             print('Extracting {0}...'.format(f))
