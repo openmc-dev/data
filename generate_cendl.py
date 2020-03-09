@@ -9,7 +9,7 @@ from shutil import rmtree
 from urllib.parse import urljoin
 
 import openmc.data
-from openmc._utils import download
+from _utils import download
 
 description = """
 Download CENDL 3.1 data from OECD NEA and convert it to a HDF5 library for

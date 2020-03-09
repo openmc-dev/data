@@ -10,7 +10,7 @@ from string import digits
 from urllib.parse import urljoin
 
 import openmc.data
-from openmc._utils import download
+from _utils import download
 
 description = """
 Download JEFF 3.2 ACE data from OECD/NEA and convert it to a multi-temperature

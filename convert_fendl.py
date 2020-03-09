@@ -9,7 +9,7 @@ import zipfile
 from urllib.parse import urljoin
 
 import openmc.data
-from openmc._utils import download
+from _utils import download
 
 description = """
 Download FENDL 3.1d or FENDL 3.1c ACE data from the IAEA and convert it to a HDF5 library for

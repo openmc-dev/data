@@ -13,7 +13,7 @@ from pathlib import Path
 from urllib.parse import urljoin
 
 import openmc.data
-from openmc._utils import download
+from _utils import download
 
 # Make sure Python version is sufficient
 assert sys.version_info >= (3, 6), "Python 3.6+ is required"
