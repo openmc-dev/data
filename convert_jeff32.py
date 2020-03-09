@@ -98,7 +98,8 @@ space. Note that if you don't need all 11 temperatures, you can used the
 if args.download:
     print(download_warning)
     for f in release_details[args.release]['compressed_files']:
-        download(urljoin(release_details[args.release]['base_url'], f))
+        download(urljoin(release_details[args.release]['base_url'], f),
+                 output_path=download_path)
 
 # ==============================================================================
 # EXTRACT FILES FROM TGZ

@@ -90,12 +90,10 @@ Extracting and processing the data requires {} of additional free disk space.
 if args.download:
     print(download_warning)
     for f in release_details[args.release]['compressed_files']:
-        download_path.mkdir(parents=True, exist_ok=True) 
-        os.chdir(download_path)
         # Establish connection to URL
-        download(urljoin(release_details[args.release]['base_url'], f))
+        download(urljoin(release_details[args.release]['base_url'], f),
+                 output_path=download_path)
 
-    os.chdir(cwd)
 
 # ==============================================================================
 # EXTRACT FILES FROM TGZ

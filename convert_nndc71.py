@@ -61,9 +61,12 @@ args = parser.parse_args()
 
 library_name = 'nndc'
 release = 'b7.1'
+
+cwd = Path.cwd()
+
 ace_files_dir = Path('-'.join([library_name, release, 'ace']))
 endf_files_dir = Path('-'.join([library_name, release, 'endf']))
-download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
+download_path = cwd.joinpath('-'.join([library_name, release, 'download']))
 
 # This dictionary contains all the unique information about each release. This
 # can be exstened to accommodated new releases
@@ -115,13 +118,10 @@ if args.download:
     print(download_warning)
     for particle in args.particles:
         particle_download_path = download_path / particle
-        particle_download_path.mkdir(parents=True, exist_ok=True) 
-        os.chdir(download_path)
         for f in release_details[release][particle]['compressed_files']:
             # Establish connection to URL
             url = release_details[release][particle]['base_url'] + f
-            downloaded_file = download(url)
-    os.chdir(cwd)
+            downloaded_file = download(url, output_path=particle_download_path)
 
 # ==============================================================================
 # VERIFY MD5 CHECKSUMS
