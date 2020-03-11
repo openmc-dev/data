@@ -155,7 +155,7 @@ for filename in sorted(neutron_files):
 for name, filenames in sorted(tables.items()):
     print(name, filenames)
     filenames.sort(key=lambda x: int(
-        x.parts[1].split('_')[1][:-1]))
+        x.parts[-2].split('_')[1][:-1]))
 
 # Create output directory if it doesn't exist
 args.destination.mkdir(parents=True, exist_ok=True)
