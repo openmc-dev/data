@@ -56,7 +56,7 @@ parser.add_argument('--cleanup', action='store_true',
 parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
                     help="Do not remove download directories when data has "
                     "been processed")
-parser.set_defaults(download=True, extract=True)
+parser.set_defaults(download=True, extract=True, cleanup=False)
 args = parser.parse_args()
 
 library_name = 'nndc'

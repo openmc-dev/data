@@ -56,7 +56,7 @@ parser.add_argument('--cleanup', action='store_true',
 parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
                     help="Do not remove download directories when data has "
                     "been processed")    
-parser.set_defaults(download=True, extract=True)
+parser.set_defaults(download=True, extract=True, cleanup=False)
 args = parser.parse_args()
 
 library_name = 'jeff'
@@ -153,6 +153,7 @@ for filename in sorted(neutron_files):
 
 # Sort temperatures from lowest to highest
 for name, filenames in sorted(tables.items()):
+    print(name, filenames)
     filenames.sort(key=lambda x: int(
         x.parts[1].split('_')[1][:-1]))
 
