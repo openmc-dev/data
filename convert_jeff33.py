@@ -72,7 +72,7 @@ release_details = {
         'compressed_files': ['JEFF33-n_tsl-ace.tgz'],
         'neutron_files': sorted(ace_files_dir.rglob('*.[Aa][Cc][Ee]')),
         'metastables': ace_files_dir.glob('neutron_file/*/*/lib/endf/*m-n.ace'),
-        'compressed_file_size': '? GB',
+        'compressed_file_size': '46 GB',
         'uncompressed_file_size': '? GB'
     }
 }
@@ -112,23 +112,23 @@ if args.extract:
 # Create output directory if it doesn't exist
 args.destination.mkdir(parents=True, exist_ok=True)
 
-# # Get a list of all ACE files
-# paths = sorted(ace_files_dir.rglob('*.[Aa][Cc][Ee]'))
+# Get a list of all ACE files
+paths = sorted(ace_files_dir.rglob('*.[Aa][Cc][Ee]'))
 
-# lib = openmc.data.DataLibrary()
-# for p in sorted(paths):
-#     print(f'Converting: {p}')
-#     if 'jeff33' in str(p):
-#         data = openmc.data.IncidentNeutron.from_ace(p)
-#         if 'm.' in str(p):
-#             # Correct metastable
-#             data.metastable = 1
-#             data.name += '_m1'
-#     else:
-#         data = openmc.data.ThermalScattering.from_ace(p)
+lib = openmc.data.DataLibrary()
+for p in sorted(paths):
+    print(f'Converting: {p}')
+    if 'jeff33' in str(p):
+        data = openmc.data.IncidentNeutron.from_ace(p)
+        if 'm.' in str(p):
+            # Correct metastable
+            data.metastable = 1
+            data.name += '_m1'
+    else:
+        data = openmc.data.ThermalScattering.from_ace(p)
 
-#     h5_file = args.destination / f'{data.name}.h5'
-#     data.export_to_hdf5(h5_file, 'w', libver=args.libver)
-#     lib.register_file(h5_file)
+    h5_file = args.destination / f'{data.name}.h5'
+    data.export_to_hdf5(h5_file, 'w', libver=args.libver)
+    lib.register_file(h5_file)
 
-# lib.export_to_xml(args.destination / 'cross_sections.xml')
+lib.export_to_xml(args.destination / 'cross_sections.xml')
