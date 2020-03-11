@@ -58,7 +58,7 @@ library_name = 'cendl' #this could be added as an argument to allow different li
 
 cwd = Path.cwd()
 
-endf_files_dir = Path('-'.join([library_name, args.release, 'endf']))
+endf_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'endf']))
 download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
 # the destination is decided after the release is known to avoid putting the release in a folder with a misleading name
 if args.destination is None:
