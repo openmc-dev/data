@@ -37,7 +37,7 @@ parser = argparse.ArgumentParser(
     description=description,
     formatter_class=CustomFormatter
 )
-parser.add_argument('-d', '--destination', type=Path, default=Path('endfb71_hdf5'),
+parser.add_argument('-d', '--destination', type=Path, default=Path('endf-b71-hdf5'),
                     help='Directory to create new library in')
 parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='earliest', help="Output HDF5 versioning. Use "
