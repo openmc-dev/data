@@ -72,7 +72,7 @@ release_details = {
         'compressed_files': ['JEFF33-n_tsl-ace.tgz'],
         'neutron_files': sorted(ace_files_dir.rglob('*.[Aa][Cc][Ee]')),
         'metastables': ace_files_dir.glob('neutron_file/*/*/lib/endf/*m-n.ace'),
-        'compressed_file_size': '46 GB',
+        'compressed_file_size': '7.7 GB',
         'uncompressed_file_size': '? GB'
     }
 }
