@@ -220,15 +220,12 @@ if args.download:
     for particle in args.particles:
         # Create a directory to hold the downloads
         particle_download_path = download_path / particle
-        particle_download_path.mkdir(parents=True, exist_ok=True) 
-        os.chdir(particle_download_path)
 
         particle_details = release_details[args.release][particle]
         for f in particle_details['files']:
             download(urljoin(particle_details['base_url'], f),
-                     as_browser=True, context=ssl._create_unverified_context())
-    
-    os.chdir(cwd)
+                     as_browser=True, context=ssl._create_unverified_context(),
+                     output_path=particle_download_path)
 
 
 # ==============================================================================
@@ -259,7 +256,7 @@ if args.extract:
             # therefore the following system command is used
             subprocess.call(['unzip', '-o', f, '-d', extraction_dir])
     os.chdir(cwd)
-    
+
     if args.cleanup and download_path.exists():
         rmtree(download_path)
 
