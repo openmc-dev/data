@@ -63,7 +63,7 @@ library_name = 'jeff'
 
 cwd = Path.cwd()
 
-ace_files_dir = Path('-'.join([library_name, args.release, 'ace']))
+ace_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'ace']))
 download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
 # the destination is decided after the release is know to avoid putting the release in a folder with a misleading name
 if args.destination is None:
