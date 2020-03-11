@@ -105,9 +105,8 @@ if args.download:
 # EXTRACT FILES FROM TGZ
 
 if args.extract:
-    for f in release_details[args.release]['compressed_files']:
-        download_path.mkdir(parents=True, exist_ok=True) 
-        os.chdir(download_path)
+    os.chdir(download_path)
+    for f in release_details[args.release]['compressed_files']: 
         # Extract files
         if f.endswith('.zip'):
             with zipfile.ZipFile(f, 'r') as zipf:
