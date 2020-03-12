@@ -92,9 +92,8 @@ for lib_num in range(1, len(read_libraries)):
             if not args.copy:
                 destination_file = args.destination / source_file.name
                 if destination_file.exists():
-                    print(f'Error: Library file {destination_file.name} already'
-                          + ' exists in the combined library')
-                    sys.exit()
+                    raise FileExistsError(f'Library file {destination_file.name} already'
+                                          ' exists in the combined library')
                 shutil.copy(source_file, args.destination)
             print(f'Adding {source_path} from {args.libraries[lib_num].resolve()}')
             combined_library.register_file(destination_file)
