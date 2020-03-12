@@ -49,8 +49,7 @@ if args.destination.exists():
     if not args.destination.is_dir():
         raise NotADirectoryError(f'Destination {args.destination.resolve()} should be a directory')
     if len(list(args.destination.glob('*'))) > 0:
-        print(f'Error: Destination {args.destination.resolve()} is not empty')
-        sys.exit()
+        raise OSError(f'Destination {args.destination.resolve()} is not empty')
 
 # Parse cross_sections.xml from each library
 for lib_dir in args.libraries:
