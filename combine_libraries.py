@@ -61,9 +61,8 @@ for lib_dir in args.libraries:
 
 print(f'Creating library in {args.destination.resolve()}'
       ' from the following nuclides in order of preference:')
-for lib_dir in args.libraries:
-    print(f'{i}) {lib_dir.resolve()}')
-    i += 1
+for i, lib_dir in enumerate(args.libraries):
+    print(f'{i + 1}) {lib_dir.resolve()}')
 if args.copy:
     print('Original library files will not be copied into the destination folder')
 
