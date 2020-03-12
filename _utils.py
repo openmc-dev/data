@@ -40,8 +40,7 @@ def download(url, checksum=None, as_browser=False, output_path=None, **kwargs):
         # Check if file already downloaded
         basename = Path(Path(urlparse(url).path).name)
         if output_path is not None:
-            basename = Path(output_path) / basename
-            Path(basename).parent.mkdir(parents=True, exist_ok=True) 
+            Path(output_path).mkdir(parents=True, exist_ok=True) 
         if basename.is_file():
             if basename.stat().st_size == file_size:
                 print('Skipping {}, already downloaded'.format(basename))
