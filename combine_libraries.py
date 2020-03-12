@@ -47,8 +47,7 @@ read_libraries = []
 # Error check arguments
 if args.destination.exists():
     if not args.destination.is_dir():
-        print(f'Error: Destination {args.destination.resolve()} should be a directory')
-        sys.exit()
+        raise NotADirectoryError(f'Destination {args.destination.resolve()} should be a directory')
     if len(list(args.destination.glob('*'))) > 0:
         print(f'Error: Destination {args.destination.resolve()} is not empty')
         sys.exit()
