@@ -59,7 +59,6 @@ for lib_dir in args.libraries:
     parsed_library = openmc.data.DataLibrary.from_xml(lib_cross_sections_file)
     read_libraries.append(parsed_library)
 
-i = 1
 print(f'Creating library in {args.destination.resolve()}'
       ' from the following nuclides in order of preference:')
 for lib_dir in args.libraries:
