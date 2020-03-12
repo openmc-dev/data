@@ -48,7 +48,7 @@ read_libraries = []
 if args.destination.exists():
     if not args.destination.is_dir():
         raise NotADirectoryError(f'Destination {args.destination.resolve()} should be a directory')
-    if len(list(args.destination.glob('*'))) > 0:
+    if not any(args.destination.iterdir()):
         raise OSError(f'Destination {args.destination.resolve()} is not empty')
 
 # Parse cross_sections.xml from each library
