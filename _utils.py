@@ -64,7 +64,7 @@ def download(url, checksum=None, as_browser=False, output_path=None, **kwargs):
     if checksum is not None:
         downloadsum = hashlib.md5(open(basename, 'rb').read()).hexdigest()
         if downloadsum != checksum:
-            raise IOError("MD5 checksum for {} does not match. If this is "
+            raise OSError("MD5 checksum for {} does not match. If this is "
                           "your first time receiving this message, please "
                           "re-run the script. Otherwise, please contact "
                           "OpenMC developers by emailing "
