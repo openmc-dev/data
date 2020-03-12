@@ -39,7 +39,7 @@ parser.add_argument('-d', '--destination', type=Path,
 parser.add_argument('-l', '--libraries', type=Path,
                     help='List of data libraries to create', required=True, nargs='+')
 parser.add_argument('-n', '--no-copy', dest='copy', action='store_true',
-                    help='Don\'t copy library files, just create a cross_sections.xml file')
+                    help="Don't copy library files, just create a cross_sections.xml file")
 args = parser.parse_args()
 
 read_libraries = []
