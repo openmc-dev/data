@@ -55,8 +55,7 @@ if args.destination.exists():
 for lib_dir in args.libraries:
     lib_cross_sections_file = lib_dir / 'cross_sections.xml'
     if not lib_cross_sections_file.exists():
-        print(f'Error: Unable to find cross_sections.xml file in {lib_dir.resolve()}')
-        sys.exit()
+        raise FileNotFoundError(f'Unable to find cross_sections.xml file in {lib_dir.resolve()}')
     parsed_library = openmc.data.DataLibrary.from_xml(lib_cross_sections_file)
     read_libraries.append(parsed_library)
 
