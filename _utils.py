@@ -20,7 +20,7 @@ def download(url, checksum=None, as_browser=False, output_path=None, **kwargs):
     output_path : str or Path
         Specifies a location to save the downloaded file
     kwargs : dict
-        Keyword arguments passed to :func:urllib.request.urlopen
+        Keyword arguments passed to :func:`urllib.request.urlopen`
 
     Returns
     -------
