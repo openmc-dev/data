@@ -24,7 +24,7 @@ def download(url, checksum=None, as_browser=False, output_path=None, **kwargs):
 
     Returns
     -------
-    basename : str
+    local_path : str
         Name of file written locally
 
     """
@@ -38,13 +38,13 @@ def download(url, checksum=None, as_browser=False, output_path=None, **kwargs):
         file_size = response.length
 
         # Check if file already downloaded
-        basename = Path(Path(urlparse(url).path).name)
+        local_path = Path(Path(urlparse(url).path).name)
         if output_path is not None:
             Path(output_path).mkdir(parents=True, exist_ok=True) 
-        if basename.is_file():
-            if basename.stat().st_size == file_size:
-                print('Skipping {}, already downloaded'.format(basename))
-                return basename
+        if local_path.is_file():
+            if local_path.stat().st_size == file_size:
+                print('Skipping {}, already downloaded'.format(local_path))
+                return local_path
 
         # Copy file to disk in chunks
         print('Downloading {}... '.format(basename), end='')
