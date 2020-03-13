@@ -10,7 +10,7 @@ from string import digits
 from urllib.parse import urljoin
 
 import openmc.data
-from _utils import download
+from utils import download
 
 description = """
 Download JEFF 3.2 ACE data from OECD/NEA and convert it to a multi-temperature
@@ -105,17 +105,16 @@ if args.download:
 # EXTRACT FILES FROM TGZ
 
 if args.extract:
-    os.chdir(download_path)
     for f in release_details[args.release]['compressed_files']: 
         # Extract files
         if f.endswith('.zip'):
-            with zipfile.ZipFile(f, 'r') as zipf:
+            with zipfile.ZipFile(download_path / Path(f), 'r') as zipf:
                 print('Extracting {}...'.format(f))
                 zipf.extractall(ace_files_dir)
 
         else:
             suffix = 'ACEs_293K' if '293' in f else ''
-            with tarfile.open(f, 'r') as tgz:
+            with tarfile.open(download_path / Path(f), 'r') as tgz:
                 print('Extracting {}...'.format(f))
                 tgz.extractall(ace_files_dir / suffix)
 

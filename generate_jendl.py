@@ -10,7 +10,7 @@ from shutil import rmtree
 from urllib.parse import urljoin
 
 import openmc.data
-from _utils import download
+from utils import download
 
 description = """
 Download JENDL 4.0 data from JAEA and convert it to a HDF5 library for
@@ -98,11 +98,9 @@ if args.download:
 # EXTRACT FILES FROM TGZ
 if args.extract:
     for f in release_details[args.release]['compressed_files']:
-        os.chdir(download_path)
-        with tarfile.open(f, 'r') as tgz:
+        with tarfile.open(download_path / Path(f), 'r') as tgz:
             print('Extracting {0}...'.format(f))
             tgz.extractall(path=endf_files_dir)
-    os.chdir(cwd)
 
     if args.cleanup and download_path.exists():
         rmtree(download_path)

@@ -9,7 +9,7 @@ from shutil import rmtree
 from urllib.parse import urljoin
 
 import openmc.data
-from _utils import download
+from utils import download
 
 
 # Make sure Python version is sufficient
@@ -100,11 +100,9 @@ if args.download:
 
 if args.extract:
     for f in release_details[args.release]['compressed_files']:
-        os.chdir(download_path)
-        with tarfile.open(f, 'r') as tgz:
+        with tarfile.open(download_path / Path(f), 'r') as tgz:
             print(f'Extracting {f}...')
             tgz.extractall(path=ace_files_dir)
-    os.chdir(cwd)
 
     if args.cleanup and download_path.exists():
         rmtree(download_path)

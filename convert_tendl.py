@@ -9,7 +9,7 @@ from shutil import rmtree
 from urllib.parse import urljoin
 
 import openmc.data
-from _utils import download
+from utils import download
 
 description = """
 Download TENDL 2019/2017/2015 ACE files from PSI and convert them to HDF5 libraries for

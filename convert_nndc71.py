@@ -18,7 +18,7 @@ from pathlib import Path
 from string import digits
 
 import openmc.data
-from _utils import download
+from utils import download
 
 # Make sure Python version is sufficient
 assert sys.version_info >= (3, 6), "Python 3.6+ is required"
@@ -150,19 +150,16 @@ if args.extract:
             extraction_dir = endf_files_dir
 
         for f in release_details[release][particle]['compressed_files']:
-            os.chdir(download_path)
             
             # Extract files
-
             if f.endswith('.zip'):
-                with zipfile.ZipFile(f, 'r') as zipf:
+                with zipfile.ZipFile(download_path / particle / Path(f), 'r') as zipf:
                     print('Extracting {}...'.format(f))
                     zipf.extractall(extraction_dir)
             else:
-                with tarfile.open(f, 'r') as tgz:
+                with tarfile.open(download_path / particle / Path(f), 'r') as tgz:
                     print('Extracting {}...'.format(f))
                     tgz.extractall(path=extraction_dir)
-    os.chdir(cwd)
 
     if args.cleanup and download_path.exists():
         rmtree(download_path)     

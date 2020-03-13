@@ -11,7 +11,7 @@ from shutil import rmtree
 import warnings
 
 import openmc.data
-from _utils import download
+from utils import download
 
 description = """
 Download FENDL-3.1d, FENDL-3.1a, FENDL-3.0 or FENDL-2.1  ACE data from the IAEA 
@@ -232,7 +232,6 @@ if args.download:
 # EXTRACT FILES FROM ZIP
 if args.extract:
     for particle in args.particles:
-        os.chdir(download_path / particle)
 
         particle_details = release_details[args.release][particle]
         special_cases = check_special_case(particle_details, 'extract')
@@ -254,8 +253,7 @@ if args.extract:
             # Extract files, the fendl release was compressed using type 9 zip format
             # unfortunatly which is incompatible with the standard python zipfile library
             # therefore the following system command is used
-            subprocess.call(['unzip', '-o', f, '-d', extraction_dir])
-    os.chdir(cwd)
+            subprocess.call(['unzip', '-o', download_path / particle / Path(f), '-d', extraction_dir])
 
     if args.cleanup and download_path.exists():
         rmtree(download_path)

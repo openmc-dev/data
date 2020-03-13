@@ -9,7 +9,7 @@ from shutil import rmtree
 from urllib.parse import urljoin
 
 import openmc.data
-from _utils import download
+from utils import download
 
 description = """
 Download CENDL 3.1 data from OECD NEA and convert it to a HDF5 library for
@@ -97,11 +97,9 @@ if args.download:
 # EXTRACT FILES FROM ZIP
 if args.extract:
     for f in release_details[args.release]['compressed_files']:
-        os.chdir(download_path)
-        with zipfile.ZipFile(f) as zf:
+        with zipfile.ZipFile(download_path / Path(f)) as zf:
             print('Extracting {0}...'.format(f))
             zf.extractall(path=endf_files_dir)
-    os.chdir(cwd)
 
     if args.cleanup and download_path.exists():
         rmtree(download_path)
