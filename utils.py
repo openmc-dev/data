@@ -47,9 +47,9 @@ def download(url, checksum=None, as_browser=False, output_path=None, **kwargs):
                 return local_path
 
         # Copy file to disk in chunks
-        print('Downloading {}... '.format(basename), end='')
+        print('Downloading {}... '.format(local_path), end='')
         downloaded = 0
-        with open(basename, 'wb') as fh:
+        with open(local_path, 'wb') as fh:
             while True:
                 chunk = response.read(_BLOCK_SIZE)
                 if not chunk:
@@ -62,12 +62,12 @@ def download(url, checksum=None, as_browser=False, output_path=None, **kwargs):
             print('')
 
     if checksum is not None:
-        downloadsum = hashlib.md5(open(basename, 'rb').read()).hexdigest()
+        downloadsum = hashlib.md5(open(local_path, 'rb').read()).hexdigest()
         if downloadsum != checksum:
             raise OSError("MD5 checksum for {} does not match. If this is "
                           "your first time receiving this message, please "
                           "re-run the script. Otherwise, please contact "
                           "OpenMC developers by emailing "
-                          "openmc-users@googlegroups.com.".format(basename))
+                          "openmc-users@googlegroups.com.".format(local_path))
 
-    return basename
+    return local_path
