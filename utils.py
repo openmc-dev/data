@@ -24,7 +24,7 @@ def download(url, checksum=None, as_browser=False, output_path=None, **kwargs):
 
     Returns
     -------
-    local_path : str
+    local_path : pathlib.Path
         Name of file written locally
 
     """
@@ -37,10 +37,11 @@ def download(url, checksum=None, as_browser=False, output_path=None, **kwargs):
         # Get file size from header
         file_size = response.length
 
-        # Check if file already downloaded
         local_path = Path(Path(urlparse(url).path).name)
         if output_path is not None:
             Path(output_path).mkdir(parents=True, exist_ok=True) 
+            local_path = output_path / local_path
+        # Check if file already downloaded
         if local_path.is_file():
             if local_path.stat().st_size == file_size:
                 print('Skipping {}, already downloaded'.format(local_path))
