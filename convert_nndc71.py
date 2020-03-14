@@ -144,11 +144,11 @@ if args.extract:
             # Extract files
             if f.endswith('.zip'):
                 with zipfile.ZipFile(download_path / particle / Path(f), 'r') as zipf:
-                    print('Extracting {}...'.format(f))
+                    print(f'Extracting {f}...')
                     zipf.extractall(extraction_dir)
             else:
                 with tarfile.open(download_path / particle / Path(f), 'r') as tgz:
-                    print('Extracting {}...'.format(f))
+                    print(f'Extracting {f}...')
                     tgz.extractall(path=extraction_dir)
 
     if args.cleanup and download_path.exists():
