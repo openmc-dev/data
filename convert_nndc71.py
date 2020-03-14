@@ -16,6 +16,7 @@ import tarfile
 import zipfile
 from pathlib import Path
 from string import digits
+from shutil import rmtree
 
 import openmc.data
 from utils import download
@@ -88,6 +89,8 @@ release_details = {
             'base_url': 'http://www.nndc.bnl.gov/endf/b7.1/zips/',
             'compressed_files': ['ENDF-B-VII.1-photoat.zip',
                                  'ENDF-B-VII.1-atomic_relax.zip'],
+            'checksums': ['5192f94e61f0b385cf536f448ffab4a4',
+                          'fddb6035e7f2b6931e51a58fc754bd10'],
             'file_type': 'endf',
             'photo_files': endf_files_dir.joinpath('photoat').rglob('*.endf'),
             'atom_files': endf_files_dir.joinpath('atomic_relax').rglob('*.endf'),
@@ -118,26 +121,13 @@ if args.download:
     print(download_warning)
     for particle in args.particles:
         particle_download_path = download_path / particle
-        for f in release_details[release][particle]['compressed_files']:
+        for f, checksum in zip(release_details[release][particle]['compressed_files'],
+                               release_details[release][particle]['checksums']):
             # Establish connection to URL
             url = release_details[release][particle]['base_url'] + f
-            downloaded_file = download(url, output_path=particle_download_path)
+            downloaded_file = download(url, output_path=particle_download_path,
+                                       checksum=checksum)
 
-# ==============================================================================
-# VERIFY MD5 CHECKSUMS
-
-if args.download:
-    print('Verifying MD5 checksums...')
-    for particle in args.particles:
-        if 'checksums' in release_details[release].keys():
-            for f, checksum in zip(release_details[release]['compressed_files'],
-                                   release_details[release]['checksums']):
-                downloadsum = hashlib.md5(open(f, 'rb').read()).hexdigest()
-            if downloadsum != checksum:
-                raise IOError("MD5 checksum for {} does not match. If this is your first "
-                              "time receiving this message, please re-run the script. "
-                              "Otherwise, please contact OpenMC developers by emailing "
-                              "openmc-users@googlegroups.com.".format(f))
 
 # ==============================================================================
 # EXTRACT FILES FROM TGZ
