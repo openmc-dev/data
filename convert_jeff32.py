@@ -124,7 +124,7 @@ if args.extract:
                 for path in release_details[args.release]['redundant']:
                     print(f'removing {path}')
                     path.unlink()
-    os.chdir(cwd)
+
 
 # ==============================================================================
 # CHANGE ZAID FOR METASTABLES
