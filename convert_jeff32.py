@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+"""
+Download JEFF 3.2 ACE data from OECD/NEA and convert it to a multi-temperature
+HDF5 library for use with OpenMC.
+"""
+
 import argparse
 import tarfile
 import zipfile
@@ -12,11 +17,6 @@ from urllib.parse import urljoin
 import openmc.data
 from utils import download
 
-description = """
-Download JEFF 3.2 ACE data from OECD/NEA and convert it to a multi-temperature
-HDF5 library for use with OpenMC.
-
-"""
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
@@ -24,7 +24,7 @@ class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
     pass
 
 parser = argparse.ArgumentParser(
-    description=description,
+    description=__doc__,
     formatter_class=CustomFormatter
 )
 parser.add_argument('-d', '--destination', type=Path, default=None,

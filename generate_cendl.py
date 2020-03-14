@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+"""
+Download CENDL 3.1 data from OECD NEA and convert it to a HDF5 library for
+use with OpenMC.
+"""
+
 import argparse
 from pathlib import Path
 import sys
@@ -11,11 +16,6 @@ from urllib.parse import urljoin
 import openmc.data
 from utils import download
 
-description = """
-Download CENDL 3.1 data from OECD NEA and convert it to a HDF5 library for
-use with OpenMC.
-
-"""
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
@@ -24,7 +24,7 @@ class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
 
 
 parser = argparse.ArgumentParser(
-    description=description,
+    description=__doc__,
     formatter_class=CustomFormatter
 )
 parser.add_argument('-d', '--destination', type=Path, default=None,

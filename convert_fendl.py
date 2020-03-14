@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+"""
+Download FENDL-3.1d, FENDL-3.1a, FENDL-3.0 or FENDL-2.1  ACE data from the IAEA 
+and convert it to a HDF5 library for use with OpenMC.
+"""
+
 import argparse
 from pathlib import Path
 import ssl
@@ -13,12 +18,6 @@ import warnings
 import openmc.data
 from utils import download
 
-description = """
-Download FENDL-3.1d, FENDL-3.1a, FENDL-3.0 or FENDL-2.1  ACE data from the IAEA 
-and convert it to a HDF5 library for use with OpenMC.
-
-"""
-
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
                       argparse.RawDescriptionHelpFormatter):
@@ -26,7 +25,7 @@ class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
 
 
 parser = argparse.ArgumentParser(
-    description=description,
+    description=__doc__,
     formatter_class=CustomFormatter
 )
 parser.add_argument('-d', '--destination', type=Path, default=None,

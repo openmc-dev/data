@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+"""
+Download JENDL 4.0 data from JAEA and convert it to a HDF5 library for
+use with OpenMC.
+"""
+
 import argparse
 from pathlib import Path
 import ssl
@@ -12,11 +17,6 @@ from urllib.parse import urljoin
 import openmc.data
 from utils import download
 
-description = """
-Download JENDL 4.0 data from JAEA and convert it to a HDF5 library for
-use with OpenMC.
-
-"""
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
@@ -25,7 +25,7 @@ class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
 
 
 parser = argparse.ArgumentParser(
-    description=description,
+    description=__doc__,
     formatter_class=CustomFormatter
 )
 parser.add_argument('-d', '--destination', type=Path, default=None,

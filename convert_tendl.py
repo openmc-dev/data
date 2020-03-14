@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+"""
+Download TENDL 2019/2017/2015 ACE files from PSI and convert them to HDF5 libraries for
+use with OpenMC.
+"""
+
 import argparse
 from pathlib import Path
 import sys
@@ -11,12 +16,8 @@ from urllib.parse import urljoin
 import openmc.data
 from utils import download
 
-description = """
-Download TENDL 2019/2017/2015 ACE files from PSI and convert them to HDF5 libraries for
-use with OpenMC.
-
-"""
-
+# Make sure Python version is sufficient
+assert sys.version_info >= (3, 6), "Python 3.6+ is required"
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
                       argparse.RawDescriptionHelpFormatter):
@@ -24,7 +25,7 @@ class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
 
 
 parser = argparse.ArgumentParser(
-    description=description,
+    description=__doc__,
     formatter_class=CustomFormatter
 )
 parser.add_argument('-d', '--destination', type=Path, default=None,

@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 
+"""
+Convert JEFF 3.3 ACE data distributed by OECD/NEA into an HDF5 library
+that can be used by OpenMC. It will download an 1.3 GB archive containing
+all the ACE files, extract it, convert them, and write HDF5 files into a
+destination directory.
+"""
+
 import argparse
 import tarfile
 import sys
@@ -15,13 +22,6 @@ from utils import download
 # Make sure Python version is sufficient
 assert sys.version_info >= (3, 6), "Python 3.6+ is required"
 
-description = """
-Convert JEFF 3.3 ACE data distributed by OECD/NEA into an HDF5 library
-that can be used by OpenMC. It will download an 1.3 GB archive containing
-all the ACE files, extract it, convert them, and write HDF5 files into a
-destination directory.
-
-"""
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
                       argparse.RawDescriptionHelpFormatter):
@@ -29,7 +29,7 @@ class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
 
 
 parser = argparse.ArgumentParser(
-    description=description,
+    description=__doc__,
     formatter_class=CustomFormatter
 )
 parser.add_argument('-d', '--destination', type=Path, default=Path('jeff-3.3-hdf5'),
