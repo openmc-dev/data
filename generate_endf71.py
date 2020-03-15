@@ -241,29 +241,6 @@ if 'neutron' in args.particles:
 
         for r in results:
             r.wait()
-            # print(f'Converting: {filename}')
-            # data = openmc.data.IncidentNeutron.from_njoy(filename)
-
-            # # Export HDF5 file
-            # h5_file = args.destination / particle / f'{data.name}.h5'
-            # print('Writing {}...'.format(h5_file))
-            # data.export_to_hdf5(h5_file, 'w', libver=args.libver)
-
-            # Register with library
-            # library.register_file(filename)
-        
-        # for path_neutron, path_thermal in zip(details['endf_files'],
-        #                                     details['endf_files']):
-            
-        #     data = openmc.data.ThermalScattering.from_njoy(path_neutron, path_thermal)
-            
-        #     # Export HDF5 file
-        #     h5_file = args.destination / particle / f'{data.name}.h5'
-        #     print('Writing {}...'.format(h5_file))
-        #     data.export_to_hdf5(h5_file, 'w', libver=args.libver)
-
-        #     # Register with library
-        #     library.register_file(h5_file)
 
     for p in sorted((args.destination / 'neutron').glob('*.h5'), key=sort_key):
         library.register_file(p)
