@@ -70,7 +70,7 @@ release_details = {
     '4.0': {
         'base_url': 'https://wwwndc.jaea.go.jp/ftpnd/ftp/JENDL/',
         'compressed_files': ['jendl40-or-up_20160106.tar.gz'],
-        'neutron_files': endf_files_dir.joinpath('jendl40-or-up_20160106').glob('*.dat'),
+        'endf_files': endf_files_dir.joinpath('jendl40-or-up_20160106').glob('*.dat'),
         'metastables': endf_files_dir.joinpath('jendl40-or-up_20160106').glob('*m.dat'),
         'compressed_file_size': '0.2 GB',
         'uncompressed_file_size': '2 GB'
@@ -108,8 +108,8 @@ if args.extract:
 # ==============================================================================
 # GENERATE HDF5 LIBRARY -- NEUTRON FILES
 
-# Get a list of all ACE files
-neutron_files = release_details[args.release]['neutron_files']
+# Get a list of all ENDF files
+neutron_files = release_details[args.release]['endf_files']
 
 # Create output directory if it doesn't exist
 args.destination.mkdir(parents=True, exist_ok=True)
