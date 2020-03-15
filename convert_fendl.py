@@ -105,7 +105,7 @@ release_details = {
     '3.1a': {
         'neutron':{
             'base_url': 'https://www-nds.iaea.org/fendl31/data/neutron/',
-            'files': ['fendl31a-neutron-ace.zip'],
+            'compressed_files': ['fendl31a-neutron-ace.zip'],
             'file_type': 'ace',
             'ace_files': ace_files_dir.glob('*.ace'),
             'compressed_file_size': 384,
@@ -113,7 +113,7 @@ release_details = {
         },
         'photon':{
             'base_url': 'https://www-nds.iaea.org/fendl31/data/atom/',
-            'files': ['fendl30-atom-endf.zip'],
+            'compressed_files': ['fendl30-atom-endf.zip'],
             'file_type': 'endf',
             'photo_files': endf_files_dir.joinpath('endf').glob('*.txt'),
             'compressed_file_size': 4,
@@ -123,7 +123,7 @@ release_details = {
     '3.1d': {
         'neutron':{
             'base_url': 'https://www-nds.iaea.org/fendl/data/neutron/',
-            'files': ['fendl31d-neutron-ace.zip'],
+            'compressed_files': ['fendl31d-neutron-ace.zip'],
             'file_type': 'ace',
             'ace_files': ace_files_dir.joinpath('fendl31d_ACE').glob('*'),
             'compressed_file_size': 425,
@@ -131,7 +131,7 @@ release_details = {
         },
         'photon':{
             'base_url': 'https://www-nds.iaea.org/fendl/data/atom/',
-            'files': ['fendl30-atom-endf.zip'],
+            'compressed_files': ['fendl30-atom-endf.zip'],
             'file_type': 'endf',
             'photo_files': endf_files_dir.joinpath('endf').glob('*.txt'),
             'compressed_file_size': 4,
@@ -141,7 +141,7 @@ release_details = {
     '3.0': {
         'neutron':{
             'base_url': 'https://www-nds.iaea.org/fendl30/data/neutron/',
-            'files': ['fendl30-neutron-ace.zip'],
+            'compressed_files': ['fendl30-neutron-ace.zip'],
             'file_type': 'ace',
             'ace_files': ace_files_dir.joinpath('ace').glob('*.ace'),
             'compressed_file_size': 364,
@@ -152,7 +152,7 @@ release_details = {
         },
         'photon':{
             'base_url': 'https://www-nds.iaea.org/fendl30/data/atom/',
-            'files': ['fendl30-atom-endf.zip'],
+            'compressed_files': ['fendl30-atom-endf.zip'],
             'file_type': 'endf',
             'photo_files': endf_files_dir.joinpath('endf').glob('*.txt'),
             'compressed_file_size': 4,
@@ -162,7 +162,7 @@ release_details = {
     '2.1': {
         'neutron':{
             'base_url': 'https://www-nds.iaea.org/fendl21/fendl21mc/',
-            'files': ['H001mc.zip',  'H002mc.zip',  'H003mc.zip',  'He003mc.zip', 
+            'compressed_files': ['H001mc.zip',  'H002mc.zip',  'H003mc.zip',  'He003mc.zip', 
                     'He004mc.zip', 'Li006mc.zip', 'Li007mc.zip', 'Be009mc.zip',
                     'B010mc.zip',  'B011mc.zip',  'C012mc.zip',  'N014mc.zip', 
                     'N015mc.zip',  'O016mc.zip',  'F019mc.zip',  'Na023mc.zip',
@@ -187,7 +187,7 @@ release_details = {
         },
         'photon':{
             'base_url': 'https://www-nds.iaea.org/fendl21/fendl21e/',
-            'files': ['FENDLEP.zip'],
+            'compressed_files': ['FENDLEP.zip'],
             'file_type': 'endf',
             'photo_files': endf_files_dir.glob('*.endf'),
             'compressed_file_size': 2,
@@ -221,7 +221,7 @@ if args.download:
         particle_download_path = download_path / particle
 
         particle_details = release_details[args.release][particle]
-        for f in particle_details['files']:
+        for f in particle_details['compressed_files']:
             download(urljoin(particle_details['base_url'], f),
                      as_browser=True, context=ssl._create_unverified_context(),
                      output_path=particle_download_path)
@@ -240,7 +240,7 @@ if args.extract:
         elif particle_details['file_type'] == "endf":
             extraction_dir = endf_files_dir
 
-        for f in particle_details['files']:
+        for f in particle_details['compressed_files']:
             # Check if file requires special handling
             if f in special_cases:
                 ret = special_cases[f](Path(f))
