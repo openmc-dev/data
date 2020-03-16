@@ -7,15 +7,11 @@ used for OpenMC's regression test suite.
 """
 
 import argparse
-import os
-import shutil
 import sys
-import tarfile
 import warnings
 import zipfile
 from multiprocessing import Pool
 from pathlib import Path
-from urllib.parse import urljoin
 from shutil import rmtree
 
 import openmc.data
@@ -24,16 +20,19 @@ from utils import download
 # Make sure Python version is sufficient
 assert sys.version_info >= (3, 6), "Python 3.6+ is required"
 
+
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
                       argparse.RawDescriptionHelpFormatter):
     pass
+
 
 parser = argparse.ArgumentParser(
     description=__doc__,
     formatter_class=CustomFormatter
 )
 
-parser.add_argument('-d', '--destination', type=Path, default=Path('endf-b7.1-hdf5'),
+parser.add_argument('-d', '--destination', type=Path,
+                    default=Path('endf-b7.1-hdf5'),
                     help='Directory to create new library in')
 parser.add_argument('--download', action='store_true',
                     help='Download zip files from NNDC')
@@ -47,8 +46,9 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='earliest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
-parser.add_argument('-p', '--particles', choices=['neutron', 'photon'], nargs='+',
-                    default=['neutron', 'photon'], help="Incident particles to include")
+parser.add_argument('-p', '--particles', choices=['neutron', 'photon'],
+                    nargs='+', default=['neutron', 'photon'],
+                    help="Incident particles to include")
 parser.add_argument('--cleanup', action='store_true',
                     help="Remove download directories when data has "
                     "been processed")
@@ -97,9 +97,7 @@ def sort_key(path):
         return (1000, path)
     else:
         return openmc.data.zam(path.stem)
-class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
-                      argparse.RawDescriptionHelpFormatter):
-    pass
+
 
 library_name = 'endf'
 release = 'b7.1'
@@ -116,7 +114,7 @@ temperatures = [250.0, 293.6, 600.0, 900.0, 1200.0, 2500.0]
 # can be exstened to accommodated new releases
 release_details = {
     'b7.1': {
-        'neutron':{
+        'neutron': {
             'base_url': 'http://www.nndc.bnl.gov/endf/b7.1/zips/',
             'compressed_files': ['ENDF-B-VII.1-neutrons.zip',
                                  'ENDF-B-VII.1-thermal_scatt.zip'],
@@ -146,7 +144,7 @@ release_details = {
                           (endf_files_dir / 'neutron/n-014_Si_028.endf', endf_files_dir / 'thermal_scat/tsl-SiO2.endf'),
                           (endf_files_dir / 'neutron/n-040_Zr_090.endf', endf_files_dir / 'thermal_scat/tsl-ZrinZrH.endf'),
                           (endf_files_dir / 'neutron/n-092_U_238.endf', endf_files_dir / 'thermal_scat/tsl-UinUO2.endf')
-                         ],            
+                         ],
             'compressed_file_size': 1,
             'uncompressed_file_size': 2
         },
@@ -178,6 +176,7 @@ incident photon ENDF data from NNDC and convert it to an HDF5 library
 for use with OpenMC.
 """.format(compressed_file_size, uncompressed_file_size)
 
+
 # ==============================================================================
 # DOWNLOAD FILES FROM NNDC SITE
 
@@ -188,7 +187,7 @@ if args.download:
                                release_details[release][particle]['checksums']):
             # Establish connection to URL
             url = release_details[release][particle]['base_url'] + f
-            downloaded_file = download(url, 
+            downloaded_file = download(url,
                                        output_path=download_path / particle,
                                        checksum=checksum)
 
@@ -199,14 +198,14 @@ if args.download:
 if args.extract:
     for particle in args.particles:
         for f in release_details[release][particle]['compressed_files']:
-            
+
             # Extract files
             with zipfile.ZipFile(download_path / particle / Path(f), 'r') as zipf:
                 print('Extracting {}...'.format(f))
                 zipf.extractall(endf_files_dir / particle)
 
     if args.cleanup and download_path.exists():
-        rmtree(download_path)     
+        rmtree(download_path)
 
 
 # =========================================================================
@@ -227,16 +226,16 @@ if 'neutron' in args.particles:
         for filename in details['endf_files']:
 
             r = pool.apply_async(process_neutron,
-                                (filename, 
+                                (filename,
                                 args.destination / 'neutron'))
             results.append(r)
 
         for path_neutron, path_thermal in details['sab_files']:
-            
+
             r = pool.apply_async(process_thermal,
                                 (path_neutron, path_thermal,
                                 args.destination))
-            
+
             results.append(r)
 
         for r in results:
