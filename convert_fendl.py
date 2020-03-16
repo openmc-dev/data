@@ -256,7 +256,7 @@ if args.extract:
             # Extract files, the fendl release was compressed using type 9 zip format
             # unfortunatly which is incompatible with the standard python zipfile library
             # therefore the following system command is used
-            subprocess.call(['unzip', '-o', download_path / particle / Path(f), '-d', extraction_dir])
+            subprocess.call(['unzip', '-o', download_path / particle / f, '-d', extraction_dir])
 
     if args.cleanup and download_path.exists():
         rmtree(download_path)
