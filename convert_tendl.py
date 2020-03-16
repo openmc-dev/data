@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 
 """
-Download TENDL 2019/2017/2015 ACE files from PSI and convert them to HDF5 libraries for
-use with OpenMC.
+Download TENDL 2019/2017/2015 ACE files from PSI and
+convert them to HDF5 libraries for use with OpenMC.
 """
 
 import argparse
-from pathlib import Path
 import sys
-import os
 import tarfile
+from pathlib import Path
 from shutil import rmtree
 from urllib.parse import urljoin
 
@@ -18,6 +17,7 @@ from utils import download
 
 # Make sure Python version is sufficient
 assert sys.version_info >= (3, 6), "Python 3.6+ is required"
+
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
                       argparse.RawDescriptionHelpFormatter):
@@ -54,17 +54,19 @@ parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
 parser.set_defaults(download=True, extract=True, cleanup=False)
 args = parser.parse_args()
 
-library_name = 'tendl' #this could be added as an argument to allow different libraries to be downloaded
+library_name = 'tendl'
 
 cwd = Path.cwd()
 
 ace_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'ace']))
 download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
-# the destination is decided after the release is know to avoid putting the release in a folder with a misleading name
+# the destination is decided after the release is known
+# to avoid putting the release in a folder with a misleading name
 if args.destination is None:
     args.destination = Path('-'.join([library_name, args.release, 'hdf5']))
 
-# This dictionary contains all the unique information about each release. This can be exstened to accommodated new releases
+# This dictionary contains all the unique information about each release.
+# This can be exstened to accommodated new releases
 release_details = {
     '2015': {
         'base_url': 'https://tendl.web.psi.ch/tendl_2015/tar_files/',
@@ -149,7 +151,8 @@ for filename in sorted(neutron_files):
     if library_name == 'tendl' and args.release == '2017' and filename.name == 'B010':
         text = open(filename, 'r').read()
         if text[423:428] == '86843':
-            print('Manual fix for incorrect value in ACE file') # see OpenMC user group issue for more details
+            print('Manual fix for incorrect value in ACE file')
+            # see OpenMC user group issue for more details
             text = ''.join(text[:423])+'86896'+''.join(text[428:])
             open(filename, 'w').write(text)
 
