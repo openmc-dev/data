@@ -138,7 +138,7 @@ if args.extract:
 
             # Extract files
             if f.endswith('.zip'):
-                with zipfile.ZipFile(download_path / particle / Path(f), 'r') as zipf:
+                with zipfile.ZipFile(download_path / particle / f, 'r') as zipf:
                     print(f'Extracting {f}...')
                     zipf.extractall(extraction_dir)
             else:
