@@ -100,7 +100,7 @@ if args.download:
 
 if args.extract:
     for f in release_details[args.release]['compressed_files']:
-        with tarfile.open(download_path / Path(f), 'r') as tgz:
+        with tarfile.open(download_path / f, 'r') as tgz:
             print(f'Extracting {f}...')
             tgz.extractall(path=ace_files_dir)
 
