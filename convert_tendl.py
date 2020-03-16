@@ -43,8 +43,9 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
 parser.add_argument('-r', '--release', choices=['2015', '2017', '2019'],
-                    default='2019', help="The nuclear data library release version. "
-                    "The currently supported options are 2015, 2017, and 2019.")
+                    default='2019', help="The nuclear data library release "
+                    "version. The currently supported options are 2015, "
+                    "2017, and 2019.")
 parser.add_argument('--cleanup', action='store_true',
                     help="Remove download directories when data has "
                     "been processed")
