@@ -113,7 +113,7 @@ if args.extract:
 
         else:
             suffix = 'ACEs_293K' if '293' in f else ''
-            with tarfile.open(download_path / Path(f), 'r') as tgz:
+            with tarfile.open(download_path / f, 'r') as tgz:
                 print('Extracting {}...'.format(f))
                 tgz.extractall(ace_files_dir / suffix)
 
