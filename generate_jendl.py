@@ -6,17 +6,14 @@ use with OpenMC.
 """
 
 import argparse
-from pathlib import Path
 import ssl
-import os
-import sys
 import tarfile
+from pathlib import Path
 from shutil import rmtree
 from urllib.parse import urljoin
 
 import openmc.data
 from utils import download
-
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
@@ -42,8 +39,8 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='latest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
-parser.add_argument('-r', '--release', choices=['4.0'],
-                    default='4.0', help="The nuclear data library release version. "
+parser.add_argument('-r', '--release', choices=['4.0'], default='4.0',
+                    help="The nuclear data library release version. "
                     "The only option currently supported is 4.0")
 parser.add_argument('--cleanup', action='store_true',
                     help="Remove download directories when data has "
@@ -55,17 +52,19 @@ parser.set_defaults(download=True, extract=True, cleanup=False)
 args = parser.parse_args()
 
 
-library_name = 'jendl' #this could be added as an argument to allow different libraries to be downloaded
+library_name = 'jendl'
 
 cwd = Path.cwd()
 
 endf_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'endf']))
 download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
-# the destination is decided after the release is known to avoid putting the release in a folder with a misleading name
+# the destination is decided after the release is known
+# to avoid putting the release in a folder with a misleading name
 if args.destination is None:
     args.destination = Path('-'.join([library_name, args.release, 'hdf5']))
 
-# This dictionary contains all the unique information about each release. This can be exstened to accommodated new releases
+# This dictionary contains all the unique information about each release.
+# This can be exstened to accommodated new releases
 release_details = {
     '4.0': {
         'base_url': 'https://wwwndc.jaea.go.jp/ftpnd/ftp/JENDL/',
@@ -90,7 +89,7 @@ if args.download:
     print(download_warning)
     for f in release_details[args.release]['compressed_files']:
         # Establish connection to URL
-        download(urljoin(release_details[args.release]['base_url'], f), 
+        download(urljoin(release_details[args.release]['base_url'], f),
                  context=ssl._create_unverified_context(),
                  output_path=download_path)
 
