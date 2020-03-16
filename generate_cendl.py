@@ -96,7 +96,7 @@ if args.download:
 # EXTRACT FILES FROM ZIP
 if args.extract:
     for f in release_details[args.release]['compressed_files']:
-        with zipfile.ZipFile(download_path / Path(f)) as zf:
+        with zipfile.ZipFile(download_path / f) as zf:
             print('Extracting {0}...'.format(f))
             zf.extractall(path=endf_files_dir)
 
