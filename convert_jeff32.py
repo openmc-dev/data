@@ -8,7 +8,6 @@ HDF5 library for use with OpenMC.
 import argparse
 import tarfile
 import zipfile
-import os
 from collections import defaultdict
 from pathlib import Path
 from string import digits
@@ -18,10 +17,10 @@ import openmc.data
 from utils import download
 
 
-
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
                       argparse.RawDescriptionHelpFormatter):
     pass
+
 
 parser = argparse.ArgumentParser(
     description=__doc__,
@@ -44,18 +43,18 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
 parser.add_argument('-r', '--release', choices=['3.2'],
                     default='3.2', help="The nuclear data library release version. "
                     "The currently supported options are 3.2")
-parser.add_argument('-t', '--temperatures', 
-                    choices=['293', '400', '500', '600', '700', '800', '900', 
+parser.add_argument('-t', '--temperatures',
+                    choices=['293', '400', '500', '600', '700', '800', '900',
                              '1000', '1200', '1500', '1800'],
                     default=['293', '400', '500', '600', '700', '800', '900',
-                             '1000', '1200', '1500', '1800'], 
+                             '1000', '1200', '1500', '1800'],
                     help="Temperatures to download in Kelvin", nargs='+')
 parser.add_argument('--cleanup', action='store_true',
                     help="Remove download directories when data has "
                     "been processed")
 parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
                     help="Do not remove download directories when data has "
-                    "been processed")    
+                    "been processed")
 parser.set_defaults(download=True, extract=True, cleanup=False)
 args = parser.parse_args()
 
@@ -71,23 +70,23 @@ if args.destination is None:
 
 # This dictionary contains all the unique information about each release. This can be exstened to accommodated new releases
 release_details = {
-    '3.2':{
+    '3.2': {
         'base_url': 'https://www.oecd-nea.org/dbforms/data/eva/evatapes/jeff_32/Processed/',
-        'compressed_files': [f'JEFF32-ACE-{t}K.zip' if t == '800' else f'JEFF32-ACE-{t}K.tar.gz' for t in args.temperatures] 
+        'compressed_files': [f'JEFF32-ACE-{t}K.zip' if t == '800' else f'JEFF32-ACE-{t}K.tar.gz' for t in args.temperatures]
                   +['TSLs.tar.gz'],
-        'neutron_files':ace_files_dir.rglob('*.ACE'),
+        'neutron_files': ace_files_dir.rglob('*.ACE'),
         'metastables': ace_files_dir.rglob('*M.ACE'),
         'sab_files': ace_files_dir.glob('ANNEX_6_3_STLs/*/*.ace'),
         'redundant': ace_files_dir.glob('ACEs_293K/*-293.ACE'),
-        'compressed_file_size': '9 GB',
-        'uncompressed_file_size': '40 GB'
+        'compressed_file_size': 9,
+        'uncompressed_file_size': 40
     }
 }
 
 download_warning = """
 WARNING: This script will download up to {} GB of data. Extracting and
 processing the data may require as much as {} GB of additional free disk
-space. Note that if you don't need all 11 temperatures, you can used the 
+space. Note that if you don't need all 11 temperatures, you can used the
 --temperature argument to download only the temperatures you want.
 """.format(release_details[args.release]['compressed_file_size'],
            release_details[args.release]['uncompressed_file_size'])
@@ -105,7 +104,7 @@ if args.download:
 # EXTRACT FILES FROM TGZ
 
 if args.extract:
-    for f in release_details[args.release]['compressed_files']: 
+    for f in release_details[args.release]['compressed_files']:
         # Extract files
         if f.endswith('.zip'):
             with zipfile.ZipFile(download_path / Path(f), 'r') as zipf:
