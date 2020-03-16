@@ -7,15 +7,10 @@ used for OpenMC's regression test suite.
 """
 
 import argparse
-import glob
-import hashlib
-import shutil
-import subprocess
 import sys
 import tarfile
 import zipfile
 from pathlib import Path
-from string import digits
 from shutil import rmtree
 
 import openmc.data
@@ -140,7 +135,7 @@ if args.extract:
             extraction_dir = endf_files_dir
 
         for f in release_details[release][particle]['compressed_files']:
-            
+
             # Extract files
             if f.endswith('.zip'):
                 with zipfile.ZipFile(download_path / particle / Path(f), 'r') as zipf:
@@ -152,7 +147,7 @@ if args.extract:
                     tgz.extractall(path=extraction_dir)
 
     if args.cleanup and download_path.exists():
-        rmtree(download_path)     
+        rmtree(download_path)
 
 # ==============================================================================
 # FIX ZAID ASSIGNMENTS FOR VARIOUS S(A,B) TABLES
