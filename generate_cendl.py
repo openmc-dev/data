@@ -63,7 +63,7 @@ if args.destination is None:
     args.destination = Path('-'.join([library_name, args.release, 'hdf5']))
 
 # This dictionary contains all the unique information about each release.
-# This can be extended to accommodated new releases
+# This can be extended to accommodate new releases
 release_details = {
     '3.1': {
         'base_url': 'https://www.oecd-nea.org/dbforms/data/eva/evatapes/cendl_31/',
