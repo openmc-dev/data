@@ -107,7 +107,7 @@ cwd = Path.cwd()
 
 wmp_files_dir = args.destination / 'neutron_wmp'
 endf_files_dir = cwd.joinpath('-'.join([library_name, release, 'endf']))
-neutron_dir = endf_files_dir / 'neutron'
+neutron_dir = endf_files_dir / 'neutrons'
 thermal_dir = endf_files_dir / 'thermal_scatt'
 download_path = cwd.joinpath('-'.join([library_name, release, 'download']))
 
