@@ -298,7 +298,7 @@ if 'photon' in args.particles:
 # =========================================================================
 # INCIDENT WMP NEUTRON DATA
 
-if 'neutron_wmp'in args.particles:
+if 'neutron_wmp' in args.particles:
     for h5_file in Path(wmp_files_dir).rglob('*.h5'):
         library.register_file(h5_file)
 
