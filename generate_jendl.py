@@ -97,7 +97,7 @@ if args.download:
 # EXTRACT FILES FROM TGZ
 if args.extract:
     for f in release_details[args.release]['compressed_files']:
-        with tarfile.open(download_path / Path(f), 'r') as tgz:
+        with tarfile.open(download_path / f, 'r') as tgz:
             print('Extracting {0}...'.format(f))
             tgz.extractall(path=endf_files_dir)
 

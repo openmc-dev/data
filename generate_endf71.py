@@ -225,7 +225,7 @@ if args.extract:
                     print(f'Extracting {f}...')
                     zipf.extractall(extraction_dir)
             else:
-                with tarfile.open(download_path / particle / Path(f), 'r') as tgz:
+                with tarfile.open(download_path / particle / f, 'r') as tgz:
                     print(f'Extracting {f}...')
                     # extract files ignoring the internal folder structure
                     for member in tgz.getmembers():

@@ -107,7 +107,7 @@ if args.extract:
     for f in release_details[args.release]['compressed_files']:
         # Extract files
         if f.endswith('.zip'):
-            with zipfile.ZipFile(download_path / Path(f), 'r') as zipf:
+            with zipfile.ZipFile(download_path / f, 'r') as zipf:
                 print('Extracting {}...'.format(f))
                 zipf.extractall(ace_files_dir)
 
