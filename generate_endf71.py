@@ -295,7 +295,6 @@ if 'photon' in args.particles:
         # Register with library
         library.register_file(h5_file)
 
-
 # =========================================================================
 # INCIDENT WMP NEUTRON DATA
 
