@@ -115,7 +115,7 @@ download_path = cwd.joinpath('-'.join([library_name, release, 'download']))
 temperatures = [250.0, 293.6, 600.0, 900.0, 1200.0, 2500.0]
 
 # This dictionary contains all the unique information about each release. This
-# can be exstened to accommodated new releases
+# can be extended to accommodate new releases
 release_details = {
     'b7.1': {
         'neutron': {
