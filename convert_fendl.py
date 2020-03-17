@@ -278,7 +278,7 @@ for particle in args.particles:
     special_cases = check_special_case(particle_details, 'process')
 
     if particle == 'neutron':
-        # Get a list of all ACE files, excluding files ending with _ which are
+        # Get a list of all ACE files, excluding files ending with _ that are
         # old incorrect files kept in the release for backwards compatability
         neutron_files = [
             f
