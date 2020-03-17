@@ -13,7 +13,7 @@ import warnings
 import zipfile
 from multiprocessing import Pool
 from pathlib import Path
-from shutil import rmtree, copy
+from shutil import rmtree
 
 import openmc.data
 from utils import download
