@@ -258,7 +258,6 @@ if 'neutron' in args.particles:
             results.append(r)
 
         for path_neutron, path_thermal in details['sab_files']:
-
             r = pool.apply_async(process_thermal,
                                 (path_neutron, path_thermal,
                                 args.destination / particle))
