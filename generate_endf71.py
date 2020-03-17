@@ -229,11 +229,7 @@ if args.extract:
             else:
                 with tarfile.open(download_path / particle / f, 'r') as tgz:
                     print(f'Extracting {f}...')
-                    # extract files ignoring the internal folder structure
-                    for member in tgz.getmembers():
-                        if member.isreg(): 
-                            member.name = Path(member.name).name
-                            tgz.extract(member,path=extraction_dir)
+                    tgz.extractall(path=extraction_dir)
 
     if args.cleanup and download_path.exists():
         rmtree(download_path)
