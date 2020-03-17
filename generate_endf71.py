@@ -148,8 +148,8 @@ release_details = {
                 (neutron_dir / 'n-040_Zr_090.endf', thermal_dir / 'tsl-ZrinZrH.endf'),
                 (neutron_dir / 'n-092_U_238.endf', thermal_dir / 'tsl-UinUO2.endf')
             ],
-            'compressed_file_size': 1,
-            'uncompressed_file_size': 2
+            'compressed_file_size': 226,
+            'uncompressed_file_size': 916
         },
         'photon': {
             'base_url': 'http://www.nndc.bnl.gov/endf/b7.1/zips/',
@@ -228,7 +228,11 @@ if args.extract:
             else:
                 with tarfile.open(download_path / particle / f, 'r') as tgz:
                     print(f'Extracting {f}...')
-                    tgz.extractall(path=extraction_dir)
+                    # extract files ignoring the internal folder structure
+                    for member in tgz.getmembers():
+                        if member.isreg():
+                            member.name = Path(member.name).name
+                            tgz.extract(member, path=extraction_dir)
 
     if args.cleanup and download_path.exists():
         rmtree(download_path)
