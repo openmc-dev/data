@@ -250,7 +250,6 @@ if 'neutron' in args.particles:
         details = release_details[release][particle]
         results = []
         for filename in details['endf_files']:
-
             r = pool.apply_async(process_neutron,
                                 (filename,
                                 args.destination / particle))
