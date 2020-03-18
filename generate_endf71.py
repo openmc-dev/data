@@ -47,8 +47,8 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='earliest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
-parser.add_argument('-p', '--particles', choices=['neutron', 'photon', 'neutron_wmp'],
-                    nargs='+', default=['neutron', 'photon', 'neutron_wmp'],
+parser.add_argument('-p', '--particles', choices=['neutron', 'photon', 'wmp'],
+                    nargs='+', default=['neutron', 'photon', 'wmp'],
                     help="Incident particles to include")
 parser.add_argument('--cleanup', action='store_true',
                     help="Remove download directories when data has "
@@ -163,7 +163,7 @@ release_details = {
             'compressed_file_size': 9,
             'uncompressed_file_size': 45
         },
-        'neutron_wmp': {
+        'wmp': {
             'base_url': 'https://github.com/mit-crpg/WMP_Library/releases/download/v1.1/',
             'compressed_files': ['WMP_Library_v1.1.tar.gz'],
             'file_type': 'wmp',
@@ -175,7 +175,7 @@ release_details = {
 
 compressed_file_size, uncompressed_file_size = 0, 0
 for r in release:
-    for p in ('neutron', 'photon', 'neutron_wmp'):
+    for p in args.particles:
         compressed_file_size += release_details[release][p]['compressed_file_size']
         uncompressed_file_size += release_details[release][p]['uncompressed_file_size']
 
@@ -294,7 +294,7 @@ if 'photon' in args.particles:
 # =========================================================================
 # INCIDENT WMP NEUTRON DATA
 
-if 'neutron_wmp' in args.particles:
+if 'wmp' in args.particles:
     for h5_file in Path(wmp_files_dir).rglob('*.h5'):
         library.register_file(h5_file)
 
