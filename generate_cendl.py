@@ -7,12 +7,13 @@ use with OpenMC.
 
 import argparse
 import zipfile
+from multiprocessing import Pool
 from pathlib import Path
 from shutil import rmtree
 from urllib.parse import urljoin
 
 import openmc.data
-from utils import download
+from utils import download, process_neutron
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
@@ -114,29 +115,33 @@ args.destination.mkdir(parents=True, exist_ok=True)
 
 library = openmc.data.DataLibrary()
 
-for filename in sorted(neutron_files):
+with Pool() as pool:
+    results = []
+    for filename in sorted(neutron_files):
 
-    # this is a fix for the CENDL 3.1 release where the
-    # 22-Ti-047.C31 and 5-B-010.C31 files contain non-ASCII characters
-    if library_name == 'cendl' and args.release == '3.1' and filename.name in ['22-Ti-047.C31', '5-B-010.C31']:
-        print('Manual fix for incorrect value in ENDF file')
-        text = open(filename, 'rb').read().decode('utf-8', 'ignore').split('\r\n')
-        if filename.name == '22-Ti-047.C31':
-            text[205] = ' 8) YUAN Junqian,WANG Yongchang,etc.               ,16,(1),57,92012228 1451  205'
-        if filename.name == '5-B-010.C31':
-            text[203] = '21)   Day R.B. and Walt M.  Phys.rev.117,1330 (1960)               525 1451  203'
-        open(filename, 'w').write('\r\n'.join(text))
+        # this is a fix for the CENDL 3.1 release where the
+        # 22-Ti-047.C31 and 5-B-010.C31 files contain non-ASCII characters
+        if library_name == 'cendl' and args.release == '3.1' and filename.name in ['22-Ti-047.C31', '5-B-010.C31']:
+            print('Manual fix for incorrect value in ENDF file')
+            text = open(filename, 'rb').read().decode('utf-8', 'ignore').split('\r\n')
+            if filename.name == '22-Ti-047.C31':
+                text[205] = ' 8) YUAN Junqian,WANG Yongchang,etc.               ,16,(1),57,92012228 1451  205'
+            if filename.name == '5-B-010.C31':
+                text[203] = '21)   Day R.B. and Walt M.  Phys.rev.117,1330 (1960)               525 1451  203'
+            open(filename, 'w').write('\r\n'.join(text))
 
-    print(f'Converting: {filename}')
-    data = openmc.data.IncidentNeutron.from_njoy(filename)
+        r = pool.apply_async(process_neutron,
+                             (filename,
+                             args.destination,
+                             args.libver))
+        results.append(r)
 
-    # Export HDF5 file
-    h5_file = args.destination / f'{data.name}.h5'
-    print('Writing {}...'.format(h5_file))
-    data.export_to_hdf5(h5_file, 'w', libver=args.libver)
+    for r in results:
+        r.wait()
 
-    # Register with library
-    library.register_file(h5_file)
+# Register with library
+for p in sorted((args.destination).glob('*.h5')):
+    library.register_file(p)
 
 # Write cross_sections.xml
 library.export_to_xml(args.destination / 'cross_sections.xml')

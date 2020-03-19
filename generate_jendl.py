@@ -8,12 +8,13 @@ use with OpenMC.
 import argparse
 import ssl
 import tarfile
+from multiprocessing import Pool
 from pathlib import Path
 from shutil import rmtree
 from urllib.parse import urljoin
 
 import openmc.data
-from utils import download
+from utils import download, process_neutron
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
@@ -115,18 +116,23 @@ args.destination.mkdir(parents=True, exist_ok=True)
 
 library = openmc.data.DataLibrary()
 
-for filename in sorted(neutron_files):
 
-    print(f'Converting: {filename}')
-    data = openmc.data.IncidentNeutron.from_njoy(filename)
+with Pool() as pool:
+    results = []
+    for filename in sorted(neutron_files):
 
-    # Export HDF5 file
-    h5_file = args.destination / f'{data.name}.h5'
-    print('Writing {}...'.format(h5_file))
-    data.export_to_hdf5(h5_file, 'w', libver=args.libver)
+        r = pool.apply_async(process_neutron,
+                             (filename,
+                             args.destination,
+                             args.libver))
+        results.append(r)
 
-    # Register with library
-    library.register_file(h5_file)
+    for r in results:
+        r.wait()
+
+# Register with library
+for p in sorted((args.destination).glob('*.h5')):
+    library.register_file(p)
 
 # Write cross_sections.xml
 library.export_to_xml(args.destination / 'cross_sections.xml')
