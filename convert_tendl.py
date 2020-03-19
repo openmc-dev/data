@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
 
+"""
+Download TENDL 2019/2017/2015 ACE files from PSI and
+convert them to HDF5 libraries for use with OpenMC.
+"""
+
 import argparse
-from pathlib import Path
 import sys
 import tarfile
+from pathlib import Path
+from shutil import rmtree
 from urllib.parse import urljoin
 
 import openmc.data
-from openmc._utils import download
+from utils import download
 
-description = """
-Download TENDL 2019/2017/2015 ACE files from PSI and convert them to HDF5 libraries for
-use with OpenMC.
-
-"""
+# Make sure Python version is sufficient
+assert sys.version_info >= (3, 6), "Python 3.6+ is required"
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
@@ -22,7 +25,7 @@ class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
 
 
 parser = argparse.ArgumentParser(
-    description=description,
+    description=__doc__,
     formatter_class=CustomFormatter
 )
 parser.add_argument('-d', '--destination', type=Path, default=None,
@@ -40,24 +43,35 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
 parser.add_argument('-r', '--release', choices=['2015', '2017', '2019'],
-                    default='2019', help="The nuclear data library release version. "
-                    "The currently supported options are 2015, 2017, and 2019.")
-parser.set_defaults(download=True, extract=True)
+                    default='2019', help="The nuclear data library release "
+                    "version. The currently supported options are 2015, "
+                    "2017, and 2019.")
+parser.add_argument('--cleanup', action='store_true',
+                    help="Remove download directories when data has "
+                    "been processed")
+parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
+                    help="Do not remove download directories when data has "
+                    "been processed")
+parser.set_defaults(download=True, extract=True, cleanup=False)
 args = parser.parse_args()
 
+library_name = 'tendl'
 
+cwd = Path.cwd()
 
-library_name = 'tendl' #this could be added as an argument to allow different libraries to be downloaded
-ace_files_dir = Path('-'.join([library_name, args.release, 'ace']))
-# the destination is decided after the release is know to avoid putting the release in a folder with a misleading name
+ace_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'ace']))
+download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
+# the destination is decided after the release is known
+# to avoid putting the release in a folder with a misleading name
 if args.destination is None:
     args.destination = Path('-'.join([library_name, args.release, 'hdf5']))
 
-# This dictionary contains all the unique information about each release. This can be exstened to accommodated new releases
+# This dictionary contains all the unique information about each release.
+# This can be exstened to accommodated new releases
 release_details = {
     '2015': {
         'base_url': 'https://tendl.web.psi.ch/tendl_2015/tar_files/',
-        'files': ['ACE-n.tgz'],
+        'compressed_files': ['ACE-n.tgz'],
         'neutron_files': ace_files_dir.glob('neutron_file/*/*/lib/endf/*-n.ace'),
         'metastables': ace_files_dir.glob('neutron_file/*/*/lib/endf/*m-n.ace'),
         'compressed_file_size': '5.1 GB',
@@ -65,7 +79,7 @@ release_details = {
     },
     '2017': {
         'base_url': 'https://tendl.web.psi.ch/tendl_2017/tar_files/',
-        'files': ['tendl17c.tar.bz2'],
+        'compressed_files': ['tendl17c.tar.bz2'],
         'neutron_files': ace_files_dir.glob('ace-17/*'),
         'metastables': ace_files_dir.glob('ace-17/*m'),
         'compressed_file_size': '2.1 GB',
@@ -73,7 +87,7 @@ release_details = {
     },
     '2019': {
         'base_url': 'https://tendl.web.psi.ch/tendl_2019/tar_files/',
-        'files': ['tendl19c.tar.bz2'],
+        'compressed_files': ['tendl19c.tar.bz2'],
         'neutron_files': ace_files_dir.glob('tendl19c/*'),
         'metastables': ace_files_dir.glob('tendl19c/*m'),
         'compressed_file_size': '2.3 GB',
@@ -92,18 +106,22 @@ Extracting and processing the data requires {} of additional free disk space.
 
 if args.download:
     print(download_warning)
-    for f in release_details[args.release]['files']:
+    for f in release_details[args.release]['compressed_files']:
         # Establish connection to URL
-        download(urljoin(release_details[args.release]['base_url'], f))
+        download(urljoin(release_details[args.release]['base_url'], f),
+                 output_path=download_path)
 
 # ==============================================================================
 # EXTRACT FILES FROM TGZ
 
 if args.extract:
-    for f in release_details[args.release]['files']:
-        with tarfile.open(f, 'r') as tgz:
+    for f in release_details[args.release]['compressed_files']:
+        with tarfile.open(download_path / f, 'r') as tgz:
             print(f'Extracting {f}...')
             tgz.extractall(path=ace_files_dir)
+
+    if args.cleanup and download_path.exists():
+        rmtree(download_path)
 
 # ==============================================================================
 # CHANGE ZAID FOR METASTABLES
@@ -134,7 +152,8 @@ for filename in sorted(neutron_files):
     if library_name == 'tendl' and args.release == '2017' and filename.name == 'B010':
         text = open(filename, 'r').read()
         if text[423:428] == '86843':
-            print('Manual fix for incorrect value in ACE file') # see OpenMC user group issue for more details
+            print('Manual fix for incorrect value in ACE file')
+            # see OpenMC user group issue for more details
             text = ''.join(text[:423])+'86896'+''.join(text[428:])
             open(filename, 'w').write(text)
 

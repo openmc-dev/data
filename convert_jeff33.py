@@ -1,24 +1,27 @@
 #!/usr/bin/env python
 
+"""
+Convert JEFF 3.3 ACE data distributed by OECD/NEA into an HDF5 library
+that can be used by OpenMC. It will download an 1.3 GB archive containing
+all the ACE files, extract it, convert them, and write HDF5 files into a
+destination directory.
+"""
+
 import argparse
-from pathlib import Path
 import tarfile
 import sys
+import os
+from pathlib import Path
+from shutil import rmtree
+from urllib.parse import urljoin
 
 import openmc.data
-from openmc._utils import download
+from utils import download
 
 
 # Make sure Python version is sufficient
 assert sys.version_info >= (3, 6), "Python 3.6+ is required"
 
-description = """
-Convert JEFF 3.3 ACE data distributed by OECD/NEA into an HDF5 library
-that can be used by OpenMC. It will download an 1.3 GB archive containing
-all the ACE files, extract it, convert them, and write HDF5 files into a
-destination directory.
-
-"""
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
                       argparse.RawDescriptionHelpFormatter):
@@ -26,7 +29,7 @@ class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
 
 
 parser = argparse.ArgumentParser(
-    description=description,
+    description=__doc__,
     formatter_class=CustomFormatter
 )
 parser.add_argument('-d', '--destination', type=Path, default=Path('jeff-3.3-hdf5'),
@@ -43,22 +46,66 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='earliest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
-parser.set_defaults(download=True, extract=True)
+parser.add_argument('-r', '--release', choices=['3.3'],
+                    default='3.3', help="The nuclear data library release version. "
+                    "The only currently supported option is 3.3.")
+parser.add_argument('--cleanup', action='store_true',
+                    help="Remove download directories when data has "
+                    "been processed")
+parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
+                    help="Do not remove download directories when data has "
+                    "been processed")
+parser.set_defaults(download=True, extract=True, cleanup=False)
 args = parser.parse_args()
 
-ace_files_dir = Path('jeff-3.3-ace')
+library_name = 'jeff'
 
-# Download JEFF 3.3 library
-filename = 'JEFF33-n_tsl-ace.tgz'
-url = f'http://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/{filename}'
+cwd = Path.cwd()
+
+ace_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'ace']))
+download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
+
+# This dictionary contains all the unique information about each release. This can be exstened to accommodated new releases
+release_details = {
+    '3.3': {
+        'base_url': 'http://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/',
+        'compressed_files': ['JEFF33-n_tsl-ace.tgz'],
+        'neutron_files': sorted(ace_files_dir.rglob('*.[Aa][Cc][Ee]')),
+        'metastables': ace_files_dir.glob('neutron_file/*/*/lib/endf/*m-n.ace'),
+        'compressed_file_size': '1.3 GB',
+        'uncompressed_file_size': '8.2 GB'
+    }
+}
+
+
+download_warning = """
+WARNING: This script will download {} of data.
+Extracting and processing the data requires {} of additional free disk space.
+""".format(release_details[args.release]['compressed_file_size'],
+           release_details[args.release]['uncompressed_file_size'])
+
+# ==============================================================================
+# DOWNLOAD FILES FROM WEBSITE
+
 if args.download:
-    download(url)
+    print(download_warning)
+    for f in release_details[args.release]['compressed_files']:
+        # Establish connection to URL
+        download(urljoin(release_details[args.release]['base_url'], f),
+                 output_path=download_path)
 
-# Extract tar file
+
+# ==============================================================================
+# EXTRACT FILES FROM TGZ
+
 if args.extract:
-    with tarfile.open(filename, 'r') as tgz:
-        print(f'Extracting {filename}...')
-        tgz.extractall(path=ace_files_dir)
+    for f in release_details[args.release]['compressed_files']:
+        with tarfile.open(download_path / f, 'r') as tgz:
+            print(f'Extracting {f}...')
+            tgz.extractall(path=ace_files_dir)
+
+    if args.cleanup and download_path.exists():
+        rmtree(download_path)
 
 # Create output directory if it doesn't exist
 args.destination.mkdir(parents=True, exist_ok=True)

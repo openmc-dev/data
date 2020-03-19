@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 
+"""
+Convert ENDF/B-VIII.0 ACE data from LANL into an HDF5 library
+that can be used by OpenMC. This assumes that you have a directory containing
+subdirectories 'Lib80x' and 'ENDF80SaB'.
+"""
+
 import argparse
 from collections import defaultdict
 from pathlib import Path
@@ -11,12 +17,6 @@ import openmc.data
 # Make sure Python version is sufficient
 assert sys.version_info >= (3, 6), "Python 3.6+ is required"
 
-description = """
-Convert ENDF/B-VIII.0 ACE data from LANL into an HDF5 library
-that can be used by OpenMC. This assumes that you have a directory containing
-subdirectories 'Lib80x' and 'ENDF80SaB'.
-
-"""
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
@@ -25,7 +25,7 @@ class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
 
 
 parser = argparse.ArgumentParser(
-    description=description,
+    description=__doc__,
     formatter_class=CustomFormatter
 )
 parser.add_argument('-d', '--destination', type=Path, default=Path('lib80x_hdf5'),

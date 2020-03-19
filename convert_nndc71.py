@@ -7,18 +7,14 @@ used for OpenMC's regression test suite.
 """
 
 import argparse
-import glob
-import hashlib
-import shutil
-import subprocess
 import sys
 import tarfile
 import zipfile
 from pathlib import Path
-from string import digits
+from shutil import rmtree
 
 import openmc.data
-from openmc._utils import download
+from utils import download
 
 # Make sure Python version is sufficient
 assert sys.version_info >= (3, 6), "Python 3.6+ is required"
@@ -50,13 +46,23 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     "performance")
 parser.add_argument('-p', '--particles', choices=['neutron', 'photon'], nargs='+',
                     default=['neutron', 'photon'], help="Incident particles to include")
-parser.set_defaults(download=True, extract=True)
+parser.add_argument('--cleanup', action='store_true',
+                    help="Remove download directories when data has "
+                    "been processed")
+parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
+                    help="Do not remove download directories when data has "
+                    "been processed")
+parser.set_defaults(download=True, extract=True, cleanup=False)
 args = parser.parse_args()
 
 library_name = 'nndc'
 release = 'b7.1'
+
+cwd = Path.cwd()
+
 ace_files_dir = Path('-'.join([library_name, release, 'ace']))
 endf_files_dir = Path('-'.join([library_name, release, 'endf']))
+download_path = cwd.joinpath('-'.join([library_name, release, 'download']))
 
 # This dictionary contains all the unique information about each release. This
 # can be exstened to accommodated new releases
@@ -78,6 +84,8 @@ release_details = {
             'base_url': 'http://www.nndc.bnl.gov/endf/b7.1/zips/',
             'compressed_files': ['ENDF-B-VII.1-photoat.zip',
                                  'ENDF-B-VII.1-atomic_relax.zip'],
+            'checksums': ['5192f94e61f0b385cf536f448ffab4a4',
+                          'fddb6035e7f2b6931e51a58fc754bd10'],
             'file_type': 'endf',
             'photo_files': endf_files_dir.joinpath('photoat').rglob('*.endf'),
             'atom_files': endf_files_dir.joinpath('atomic_relax').rglob('*.endf'),
@@ -107,26 +115,14 @@ for use with OpenMC. This data is used for OpenMC's regression test suite.
 if args.download:
     print(download_warning)
     for particle in args.particles:
-        for f in release_details[release][particle]['compressed_files']:
+        particle_download_path = download_path / particle
+        for f, checksum in zip(release_details[release][particle]['compressed_files'],
+                               release_details[release][particle]['checksums']):
             # Establish connection to URL
             url = release_details[release][particle]['base_url'] + f
-            downloaded_file = download(url)
+            downloaded_file = download(url, output_path=particle_download_path,
+                                       checksum=checksum)
 
-# ==============================================================================
-# VERIFY MD5 CHECKSUMS
-
-if args.download:
-    print('Verifying MD5 checksums...')
-    for particle in args.particles:
-        if 'checksums' in release_details[release].keys():
-            for f, checksum in zip(release_details[release]['compressed_files'],
-                                   release_details[release]['checksums']):
-                downloadsum = hashlib.md5(open(f, 'rb').read()).hexdigest()
-            if downloadsum != checksum:
-                raise IOError("MD5 checksum for {} does not match. If this is your first "
-                              "time receiving this message, please re-run the script. "
-                              "Otherwise, please contact OpenMC developers by emailing "
-                              "openmc-users@googlegroups.com.".format(f))
 
 # ==============================================================================
 # EXTRACT FILES FROM TGZ
@@ -139,16 +135,19 @@ if args.extract:
             extraction_dir = endf_files_dir
 
         for f in release_details[release][particle]['compressed_files']:
-            # Extract files
 
+            # Extract files
             if f.endswith('.zip'):
-                with zipfile.ZipFile(f, 'r') as zipf:
-                    print('Extracting {}...'.format(f))
+                with zipfile.ZipFile(download_path / particle / f, 'r') as zipf:
+                    print(f'Extracting {f}...')
                     zipf.extractall(extraction_dir)
             else:
-                with tarfile.open(f, 'r') as tgz:
-                    print('Extracting {}...'.format(f))
+                with tarfile.open(download_path / particle / f, 'r') as tgz:
+                    print(f'Extracting {f}...')
                     tgz.extractall(path=extraction_dir)
+
+    if args.cleanup and download_path.exists():
+        rmtree(download_path)
 
 # ==============================================================================
 # FIX ZAID ASSIGNMENTS FOR VARIOUS S(A,B) TABLES

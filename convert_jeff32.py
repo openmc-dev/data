@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+"""
+Download JEFF 3.2 ACE data from OECD/NEA and convert it to a multi-temperature
+HDF5 library for use with OpenMC.
+"""
+
 import argparse
 import tarfile
 import zipfile
@@ -9,21 +14,16 @@ from string import digits
 from urllib.parse import urljoin
 
 import openmc.data
-from openmc._utils import download
-
-description = """
-Download JEFF 3.2 ACE data from OECD/NEA and convert it to a multi-temperature
-HDF5 library for use with OpenMC.
-
-"""
+from utils import download
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
                       argparse.RawDescriptionHelpFormatter):
     pass
 
+
 parser = argparse.ArgumentParser(
-    description=description,
+    description=__doc__,
     formatter_class=CustomFormatter
 )
 parser.add_argument('-d', '--destination', type=Path, default=None,
@@ -43,40 +43,50 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
 parser.add_argument('-r', '--release', choices=['3.2'],
                     default='3.2', help="The nuclear data library release version. "
                     "The currently supported options are 3.2")
-parser.add_argument('-t', '--temperatures', 
-                    choices=['293', '400', '500', '600', '700', '800', '900', 
+parser.add_argument('-t', '--temperatures',
+                    choices=['293', '400', '500', '600', '700', '800', '900',
                              '1000', '1200', '1500', '1800'],
                     default=['293', '400', '500', '600', '700', '800', '900',
-                             '1000', '1200', '1500', '1800'], 
-                    help="Temperatures to download in Kelvin", nargs='+',)    
-parser.set_defaults(download=True, extract=True)
+                             '1000', '1200', '1500', '1800'],
+                    help="Temperatures to download in Kelvin", nargs='+')
+parser.add_argument('--cleanup', action='store_true',
+                    help="Remove download directories when data has "
+                    "been processed")
+parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
+                    help="Do not remove download directories when data has "
+                    "been processed")
+parser.set_defaults(download=True, extract=True, cleanup=False)
 args = parser.parse_args()
 
 library_name = 'jeff'
-ace_files_dir = Path('-'.join([library_name, args.release, 'ace']))
+
+cwd = Path.cwd()
+
+ace_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'ace']))
+download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
 # the destination is decided after the release is know to avoid putting the release in a folder with a misleading name
 if args.destination is None:
     args.destination = Path('-'.join([library_name, args.release, 'hdf5']))
 
 # This dictionary contains all the unique information about each release. This can be exstened to accommodated new releases
 release_details = {
-    '3.2':{
+    '3.2': {
         'base_url': 'https://www.oecd-nea.org/dbforms/data/eva/evatapes/jeff_32/Processed/',
-        'files': [f'JEFF32-ACE-{t}K.zip' if t=='800' else f'JEFF32-ACE-{t}K.tar.gz' for t in args.temperatures] 
+        'compressed_files': [f'JEFF32-ACE-{t}K.zip' if t == '800' else f'JEFF32-ACE-{t}K.tar.gz' for t in args.temperatures]
                   +['TSLs.tar.gz'],
-        'neutron_files':ace_files_dir.rglob('*.ACE'),
+        'neutron_files': ace_files_dir.rglob('*.ACE'),
         'metastables': ace_files_dir.rglob('*M.ACE'),
         'sab_files': ace_files_dir.glob('ANNEX_6_3_STLs/*/*.ace'),
         'redundant': ace_files_dir.glob('ACEs_293K/*-293.ACE'),
-        'compressed_file_size': '9 GB',
-        'uncompressed_file_size': '40 GB'
+        'compressed_file_size': 9,
+        'uncompressed_file_size': 40
     }
 }
 
 download_warning = """
 WARNING: This script will download up to {} GB of data. Extracting and
 processing the data may require as much as {} GB of additional free disk
-space. Note that if you don't need all 11 temperatures, you can used the 
+space. Note that if you don't need all 11 temperatures, you can used the
 --temperature argument to download only the temperatures you want.
 """.format(release_details[args.release]['compressed_file_size'],
            release_details[args.release]['uncompressed_file_size'])
@@ -86,23 +96,24 @@ space. Note that if you don't need all 11 temperatures, you can used the
 
 if args.download:
     print(download_warning)
-    for f in release_details[args.release]['files']:
-        download(urljoin(release_details[args.release]['base_url'], f))
+    for f in release_details[args.release]['compressed_files']:
+        download(urljoin(release_details[args.release]['base_url'], f),
+                 output_path=download_path)
 
 # ==============================================================================
 # EXTRACT FILES FROM TGZ
 
 if args.extract:
-    for f in release_details[args.release]['files']:
+    for f in release_details[args.release]['compressed_files']:
         # Extract files
         if f.endswith('.zip'):
-            with zipfile.ZipFile(f, 'r') as zipf:
+            with zipfile.ZipFile(download_path / f, 'r') as zipf:
                 print('Extracting {}...'.format(f))
                 zipf.extractall(ace_files_dir)
 
         else:
             suffix = 'ACEs_293K' if '293' in f else ''
-            with tarfile.open(f, 'r') as tgz:
+            with tarfile.open(download_path / f, 'r') as tgz:
                 print('Extracting {}...'.format(f))
                 tgz.extractall(ace_files_dir / suffix)
 
@@ -112,6 +123,7 @@ if args.extract:
                 for path in release_details[args.release]['redundant']:
                     print(f'removing {path}')
                     path.unlink()
+
 
 # ==============================================================================
 # CHANGE ZAID FOR METASTABLES
@@ -140,7 +152,7 @@ for filename in sorted(neutron_files):
 # Sort temperatures from lowest to highest
 for name, filenames in sorted(tables.items()):
     filenames.sort(key=lambda x: int(
-        x.parts[1].split('_')[1][:-1]))
+        x.parts[-2].split('_')[1][:-1]))
 
 # Create output directory if it doesn't exist
 args.destination.mkdir(parents=True, exist_ok=True)
