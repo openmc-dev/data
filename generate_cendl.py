@@ -130,10 +130,8 @@ with Pool() as pool:
                 text[203] = '21)   Day R.B. and Walt M.  Phys.rev.117,1330 (1960)               525 1451  203'
             open(filename, 'w').write('\r\n'.join(text))
 
-        r = pool.apply_async(process_neutron,
-                             (filename,
-                             args.destination,
-                             args.libver))
+        func_args = (filename, args.destination, args.libver)
+        r = pool.apply_async(process_neutron, func_args)
         results.append(r)
 
     for r in results:
