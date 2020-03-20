@@ -9,14 +9,13 @@ used for OpenMC's regression test suite.
 import argparse
 import sys
 import tarfile
-import warnings
 import zipfile
 from multiprocessing import Pool
 from pathlib import Path
 from shutil import rmtree
 
 import openmc.data
-from utils import download
+from utils import download, process_neutron, process_thermal
 
 # Make sure Python version is sufficient
 assert sys.version_info >= (3, 6), "Python 3.6+ is required"
@@ -58,38 +57,6 @@ parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
                     "been processed")
 parser.set_defaults(download=True, extract=True, cleanup=False)
 args = parser.parse_args()
-
-
-def process_neutron(path, output_dir):
-    """Process ENDF neutron sublibrary file into HDF5 and write into a
-    specified output directory."""
-    try:
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', UserWarning)
-            data = openmc.data.IncidentNeutron.from_njoy(
-                path, temperatures=temperatures
-            )
-    except Exception as e:
-        print(path, e)
-        raise
-    data.export_to_hdf5(output_dir / f'{data.name}.h5', 'w', libver=args.libver)
-    print(f'Finished {path}')
-
-
-def process_thermal(path_neutron, path_thermal, output_dir):
-    """Process ENDF thermal scattering sublibrary file into HDF5 and write into a
-    specified output directory."""
-    try:
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', UserWarning)
-            data = openmc.data.ThermalScattering.from_njoy(
-                path_neutron, path_thermal
-            )
-    except Exception as e:
-        print(path_neutron, path_thermal, e)
-        raise
-    data.export_to_hdf5(output_dir / f'{data.name}.h5', 'w', libver=args.libver)
-    print(f'Finished {path_thermal}')
 
 
 def sort_key(path):
@@ -253,15 +220,14 @@ if 'neutron' in args.particles:
         details = release_details[release][particle]
         results = []
         for filename in details['endf_files']:
-            r = pool.apply_async(process_neutron,
-                                (filename,
-                                args.destination / particle))
+            func_args = (filename, args.destination, args.libver, temperatures)
+            r = pool.apply_async(process_neutron, func_args)
             results.append(r)
 
         for path_neutron, path_thermal in details['sab_files']:
-            r = pool.apply_async(process_thermal,
-                                (path_neutron, path_thermal,
-                                args.destination / particle))
+            func_args = (path_neutron, path_thermal,
+                         args.destination / particle, args.libver)
+            r = pool.apply_async(process_thermal, func_args)
 
             results.append(r)
 

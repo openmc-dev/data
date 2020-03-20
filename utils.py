@@ -1,9 +1,47 @@
 import hashlib
+import warnings
+import openmc.data
 from pathlib import Path
 from urllib.parse import urlparse
 from urllib.request import urlopen, Request
 
 _BLOCK_SIZE = 16384
+
+
+def process_neutron(path, output_dir, libver, temperatures=None):
+    """Process ENDF neutron sublibrary file into HDF5 and write into a
+    specified output directory."""
+    print(f'Converting: {path}')
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', UserWarning)
+            data = openmc.data.IncidentNeutron.from_njoy(
+                path, temperatures=temperatures
+            )
+    except Exception as e:
+        print(path, e)
+        raise
+    h5_file = output_dir / f'{data.name}.h5'
+    print(f'Writing {h5_file} ...')
+    data.export_to_hdf5(h5_file, 'w', libver=libver)
+
+
+def process_thermal(path_neutron, path_thermal, output_dir, libver):
+    """Process ENDF thermal scattering sublibrary file into HDF5 and write into a
+    specified output directory."""
+    print(f'Converting: {path_thermal}')
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', UserWarning)
+            data = openmc.data.ThermalScattering.from_njoy(
+                path_neutron, path_thermal
+            )
+    except Exception as e:
+        print(path_neutron, path_thermal, e)
+        raise
+    h5_file = output_dir / f'{data.name}.h5'
+    print(f'Writing {h5_file} ...')
+    data.export_to_hdf5(h5_file, 'w', libver=libver)
 
 
 def download(url, checksum=None, as_browser=False, output_path=None, **kwargs):
@@ -39,7 +77,7 @@ def download(url, checksum=None, as_browser=False, output_path=None, **kwargs):
 
         local_path = Path(Path(urlparse(url).path).name)
         if output_path is not None:
-            Path(output_path).mkdir(parents=True, exist_ok=True) 
+            Path(output_path).mkdir(parents=True, exist_ok=True)
             local_path = output_path / local_path
         # Check if file already downloaded
         if local_path.is_file():
