@@ -24,7 +24,6 @@ def process_neutron(path, output_dir, libver, temperatures=None):
     h5_file = output_dir / f'{data.name}.h5'
     print(f'Writing {h5_file} ...')
     data.export_to_hdf5(h5_file, 'w', libver=libver)
-    return h5_file
 
 
 def process_thermal(path_neutron, path_thermal, output_dir, libver):
@@ -43,7 +42,6 @@ def process_thermal(path_neutron, path_thermal, output_dir, libver):
     h5_file = output_dir / f'{data.name}.h5'
     print(f'Writing {h5_file} ...')
     data.export_to_hdf5(h5_file, 'w', libver=libver)
-    return h5_file
 
 
 def download(url, checksum=None, as_browser=False, output_path=None, **kwargs):

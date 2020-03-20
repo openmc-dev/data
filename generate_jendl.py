@@ -121,10 +121,8 @@ with Pool() as pool:
     results = []
     for filename in sorted(neutron_files):
 
-        r = pool.apply_async(process_neutron,
-                             (filename,
-                             args.destination,
-                             args.libver))
+        func_args = (filename, args.destination, args.libver)
+        r = pool.apply_async(process_neutron, func_args)
         results.append(r)
 
     for r in results:
