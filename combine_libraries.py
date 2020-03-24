@@ -34,7 +34,7 @@ parser = argparse.ArgumentParser(
     description=description,
     formatter_class=CustomFormatter
 )
-parser.add_argument('-o', '--outdir', type=Path, default=None,
+parser.add_argument('-d', '--destination', type=Path, default=None,
                     help='Directory to output new library in')
 parser.add_argument('-l', '--libraries', type=Path,
                     help='List of data library .xml files to combine', nargs='+')
@@ -45,15 +45,15 @@ read_libraries = []
 copy = True
 
 # Error check arguments
-if args.outdir is None:
+if args.destination is None:
     copy = False
-    args.outdir = Path('.')
+    args.destination = Path('.')
 else:
-    if args.outdir.exists():
-        if not args.outdir.is_dir():
-            raise NotADirectoryError(f'Destination {args.outdir.resolve()} should be a directory')
-        if any(args.outdir.iterdir()):
-            raise OSError(f'Destination {args.outdir.resolve()} is not empty')
+    if args.destination.exists():
+        if not args.destination.is_dir():
+            raise NotADirectoryError(f'Destination {args.destination.resolve()} should be a directory')
+        if any(args.destination.iterdir()):
+            raise OSError(f'Destination {args.destination.resolve()} is not empty')
 
 # Parse library .xml files
 if args.libraries is None:
@@ -62,7 +62,7 @@ for lib_cross_sections_file in args.libraries:
     parsed_library = openmc.data.DataLibrary.from_xml(lib_cross_sections_file)
     read_libraries.append(parsed_library)
 
-print(f'Creating library in {args.outdir.resolve()}'
+print(f'Creating library in {args.destination.resolve()}'
       ' from the following libraries in order of preference:')
 for i, lib_dir in enumerate(args.libraries):
     print(f'{i + 1}) {lib_dir.resolve()}')
@@ -70,7 +70,7 @@ for i, lib_dir in enumerate(args.libraries):
 # Create output directory if it doesn't exist
 if copy:
     print('Original library files will be copied into the destination folder')
-    args.outdir.mkdir(parents=True, exist_ok=True)
+    args.destination.mkdir(parents=True, exist_ok=True)
 
 combined_library = openmc.data.DataLibrary()
 
@@ -79,8 +79,8 @@ for library in read_libraries[0].libraries:
     source_file = Path(library['path'])
     destination_file = source_file
     if copy:
-        destination_file = args.outdir / source_file.name
-        shutil.copy(source_file, args.outdir)
+        destination_file = args.destination / source_file.name
+        shutil.copy(source_file, args.destination)
     print(f'Adding {source_file.name} from {args.libraries[0].resolve()}')
     combined_library.register_file(destination_file)
 
@@ -91,14 +91,14 @@ for lib_num in range(1, len(read_libraries)):
             source_file = Path(library['path'])
             destination_file = source_file
             if copy:
-                destination_file = args.outdir / source_file.name
+                destination_file = args.destination / source_file.name
                 if destination_file.exists():
                     raise FileExistsError(f'Library file {destination_file.name} already'
                                           ' exists in the combined library')
-                shutil.copy(source_file, args.outdir)
+                shutil.copy(source_file, args.destination)
             print(f'Adding {source_file.name} from {args.libraries[lib_num].resolve()}')
             combined_library.register_file(destination_file)
 
 # Write cross_sections.xml
-combined_library_path = args.outdir / 'cross_sections.xml'
+combined_library_path = args.destination / 'cross_sections.xml'
 combined_library.export_to_xml(combined_library_path)
