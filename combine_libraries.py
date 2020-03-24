@@ -36,6 +36,8 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument('-d', '--destination', type=Path, default=None,
                     help='Directory to output new library in')
+parser.add_argument('-o', '--outputfilename', type=str, default='cross_sections.xml',
+                    help='Output filename')
 parser.add_argument('-l', '--libraries', type=Path,
                     help='List of data library .xml files to combine', nargs='+')
 parser.set_defaults(copy=True)
@@ -62,7 +64,7 @@ for lib_cross_sections_file in args.libraries:
     parsed_library = openmc.data.DataLibrary.from_xml(lib_cross_sections_file)
     read_libraries.append(parsed_library)
 
-print(f'Creating library in {args.destination.resolve()}'
+print(f'Creating library {args.destination.resolve() / args.outputfilename}'
       ' from the following libraries in order of preference:')
 for i, lib_dir in enumerate(args.libraries):
     print(f'{i + 1}) {lib_dir.resolve()}')
@@ -99,6 +101,6 @@ for lib_num in range(1, len(read_libraries)):
             print(f'Adding {source_file.name} from {args.libraries[lib_num].resolve()}')
             combined_library.register_file(destination_file)
 
-# Write cross_sections.xml
-combined_library_path = args.destination / 'cross_sections.xml'
+# Write .xml file
+combined_library_path = args.destination / args.outputfilename
 combined_library.export_to_xml(combined_library_path)
