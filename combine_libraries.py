@@ -37,7 +37,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument('-d', '--destination', type=Path,
                     help='Directory to create new library in')
 parser.add_argument('-l', '--libraries', type=Path,
-                    help='List of data libraries to combine', nargs='+')
+                    help='List of data library .xml files to combine', nargs='+')
 parser.add_argument('--copy', action='store_true',
                     help="Copy library files and create a cross_sections.xml file")
 parser.add_argument('--no-copy', dest='copy', action='store_false',
@@ -56,13 +56,10 @@ if args.destination.exists():
     if any(args.destination.iterdir()):
         raise OSError(f'Destination {args.destination.resolve()} is not empty')
 
-# Parse cross_sections.xml from each library
+# Parse library .xml files
 if args.libraries is None:
     raise OSError('No input libraries specified')
-for lib_dir in args.libraries:
-    lib_cross_sections_file = lib_dir / 'cross_sections.xml'
-    if not lib_cross_sections_file.exists():
-        raise FileNotFoundError(f'Unable to find cross_sections.xml file in {lib_dir.resolve()}')
+for lib_cross_sections_file in args.libraries:
     parsed_library = openmc.data.DataLibrary.from_xml(lib_cross_sections_file)
     read_libraries.append(parsed_library)
 
@@ -82,11 +79,10 @@ combined_library = openmc.data.DataLibrary()
 for library in read_libraries[0].libraries:
     source_file = Path(library['path'])
     destination_file = source_file
-    source_path = source_file.relative_to(args.libraries[0])
     if args.copy:
         destination_file = args.destination / source_file.name
         shutil.copy(source_file, args.destination)
-    print(f'Adding {source_path} from {args.libraries[0].resolve()}')
+    print(f'Adding {source_file.name} from {args.libraries[0].resolve()}')
     combined_library.register_file(destination_file)
 
 # For each other libraries, check library and add if not already present
@@ -95,14 +91,13 @@ for lib_num in range(1, len(read_libraries)):
         if not library_in_list(library, combined_library.libraries):
             source_file = Path(library['path'])
             destination_file = source_file
-            source_path = source_file.relative_to(args.libraries[lib_num])
             if args.copy:
                 destination_file = args.destination / source_file.name
                 if destination_file.exists():
                     raise FileExistsError(f'Library file {destination_file.name} already'
                                           ' exists in the combined library')
                 shutil.copy(source_file, args.destination)
-            print(f'Adding {source_path} from {args.libraries[lib_num].resolve()}')
+            print(f'Adding {source_file.name} from {args.libraries[lib_num].resolve()}')
             combined_library.register_file(destination_file)
 
 # Write cross_sections.xml
