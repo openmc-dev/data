@@ -34,27 +34,26 @@ parser = argparse.ArgumentParser(
     description=description,
     formatter_class=CustomFormatter
 )
-parser.add_argument('-d', '--destination', type=Path,
-                    help='Directory to create new library in')
+parser.add_argument('-o', '--outdir', type=Path, default=None,
+                    help='Directory to output new library in')
 parser.add_argument('-l', '--libraries', type=Path,
                     help='List of data library .xml files to combine', nargs='+')
-parser.add_argument('--copy', action='store_true',
-                    help="Copy library files and create a cross_sections.xml file")
-parser.add_argument('--no-copy', dest='copy', action='store_false',
-                    help="Don't copy library files, just create a cross_sections.xml file")
 parser.set_defaults(copy=True)
 args = parser.parse_args()
 
 read_libraries = []
+copy = True
 
 # Error check arguments
-if args.destination is None:
-    raise OSError('Destination folder not specified')
-if args.destination.exists():
-    if not args.destination.is_dir():
-        raise NotADirectoryError(f'Destination {args.destination.resolve()} should be a directory')
-    if any(args.destination.iterdir()):
-        raise OSError(f'Destination {args.destination.resolve()} is not empty')
+if args.outdir is None:
+    copy = False
+    args.outdir = Path('.')
+else:
+    if args.outdir.exists():
+        if not args.outdir.is_dir():
+            raise NotADirectoryError(f'Destination {args.outdir.resolve()} should be a directory')
+        if any(args.outdir.iterdir()):
+            raise OSError(f'Destination {args.outdir.resolve()} is not empty')
 
 # Parse library .xml files
 if args.libraries is None:
@@ -63,15 +62,15 @@ for lib_cross_sections_file in args.libraries:
     parsed_library = openmc.data.DataLibrary.from_xml(lib_cross_sections_file)
     read_libraries.append(parsed_library)
 
-print(f'Creating library in {args.destination.resolve()}'
-      ' from the following nuclides in order of preference:')
+print(f'Creating library in {args.outdir.resolve()}'
+      ' from the following libraries in order of preference:')
 for i, lib_dir in enumerate(args.libraries):
     print(f'{i + 1}) {lib_dir.resolve()}')
-if not args.copy:
-    print('Original library files will not be copied into the destination folder')
 
 # Create output directory if it doesn't exist
-args.destination.mkdir(parents=True, exist_ok=True)
+if copy:
+    print('Original library files will be copied into the destination folder')
+    args.outdir.mkdir(parents=True, exist_ok=True)
 
 combined_library = openmc.data.DataLibrary()
 
@@ -79,9 +78,9 @@ combined_library = openmc.data.DataLibrary()
 for library in read_libraries[0].libraries:
     source_file = Path(library['path'])
     destination_file = source_file
-    if args.copy:
-        destination_file = args.destination / source_file.name
-        shutil.copy(source_file, args.destination)
+    if copy:
+        destination_file = args.outdir / source_file.name
+        shutil.copy(source_file, args.outdir)
     print(f'Adding {source_file.name} from {args.libraries[0].resolve()}')
     combined_library.register_file(destination_file)
 
@@ -91,15 +90,15 @@ for lib_num in range(1, len(read_libraries)):
         if not library_in_list(library, combined_library.libraries):
             source_file = Path(library['path'])
             destination_file = source_file
-            if args.copy:
-                destination_file = args.destination / source_file.name
+            if copy:
+                destination_file = args.outdir / source_file.name
                 if destination_file.exists():
                     raise FileExistsError(f'Library file {destination_file.name} already'
                                           ' exists in the combined library')
-                shutil.copy(source_file, args.destination)
+                shutil.copy(source_file, args.outdir)
             print(f'Adding {source_file.name} from {args.libraries[lib_num].resolve()}')
             combined_library.register_file(destination_file)
 
 # Write cross_sections.xml
-combined_library_path = args.destination / 'cross_sections.xml'
+combined_library_path = args.outdir / 'cross_sections.xml'
 combined_library.export_to_xml(combined_library_path)
