@@ -26,6 +26,8 @@ description = """
 Script to combine nuclide files from multiple OpenMC HDF5 libraries into a single library.
 
 """
+
+
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
                       argparse.RawDescriptionHelpFormatter):
     pass
