@@ -220,7 +220,8 @@ if 'neutron' in args.particles:
         details = release_details[release][particle]
         results = []
         for filename in details['endf_files']:
-            func_args = (filename, args.destination, args.libver, temperatures)
+            func_args = (filename, args.destination / particle, args.libver,
+                         temperatures)
             r = pool.apply_async(process_neutron, func_args)
             results.append(r)
 
@@ -228,7 +229,6 @@ if 'neutron' in args.particles:
             func_args = (path_neutron, path_thermal,
                          args.destination / particle, args.libver)
             r = pool.apply_async(process_thermal, func_args)
-
             results.append(r)
 
         for r in results:
