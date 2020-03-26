@@ -3,7 +3,6 @@
 import argparse
 from pathlib import Path
 import shutil
-import sys
 
 import numpy as np
 import openmc.data
