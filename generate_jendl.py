@@ -120,7 +120,6 @@ library = openmc.data.DataLibrary()
 with Pool() as pool:
     results = []
     for filename in sorted(neutron_files):
-
         func_args = (filename, args.destination, args.libver)
         r = pool.apply_async(process_neutron, func_args)
         results.append(r)
