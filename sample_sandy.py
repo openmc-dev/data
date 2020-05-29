@@ -10,7 +10,7 @@ import re
 import shutil
 #import subprocess
 
-from libraryUQ import *
+#from libraryUQ import *
 
 import openmc.data
 
@@ -165,6 +165,7 @@ with Pool() as pool:
         r.wait()
 
 
+'''
 # ==============================================================================
 # Create xml library
 
@@ -189,3 +190,4 @@ else:
     lib.export_to_xml(post)
 
 os.remove(pre)
+'''
