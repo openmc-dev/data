@@ -7,7 +7,7 @@ import sys
 import tarfile
 
 from multiprocessing import Pool
-from libraryUQ import *
+#from libraryUQ import *
 
 import openmc.data
 from utils import download
@@ -335,6 +335,8 @@ with Pool() as pool:
 # ==============================================================================
 # Create xml library
 
+
+'''
 lib = DataLibraryUQ()
 lib = lib.from_xml(os.getenv('OPENMC_CROSS_SECTIONS'))        #Gets current
 
@@ -357,3 +359,4 @@ else:
     lib.export_to_xml(post)
 
 os.remove(pre)
+'''
