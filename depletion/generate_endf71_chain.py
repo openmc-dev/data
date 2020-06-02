@@ -4,8 +4,9 @@ import os
 from pathlib import Path
 from zipfile import ZipFile
 
-from openmc._utils import download
 import openmc.deplete
+
+from utils import download
 
 
 URLS = [
