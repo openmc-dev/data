@@ -7,7 +7,6 @@ import sys
 import tarfile
 
 from multiprocessing import Pool
-#from libraryUQ import *
 
 import openmc.data
 from utils import download
@@ -32,7 +31,7 @@ parser = argparse.ArgumentParser(
     formatter_class=CustomFormatter
 )
 parser.add_argument('-n', '--nuclides', choices=n_choices, nargs='+',
-                    default='all', help="The nuclides to be downloaded. Available are: "
+                    default='Fe56', help="The nuclides to be downloaded. Available are: "
                     "'O16','Si28', 'Si29','Si30', 'Fe54', 'Fe56', 'Fe57', 'Fe58'. Use 'all' for all availiable")
 
 parser.add_argument('-d', '--destination', default=None,
@@ -336,8 +335,8 @@ with Pool() as pool:
 # Create xml library
 
 
-'''
-lib = DataLibraryUQ()
+
+lib = openmc.data.DataLibrary()
 lib = lib.from_xml(os.getenv('OPENMC_CROSS_SECTIONS'))        #Gets current
 
 for nuc in list_:
@@ -353,10 +352,9 @@ post = outputDir + '/cross_sections_Tendl.xml'
 
 lib.export_to_xml(pre)
 if os.path.exists(post):
-    command = "{}/combine_librariesUQ.py -l {} {} -o {}".format(scriptDir,pre, post, post)       # Error could not find ccombine_libs.py
+    command = "combine_libraries.py -l {} {} -o {}".format(pre, post, post)       # Error could not find ccombine_libs.py
     os.system(command)
 else:
     lib.export_to_xml(post)
 
 os.remove(pre)
-'''

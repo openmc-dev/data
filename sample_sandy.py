@@ -8,9 +8,6 @@ import tarfile
 from multiprocessing import Pool
 import re
 import shutil
-#import subprocess
-
-#from libraryUQ import *
 
 import openmc.data
 
@@ -165,11 +162,11 @@ with Pool() as pool:
         r.wait()
 
 
-'''
+
 # ==============================================================================
 # Create xml library
 
-lib = DataLibraryUQ()
+lib = openmc.data.DataLibrary()
 lib = lib.from_xml(os.getenv('OPENMC_CROSS_SECTIONS'))        #Gets current
 
 for nuc in nucs:
@@ -184,10 +181,9 @@ post = outdir + '/cross_sections_Sandy.xml'
 
 lib.export_to_xml(pre)
 if os.path.exists(post):
-    command = "python combine_librariesUQ.py -l {} {} -o {}".format(pre, post, post)
+    command = "python combine_libraries.py -l {} {} -o {}".format(pre, post, post)
     os.system(command)
 else:
     lib.export_to_xml(post)
 
 os.remove(pre)
-'''
