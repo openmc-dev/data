@@ -164,7 +164,7 @@ def main():
                 if parent in fpy_data:
                     q_value = reactions[parent][18]
                     nuclide.reactions.append(
-                        ReactionTuple('fission', 0, q_value, 1.0))
+                        ReactionTuple('fission', None, q_value, 1.0))
 
                     if 'fission' not in chain.reactions:
                         chain.reactions.append('fission')
