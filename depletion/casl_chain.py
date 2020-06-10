@@ -136,6 +136,7 @@ CASL_CHAIN = {
     'Y89': (True, 3, 1, None),
     'Y90': (False, 3, 1, None),
     'Y91': (False, 3, 2, None),
+    'Zr90': (True, 3, 1, None),
     'Zr91': (True, 3, 1, None),
     'Zr92': (True, 3, 2, None),
     'Zr93': (False, 3, 2, None),
