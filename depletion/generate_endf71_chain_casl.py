@@ -30,6 +30,33 @@ URLS = [
     'https://www.nndc.bnl.gov/endf/b7.1/zips/ENDF-B-VII.1-nfy.zip'
 ]
 
+
+def replace_missing(product, decay_data, all_decay_data):
+    # Determine atomic number, mass number, and metastable state
+    Z, A, state = openmc.data.zam(product)
+    symbol = openmc.data.ATOMIC_SYMBOL[Z]
+
+    # Iterate until we find an existing nuclide
+    while product not in decay_data:
+        # Missing products
+        if product not in all_decay_data:
+            product = None
+            break
+
+        decay_obj = all_decay_data[product]
+        if decay_obj.nuclide['stable'] or decay_obj.half_life.n > 24*60*60:
+            product = None
+            break
+
+        dominant_mode = max(decay_obj.modes, key=lambda x: x.branching_ratio)
+        if len(decay_obj.modes) > 1:
+            print(product, decay_obj.modes)
+
+        product = dominant_mode.daughter
+
+    return product
+
+
 def main():
     if os.path.isdir('./decay') and os.path.isdir('./nfy') and os.path.isdir('./neutrons'):
         endf_dir = '.'
@@ -71,9 +98,11 @@ def main():
     # Determine what decay and FPY nuclides are available
     print('Processing decay sub-library files...')
     decay_data = {}
+    all_decay_data = {}
     for f in decay_files:
         decay_obj = openmc.data.Decay(f)
         nuc_name = decay_obj.nuclide['name']
+        all_decay_data[nuc_name] = decay_obj
         if nuc_name in CASL_CHAIN:
             decay_data[nuc_name] = decay_obj
 
@@ -144,20 +173,9 @@ def main():
                         chain.reactions.append(name)
 
                     if daughter not in decay_data:
-                        # Most (n,p) results in daughter that undergoes beta-
-                        if name == '(n,p)':
-                            if parent in ('Ag110_m1', 'I130', 'Fy176'):
-                                missing_rx_product.append((parent, name, daughter))
-                                daughter = 'Nothing'
-                            elif parent == 'Er162':
-                                daughter = 'Dy162'  # beta+
-                            elif parent == 'Er164':
-                                daughter = 'Dy164'  # beta+
-                            else:
-                                daughter = parent  # beta-
-                        else:
+                        daughter = replace_missing(daughter, decay_data, all_decay_data)
+                        if daughter is None:
                             missing_rx_product.append((parent, name, daughter))
-                            daughter = 'Nothing'
 
                     # Store Q value -- use sorted order so we get summation
                     # reactions (e.g., MT=103) first
