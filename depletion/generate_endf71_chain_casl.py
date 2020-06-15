@@ -144,8 +144,20 @@ def main():
                         chain.reactions.append(name)
 
                     if daughter not in decay_data:
-                        missing_rx_product.append((parent, name, daughter))
-                        daughter = 'Nothing'
+                        # Most (n,p) results in daughter that undergoes beta-
+                        if name == '(n,p)':
+                            if parent in ('Ag110_m1', 'I130', 'Fy176'):
+                                missing_rx_product.append((parent, name, daughter))
+                                daughter = 'Nothing'
+                            elif parent == 'Er162':
+                                daughter = 'Dy162'  # beta+
+                            elif parent == 'Er164':
+                                daughter = 'Dy164'  # beta+
+                            else:
+                                daughter = parent  # beta-
+                        else:
+                            missing_rx_product.append((parent, name, daughter))
+                            daughter = 'Nothing'
 
                     # Store Q value -- use sorted order so we get summation
                     # reactions (e.g., MT=103) first
