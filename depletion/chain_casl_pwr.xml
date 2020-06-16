@@ -1228,19 +1228,23 @@
     <reaction type="(n,gamma)" Q="6930000.0"/>
     <reaction type="(n,a)" Q="-8294000.0" target="Hf179"/>
   </nuclide>
-  <nuclide name="Th230" half_life="2378810000000.0" decay_modes="1" decay_energy="4759532.032" reactions="4">
+  <nuclide name="Th230" half_life="2378810000000.0" decay_modes="1" decay_energy="4759532.032" reactions="5">
     <decay type="sf" target="Th230" branching_ratio="1.0"/>
     <reaction type="(n,2n)" Q="-6793860.0"/>
     <reaction type="(n,3n)" Q="-12050800.0"/>
     <reaction type="(n,4n)" Q="-19156200.0"/>
     <reaction type="(n,gamma)" Q="5118020.0" target="Th231"/>
+    <reaction type="fission" Q="180397700.0"/>
+    <neutron_fission_yields parent="Pa231"/>
   </nuclide>
-  <nuclide name="Th231" half_life="91872.0" decay_modes="1" decay_energy="165303.25" reactions="4">
+  <nuclide name="Th231" half_life="91872.0" decay_modes="1" decay_energy="165303.25" reactions="5">
     <decay type="beta-" target="Pa231" branching_ratio="1.0"/>
     <reaction type="(n,2n)" Q="-5118020.0" target="Th230"/>
     <reaction type="(n,3n)" Q="-11911900.0"/>
     <reaction type="(n,4n)" Q="-17168900.0"/>
     <reaction type="(n,gamma)" Q="6440290.0" target="Th232"/>
+    <reaction type="fission" Q="178726700.0"/>
+    <neutron_fission_yields parent="U233"/>
   </nuclide>
   <nuclide name="Th232" half_life="4.43384e+17" decay_modes="1" decay_energy="4078890.002" reactions="6">
     <decay type="sf" target="Th232" branching_ratio="1.0"/>
@@ -1262,18 +1266,22 @@
       </fission_yields>
     </neutron_fission_yields>
   </nuclide>
-  <nuclide name="Th233" half_life="1338.0" decay_modes="1" decay_energy="456152.42000000004" reactions="4">
+  <nuclide name="Th233" half_life="1338.0" decay_modes="1" decay_energy="456152.42000000004" reactions="5">
     <decay type="beta-" target="Pa233" branching_ratio="1.0"/>
     <reaction type="(n,2n)" Q="-4786390.0" target="Th232"/>
     <reaction type="(n,3n)" Q="-11226700.0" target="Th231"/>
     <reaction type="(n,4n)" Q="-16344700.0" target="Th230"/>
     <reaction type="(n,gamma)" Q="6190270.0" target="Th234"/>
+    <reaction type="fission" Q="177696000.0"/>
+    <neutron_fission_yields parent="U235"/>
   </nuclide>
-  <nuclide name="Th234" half_life="2082240.0" decay_modes="0" decay_energy="66520.076" reactions="4">
+  <nuclide name="Th234" half_life="2082240.0" decay_modes="0" decay_energy="66520.076" reactions="5">
     <reaction type="(n,2n)" Q="-6190270.0" target="Th233"/>
     <reaction type="(n,3n)" Q="-10976700.0" target="Th232"/>
     <reaction type="(n,4n)" Q="-17416900.0" target="Th231"/>
     <reaction type="(n,gamma)" Q="4430250.0" target="U235"/>
+    <reaction type="fission" Q="178216900.0"/>
+    <neutron_fission_yields parent="U235"/>
   </nuclide>
   <nuclide name="Pa231" half_life="1033830000000.0" decay_modes="1" decay_energy="5080032.91" reactions="5">
     <decay type="sf" target="Pa231" branching_ratio="1.0"/>
@@ -1290,20 +1298,24 @@
       </fission_yields>
     </neutron_fission_yields>
   </nuclide>
-  <nuclide name="Pa232" half_life="114048.0" decay_modes="2" decay_energy="1096934.2" reactions="4">
+  <nuclide name="Pa232" half_life="114048.0" decay_modes="2" decay_energy="1096934.2" reactions="5">
     <decay type="beta-" target="U232" branching_ratio="0.997"/>
     <decay type="ec/beta+" target="Th232" branching_ratio="0.003"/>
     <reaction type="(n,2n)" Q="-5549200.0" target="Pa231"/>
     <reaction type="(n,3n)" Q="-12369300.0"/>
     <reaction type="(n,4n)" Q="-18164100.0"/>
     <reaction type="(n,gamma)" Q="6529060.0" target="Pa233"/>
+    <reaction type="fission" Q="185167700.0"/>
+    <neutron_fission_yields parent="U233"/>
   </nuclide>
-  <nuclide name="Pa233" half_life="2330640.0" decay_modes="1" decay_energy="414556.5" reactions="4">
+  <nuclide name="Pa233" half_life="2330640.0" decay_modes="1" decay_energy="414556.5" reactions="5">
     <decay type="beta-" target="U233" branching_ratio="1.0"/>
     <reaction type="(n,2n)" Q="-6526000.0" target="Pa232"/>
     <reaction type="(n,3n)" Q="-12079000.0" target="Pa231"/>
     <reaction type="(n,gamma)" Q="5219000.0" target="Pa234"/>
     <reaction type="(n,p)" Q="-463000.0" target="Th233"/>
+    <reaction type="fission" Q="185653600.0"/>
+    <neutron_fission_yields parent="U234"/>
   </nuclide>
   <nuclide name="Pa234" half_life="24120.0" decay_modes="1" decay_energy="1909471.4" reactions="0">
     <decay type="beta-" target="U234" branching_ratio="1.0"/>
@@ -1443,14 +1455,16 @@
       </fission_yields>
     </neutron_fission_yields>
   </nuclide>
-  <nuclide name="U239" half_life="1407.0" decay_modes="1" decay_energy="460302.72" reactions="4">
+  <nuclide name="U239" half_life="1407.0" decay_modes="1" decay_energy="460302.72" reactions="5">
     <decay type="beta-" target="Np239" branching_ratio="1.0"/>
     <reaction type="(n,2n)" Q="-4806300.0" target="U238"/>
     <reaction type="(n,3n)" Q="-10959000.0" target="U237"/>
     <reaction type="(n,4n)" Q="-16085000.0" target="U236"/>
     <reaction type="(n,gamma)" Q="5930800.0" target="Np240_m1"/>
+    <reaction type="fission" Q="187584900.0"/>
+    <neutron_fission_yields parent="Pu241"/>
   </nuclide>
-  <nuclide name="Np236" half_life="4828310000000.0" decay_modes="3" decay_energy="392043.78" reactions="4">
+  <nuclide name="Np236" half_life="4828310000000.0" decay_modes="3" decay_energy="392043.78" reactions="5">
     <decay type="alpha" target="Pa232" branching_ratio="0.002"/>
     <decay type="ec/beta+" target="U236" branching_ratio="0.863"/>
     <decay type="beta-" target="Pu236" branching_ratio="0.135"/>
@@ -1458,6 +1472,8 @@
     <reaction type="(n,3n)" Q="-12719800.0"/>
     <reaction type="(n,4n)" Q="-18784200.0" target="U233"/>
     <reaction type="(n,gamma)" Q="6577350.0" target="Np237"/>
+    <reaction type="fission" Q="190233500.0"/>
+    <neutron_fission_yields parent="U235"/>
   </nuclide>
   <nuclide name="Np237" half_life="67659500000000.0" decay_modes="1" decay_energy="4944460.81" reactions="5">
     <decay type="alpha" target="Pa233" branching_ratio="1.0"/>
@@ -1497,13 +1513,15 @@
       </fission_yields>
     </neutron_fission_yields>
   </nuclide>
-  <nuclide name="Np239" half_life="203558.4" decay_modes="1" decay_energy="405162.4" reactions="5">
+  <nuclide name="Np239" half_life="203558.4" decay_modes="1" decay_energy="405162.4" reactions="6">
     <decay type="beta-" target="Pu239" branching_ratio="1.0"/>
     <reaction type="(n,2n)" Q="-6215200.0" target="Np238"/>
     <reaction type="(n,3n)" Q="-11703500.0" target="Np237"/>
     <reaction type="(n,4n)" Q="-18280900.0" target="Np236"/>
+    <reaction type="fission" Q="189819200.0"/>
     <reaction type="(n,gamma)" Q="5068970.0" target="Np240" branching_ratio="0.3573"/>
     <reaction type="(n,gamma)" Q="5068970.0" target="Np240_m1" branching_ratio="0.6427"/>
+    <neutron_fission_yields parent="Pu240"/>
   </nuclide>
   <nuclide name="Np240" half_life="3714.0" decay_modes="1" decay_energy="1650394.3" reactions="0">
     <decay type="beta-" target="Pu240" branching_ratio="1.0"/>
@@ -1512,19 +1530,23 @@
     <decay type="beta-" target="Pu240" branching_ratio="0.9988"/>
     <decay type="IT" target="Np240" branching_ratio="0.0012"/>
   </nuclide>
-  <nuclide name="Pu236" half_life="90191620.0" decay_modes="2" decay_energy="5871632.916" reactions="3">
+  <nuclide name="Pu236" half_life="90191620.0" decay_modes="2" decay_energy="5871632.916" reactions="4">
     <decay type="sf" target="Pu236" branching_ratio="8.2e-10"/>
     <decay type="alpha" target="U232" branching_ratio="0.99999999918"/>
     <reaction type="(n,2n)" Q="-7352280.0"/>
     <reaction type="(n,3n)" Q="-13589500.0"/>
     <reaction type="(n,gamma)" Q="5880730.0" target="Pu237"/>
+    <reaction type="fission" Q="199533600.0"/>
+    <neutron_fission_yields parent="U235"/>
   </nuclide>
-  <nuclide name="Pu237" half_life="3943296.0" decay_modes="2" decay_energy="67917.54699999999" reactions="3">
+  <nuclide name="Pu237" half_life="3943296.0" decay_modes="2" decay_energy="67917.54699999999" reactions="4">
     <decay type="alpha" target="U233" branching_ratio="4.2e-05"/>
     <decay type="ec/beta+" target="Np237" branching_ratio="0.999958"/>
     <reaction type="(n,2n)" Q="-5880730.0" target="Pu236"/>
     <reaction type="(n,3n)" Q="-13233000.0"/>
     <reaction type="(n,gamma)" Q="6999880.0" target="Pu238"/>
+    <reaction type="fission" Q="201363900.0"/>
+    <neutron_fission_yields parent="U235"/>
   </nuclide>
   <nuclide name="Pu238" half_life="2767602000.0" decay_modes="2" decay_energy="5589887.238" reactions="5">
     <decay type="sf" target="Pu238" branching_ratio="1.86e-09"/>
@@ -1637,12 +1659,14 @@
       </fission_yields>
     </neutron_fission_yields>
   </nuclide>
-  <nuclide name="Pu243" half_life="17841.6" decay_modes="1" decay_energy="192329.44" reactions="4">
+  <nuclide name="Pu243" half_life="17841.6" decay_modes="1" decay_energy="192329.44" reactions="5">
     <decay type="beta-" target="Am243" branching_ratio="1.0"/>
     <reaction type="(n,2n)" Q="-5039200.0" target="Pu242"/>
     <reaction type="(n,3n)" Q="-11333000.0" target="Pu241"/>
     <reaction type="(n,4n)" Q="-16581000.0" target="Pu240"/>
     <reaction type="(n,gamma)" Q="6020000.0"/>
+    <reaction type="fission" Q="198405600.0"/>
+    <neutron_fission_yields parent="Cm245"/>
   </nuclide>
   <nuclide name="Am241" half_life="13651800000.0" decay_modes="2" decay_energy="5627985.35" reactions="6">
     <decay type="sf" target="Am241" branching_ratio="4.3e-12"/>
@@ -1669,12 +1693,14 @@
       </fission_yields>
     </neutron_fission_yields>
   </nuclide>
-  <nuclide name="Am242" half_life="57672.0" decay_modes="2" decay_energy="196222.82" reactions="3">
+  <nuclide name="Am242" half_life="57672.0" decay_modes="2" decay_energy="196222.82" reactions="4">
     <decay type="ec/beta+" target="Pu242" branching_ratio="0.173"/>
     <decay type="beta-" target="Cm242" branching_ratio="0.827"/>
     <reaction type="(n,2n)" Q="-5537600.0" target="Am241"/>
     <reaction type="(n,3n)" Q="-12179000.0"/>
     <reaction type="(n,gamma)" Q="6367100.0" target="Am243"/>
+    <reaction type="fission" Q="205717800.0"/>
+    <neutron_fission_yields parent="Am242_m1"/>
   </nuclide>
   <nuclide name="Am242_m1" half_life="4449622000.0" decay_modes="3" decay_energy="69866.954" reactions="4">
     <decay type="alpha" target="Np238" branching_ratio="0.00459"/>
@@ -1709,19 +1735,23 @@
       </fission_yields>
     </neutron_fission_yields>
   </nuclide>
-  <nuclide name="Am244" half_life="36360.0" decay_modes="1" decay_energy="1124075.4" reactions="4">
+  <nuclide name="Am244" half_life="36360.0" decay_modes="1" decay_energy="1124075.4" reactions="5">
     <decay type="beta-" target="Cm244" branching_ratio="1.0"/>
     <reaction type="(n,2n)" Q="-5363190.0" target="Am243"/>
     <reaction type="(n,3n)" Q="-11727500.0" target="Am242"/>
     <reaction type="(n,4n)" Q="-17268700.0" target="Am241"/>
     <reaction type="(n,gamma)" Q="6052990.0" target="Cm245"/>
+    <reaction type="fission" Q="204520700.0"/>
+    <neutron_fission_yields parent="Cm245"/>
   </nuclide>
-  <nuclide name="Am244_m1" half_life="1560.0" decay_modes="1" decay_energy="532762.96" reactions="4">
+  <nuclide name="Am244_m1" half_life="1560.0" decay_modes="1" decay_energy="532762.96" reactions="5">
     <decay type="beta-" target="Cm244" branching_ratio="0.999639"/>
     <reaction type="(n,2n)" Q="-5363190.0" target="Am243"/>
     <reaction type="(n,3n)" Q="-11727500.0" target="Am242"/>
     <reaction type="(n,4n)" Q="-17268700.0" target="Am241"/>
     <reaction type="(n,gamma)" Q="6140990.0" target="Cm245"/>
+    <reaction type="fission" Q="204520700.0"/>
+    <neutron_fission_yields parent="Cm245"/>
   </nuclide>
   <nuclide name="Cm242" half_life="14078020.0" decay_modes="2" decay_energy="6215340.3" reactions="4">
     <decay type="sf" target="Cm242" branching_ratio="6.1e-08"/>
