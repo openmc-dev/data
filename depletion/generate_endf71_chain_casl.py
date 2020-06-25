@@ -17,7 +17,7 @@ except ImportError:
 import openmc.data
 import openmc.deplete
 from openmc._xml import clean_indentation
-from openmc.deplete.chain import _REACTIONS
+from openmc.deplete.chain import _REACTIONS, replace_missing_fpy
 from openmc.deplete.nuclide import Nuclide, DecayTuple, ReactionTuple, \
     FissionYieldDistribution
 
@@ -29,6 +29,34 @@ URLS = [
     'https://www.nndc.bnl.gov/endf/b7.1/zips/ENDF-B-VII.1-decay.zip',
     'https://www.nndc.bnl.gov/endf/b7.1/zips/ENDF-B-VII.1-nfy.zip'
 ]
+
+
+def replace_missing_decay_product(product, decay_data, all_decay_data):
+    # Determine atomic number, mass number, and metastable state
+    Z, A, state = openmc.data.zam(product)
+    symbol = openmc.data.ATOMIC_SYMBOL[Z]
+
+    # Iterate until we find an existing nuclide in the chain
+    while product not in decay_data:
+        # If product has no decay data in the library, nothing further can be done
+        if product not in all_decay_data:
+            product = None
+            break
+
+        # If the current product is not in the chain but is stable, there's
+        # nothing further we can do. Also, we only want to continue down the
+        # decay chain if the half-life is short, so we also make a cutoff here
+        # to terminate if the half-life is more than 1 day.
+        decay_obj = all_decay_data[product]
+        if decay_obj.nuclide['stable'] or decay_obj.half_life.n > 24*60*60:
+            product = None
+            break
+
+        dominant_mode = max(decay_obj.modes, key=lambda x: x.branching_ratio)
+        product = dominant_mode.daughter
+
+    return product
+
 
 def main():
     if os.path.isdir('./decay') and os.path.isdir('./nfy') and os.path.isdir('./neutrons'):
@@ -71,9 +99,11 @@ def main():
     # Determine what decay and FPY nuclides are available
     print('Processing decay sub-library files...')
     decay_data = {}
+    all_decay_data = {}
     for f in decay_files:
         decay_obj = openmc.data.Decay(f)
         nuc_name = decay_obj.nuclide['name']
+        all_decay_data[nuc_name] = decay_obj
         if nuc_name in CASL_CHAIN:
             decay_data[nuc_name] = decay_obj
 
@@ -131,6 +161,7 @@ def main():
 
         # If nuclide has incident neutron data, we need to list what
         # transmutation reactions are possible
+        fissionable = False
         if parent in reactions:
             reactions_available = reactions[parent].keys()
             for name, mts, changes in _REACTIONS:
@@ -144,8 +175,10 @@ def main():
                         chain.reactions.append(name)
 
                     if daughter not in decay_data:
-                        missing_rx_product.append((parent, name, daughter))
-                        daughter = 'Nothing'
+                        daughter = replace_missing_decay_product(
+                            daughter, decay_data, all_decay_data)
+                        if daughter is None:
+                            missing_rx_product.append((parent, name, daughter))
 
                     # Store Q value -- use sorted order so we get summation
                     # reactions (e.g., MT=103) first
@@ -161,18 +194,21 @@ def main():
 
             # Check for fission reactions
             if any(mt in reactions_available for mt in [18, 19, 20, 21, 38]):
-                if parent in fpy_data:
-                    q_value = reactions[parent][18]
-                    nuclide.reactions.append(
-                        ReactionTuple('fission', 0, q_value, 1.0))
+                q_value = reactions[parent][18]
+                nuclide.reactions.append(
+                    ReactionTuple('fission', None, q_value, 1.0))
+                fissionable = True
 
-                    if 'fission' not in chain.reactions:
-                        chain.reactions.append('fission')
-                else:
-                    missing_fpy.append(parent)
+                if 'fission' not in chain.reactions:
+                    chain.reactions.append('fission')
 
-        if parent in fpy_data:
-            fpy = fpy_data[parent]
+        if fissionable:
+            if parent in fpy_data:
+                fpy = fpy_data[parent]
+            else:
+                nuclide._fpy = replace_missing_fpy(parent, fpy_data, decay_data)
+                missing_fpy.append((parent, nuclide._fpy))
+                continue
 
             if fpy.energies is not None:
                 yield_energies = fpy.energies
@@ -213,6 +249,11 @@ def main():
 
             nuclide.yield_data = FissionYieldDistribution(yield_data)
 
+    # Replace missing FPY data
+    for nuclide in chain.nuclides:
+        if hasattr(nuclide, '_fpy'):
+            nuclide.yield_data = chain[nuclide._fpy].yield_data
+
     # Display warnings
     if missing_daughter:
         print('The following decay modes have daughters with no decay data:')
@@ -228,8 +269,8 @@ def main():
 
     if missing_fpy:
         print('The following fissionable nuclides have no fission product yields:')
-        for parent in missing_fpy:
-            print('  ' + parent)
+        for parent, replacement in missing_fpy:
+            print('  {}, replaced with {}'.format(parent, replacement))
         print('')
 
     chain.export_to_xml('chain_casl.xml')
