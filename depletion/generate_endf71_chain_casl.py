@@ -31,7 +31,7 @@ URLS = [
 ]
 
 
-def replace_missing(product, decay_data, all_decay_data):
+def replace_missing_decay_product(product, decay_data, all_decay_data):
     # Determine atomic number, mass number, and metastable state
     Z, A, state = openmc.data.zam(product)
     symbol = openmc.data.ATOMIC_SYMBOL[Z]
@@ -174,7 +174,8 @@ def main():
                         chain.reactions.append(name)
 
                     if daughter not in decay_data:
-                        daughter = replace_missing(daughter, decay_data, all_decay_data)
+                        daughter = replace_missing_decay_product(
+                            daughter, decay_data, all_decay_data)
                         if daughter is None:
                             missing_rx_product.append((parent, name, daughter))
 
