@@ -36,22 +36,23 @@ def replace_missing_decay_product(product, decay_data, all_decay_data):
     Z, A, state = openmc.data.zam(product)
     symbol = openmc.data.ATOMIC_SYMBOL[Z]
 
-    # Iterate until we find an existing nuclide
+    # Iterate until we find an existing nuclide in the chain
     while product not in decay_data:
-        # Missing products
+        # If product has no decay data in the library, nothing further can be done
         if product not in all_decay_data:
             product = None
             break
 
+        # If the current product is not in the chain but is stable, there's
+        # nothing further we can do. Also, we only want to continue down the
+        # decay chain if the half-life is short, so we also make a cutoff here
+        # to terminate if the half-life is more than 1 day.
         decay_obj = all_decay_data[product]
         if decay_obj.nuclide['stable'] or decay_obj.half_life.n > 24*60*60:
             product = None
             break
 
         dominant_mode = max(decay_obj.modes, key=lambda x: x.branching_ratio)
-        if len(decay_obj.modes) > 1:
-            print(product, decay_obj.modes)
-
         product = dominant_mode.daughter
 
     return product
