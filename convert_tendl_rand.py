@@ -23,8 +23,7 @@ class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
     pass
 
 
-#n_choices=['all', 'O16', 'Na23', 'Si28', 'Si29','Si30', 'Fe054', 'Fe056', 'Fe057', 'Fe058', 'Ge','Pu240',]
-n_choices=['all', 'O16','Si28', 'Si29','Si30', 'Fe54', 'Fe56', 'Fe57', 'Fe58']
+n_choices=['all', 'O16','Si28', 'Si29','Si30', 'Fe54', 'Fe56', 'Fe57', 'Fe58', 'Na23', 'Pu240']
 
 parser = argparse.ArgumentParser(
     description=description,
@@ -32,7 +31,7 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument('-n', '--nuclides', choices=n_choices, nargs='+',
                     default='Fe56', help="The nuclides to be downloaded. Available are: "
-                    "'O16','Si28', 'Si29','Si30', 'Fe54', 'Fe56', 'Fe57', 'Fe58'. Use 'all' for all availiable")
+                    "'O16','Si28', 'Si29','Si30', 'Fe54', 'Fe56', 'Fe57', 'Fe58', 'Na23', 'Pu240'. Use 'all' for all availiable")
 
 parser.add_argument('-d', '--destination', default=None,
                     help='Directory to create new library in')
@@ -46,45 +45,8 @@ parser.add_argument('-p', '--par',  default=1,
 
 args = parser.parse_args()
 
-# All availible online files from psi
-    # Name                                                      Size    Num
-#https://tendl.web.psi.ch/tendl_2017/tar_files/O016.random.tgz  60MB    641     x
-#https://tendl.web.psi.ch/tendl_2017/tar_files/Na23.random.tgz  130MB   831     
-#https://tendl.web.psi.ch/tendl_2017/tar_files/Si28.random.tgz  110MB   500     x
-#https://tendl.web.psi.ch/tendl_2017/tar_files/Si29.random.tgz  100MB   500     x
-#https://tendl.web.psi.ch/tendl_2017/tar_files/Si30.random.tgz  80MB    500     x
-#https://tendl.web.psi.ch/tendl_2017/tar_files/Fe054.random.tgz 320MB   500     x
-#https://tendl.web.psi.ch/tendl_2017/tar_files/Fe056.random.tgz 410MB   613     x
-#https://tendl.web.psi.ch/tendl_2017/tar_files/Fe057.random.tgz 525MB   732     x
-#https://tendl.web.psi.ch/tendl_2017/tar_files/Fe058.random.tgz 280MB   500     x
-#https://tendl.web.psi.ch/tendl_2017/tar_files/Ge.random.tgz    1.3GB   ?   
-#https://tendl.web.psi.ch/tendl_2017/tar_files/Pu240.random.tgz 200MB   624 
-#https://tendl.web.psi.ch/tendl_2015/tar_files/Al27.random.tgz  150MB   300     
-#https://tendl.web.psi.ch/tendl_2015/tar_files/Si28.random.tgz  125MB   ...     x
-#https://tendl.web.psi.ch/tendl_2015/tar_files/Ti48.random.tgz  140MB    ↓
-#https://tendl.web.psi.ch/tendl_2015/tar_files/Ni58.random.tgz  210MB           x
-#https://tendl.web.psi.ch/tendl_2015/tar_files/Cu63.random.tgz  205MB           
-#https://tendl.web.psi.ch/tendl_2015/tar_files/Cu65.random.tgz  180MB
-#https://tendl.web.psi.ch/tendl_2015/tar_files/Zr90.random.tgz  150MB
-#https://tendl.web.psi.ch/tendl_2015/tar_files/Zr91.random.tgz  175MB
-#https://tendl.web.psi.ch/tendl_2015/tar_files/Zr92.random.tgz  170MB
-#https://tendl.web.psi.ch/tendl_2015/tar_files/W180.random.tgz  210MB
-#https://tendl.web.psi.ch/tendl_2015/tar_files/W182.random.tgz  215MB
-#https://tendl.web.psi.ch/tendl_2015/tar_files/W183.random.tgz  215MB
-#https://tendl.web.psi.ch/tendl_2015/tar_files/W184.random.tgz  250MB   ...
-#https://tendl.web.psi.ch/tendl_2015/tar_files/W186.random.tgz  180MB   300
-
-#RandomAce
-
-#https://tendl.web.psi.ch/tendl_2015/tar_files/H1.nuss.05.10.2016.tgz   11MB    340
-#https://tendl.web.psi.ch/tendl_2015/tar_files/O16.nuss.05.10.2016.tgz  570MB   340
-#https://tendl.web.psi.ch/tendl_2015/tar_files/U235.nuss.10.10.2016.tgz 430MB   100
-#https://tendl.web.psi.ch/tendl_2015/tar_files/U238.nuss.10.10.2016.tgz 1.5GB   100
-
-#ParsedNuclides._get_args('nuclides')
-
 if( 'all' in args.nuclides):
-    list_= ['O16','Si28', 'Si29','Si30', 'Fe54', 'Fe56', 'Fe57', 'Fe58']
+    list_= ['O16','Si28', 'Si29','Si30', 'Fe54', 'Fe56', 'Fe57', 'Fe58', 'Na23', 'Pu240']
 else:
     list_ = args.nuclides
 scriptDir = os.getcwd()
@@ -199,7 +161,28 @@ nuclide_details = {
         'fileSize' : 1100,
         'isItENDF' : True,
         'gunzip'   : False
+    },
+    'Na23' : {
+        'release'  : 'ENDF2017',
+        'filename' : 'Na023',
+        'webname'  : 'Na23',
+        'fileNum'  : 832,
+        'downSize' : 130,
+        'fileSize' : 544,
+        'isItENDF' : True,
+        'gunzip'   : False
+    },
+    'Pu240' : {
+        'release'  : 'ENDF2017',
+        'filename' : 'Pu240',
+        'webname'  : 'Pu240',
+        'fileNum'  : 630,
+        'downSize' : 200,
+        'fileSize' : 900,
+        'isItENDF' : True,
+        'gunzip'   : False
     }
+
 }
 
 downloadFileSize = 0
@@ -244,8 +227,6 @@ for nucs in list_:
     url = release_details[nuclide_details[nucs]['release']]['base_url'] + nuclide_details[nucs]['webname'] + release_details[nuclide_details[nucs]['release']]['ending']
     print("Downloading {}...".format(nucs))
     downloaded_file = download(url)
-    #print(url)
-    #files_complete.append(downloaded_file)
 
 # ==============================================================================
 # EXTRACT FILES FROM TGZ
