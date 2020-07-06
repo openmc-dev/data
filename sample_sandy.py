@@ -83,15 +83,8 @@ for nuc in nucs:
         sys.exit()
     atomicNum = atomicDict[atomicSym]
 
-    if massNum < 10:
-        fileMass = '00' + str(massNum)
-    elif massNum < 100:
-        fileMass = '0' + str(massNum)
-
-    if atomicNum < 10:
-        fileAtomic = '00' + str(atomicNum)
-    elif atomicNum < 100:
-        fileAtomic = '0' + str(atomicNum)
+    fileMass   = f'{massNum:03}'
+    fileAtomic = f'{atomicNum:03}'
 
     fileName = prefix + fileAtomic + '_' + atomicSym + '_' + fileMass + suffix
 
@@ -111,14 +104,13 @@ if not os.path.exists(outdirEndf):
 
 for nuc in nucs:
     nucDirEndf = outdirEndf + '/' + nuc
+    
     if not os.path.exists(nucDirEndf):
         os.mkdir(nucDirEndf)
+
     shutil.copyfile(libdir+'/'+'neutron'+'/'+nucDict[nuc]['fileName'], nucDirEndf  + '/'+nucDict[nuc]['fileName'])
-    #os.chdir(nucDirEndf)
-    #subprocess.call("cp {} .".format(libdir+'/'+nucDict[nuc]['fileName']))
     os.chdir(nucDirEndf+'/')
     sandyCommand = 'sandy {} --samples {} --outname {} --processes {}'.format(nucDict[nuc]['fileName'], args.samples, nuc, args.processes)
-    #print(sandyCommand)
     os.system(sandyCommand)
 
 

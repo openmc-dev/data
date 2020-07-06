@@ -256,13 +256,7 @@ for nucs in list_:
         prefix = 'n-'
         suffix = '-rand-'
         for i in range(0,numFiles):
-            if i < 10:
-                OldNumber = '000' + str(i)
-            elif i < 100:
-                OldNumber = '00' + str(i)
-            elif i < 1000:
-                OldNumber = '0' + str(i)
-
+            OldNumber = f'{i:04}'
             OldFile = prefix + nuclide_details[nucs]['filename']+suffix+OldNumber
             newFile = nucs + '-' + str(i+1)
             if nuclide_details[nucs]['gunzip']:
