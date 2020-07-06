@@ -39,9 +39,6 @@ parser.add_argument('-d', '--destination', default=None,
 parser.add_argument('-b', '--batch', action='store_true',		
                      help='supresses standard in')
 
-parser.add_argument('-p', '--par',  default=1,		
-                     help='supresses standard in')
-
 
 args = parser.parse_args()
 
