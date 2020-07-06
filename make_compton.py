@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os
+from pathlib import Path
 import tarfile
 
 import numpy as np
@@ -10,7 +10,8 @@ from utils import download
 
 
 base_url = 'http://geant4.cern.ch/support/source/'
-filename = 'G4EMLOW.6.48.tar.gz'
+version = '6.48'
+filename = f'G4EMLOW.{version}.tar.gz'
 
 # ==============================================================================
 # DOWNLOAD FILES FROM GEANT4 SITE
@@ -20,9 +21,10 @@ download(base_url + filename)
 # ==============================================================================
 # EXTRACT FILES FROM TGZ
 
-if not os.path.isdir('G4EMLOW6.48'):
+g4dir = Path(f'G4EMLOW{version}')
+if not g4dir.is_dir():
     with tarfile.open(filename, 'r') as tgz:
-        print('Extracting {}...'.format(filename))
+        print(f'Extracting {filename}...')
         tgz.extractall()
 
 # ==============================================================================
@@ -30,19 +32,19 @@ if not os.path.isdir('G4EMLOW6.48'):
 
 print('Generating compton_profiles.h5...')
 
-shell_file = os.path.join('G4EMLOW6.48', 'doppler', 'shell-doppler.dat')
+shell_file = g4dir / 'doppler' / 'shell-doppler.dat'
 
 with open(shell_file, 'r') as shell, h5py.File('compton_profiles.h5', 'w') as f:
     # Read/write electron momentum values
-    pz = np.loadtxt(os.path.join('G4EMLOW6.48', 'doppler', 'p-biggs.dat'))
+    pz = np.loadtxt(g4dir / 'doppler' / 'p-biggs.dat')
     f.create_dataset('pz', data=pz)
 
     for z in range(1, 101):
         # Create group for this element
-        group = f.create_group('{:03}'.format(z))
+        group = f.create_group(f'{z:03}')
 
         # Read data into one long array
-        path = os.path.join('G4EMLOW6.48', 'doppler', 'profile-{}.dat'.format(z))
+        path = g4dir / 'doppler' / f'profile-{z}.dat'
         with open(path, 'r') as profile:
             j = np.fromstring(profile.read(), sep=' ')
 

@@ -29,7 +29,7 @@ with h5py.File('stopping_powers.h5', 'w') as f:
         print('Processing {} data...'.format(ATOMIC_SYMBOL[Z]))
 
         # Update form-encoded data to send in POST request for this element
-        data['matno'] = '{:03}'.format(Z)
+        data['matno'] = f'{Z:03}'
         payload = urlencode(data).encode("utf-8")
 
         # Retrieve data from ESTAR site
@@ -42,7 +42,7 @@ with h5py.File('stopping_powers.h5', 'w') as f:
         values = np.fromstring(' '.join(r[12:-5]), sep=' ').reshape((-1, 5)).T
 
         # Create group for this element
-        group = f.create_group('{:03}'.format(Z))
+        group = f.create_group(f'{Z:03}')
 
         # Write the mean excitation energy
         attributes = np.fromstring(r[3], sep=' ')
