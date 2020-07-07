@@ -62,6 +62,8 @@ else:
 
 nucs = args.nuclides
 
+formatOnly = args.formatOnly
+
 # ==============================================================================
 # CHECK IF REQUEST IS VALID AND IF ENDF FILES EXIST
 
@@ -97,24 +99,26 @@ for nuc in nucs:
 # ==============================================================================
 # GENERATE RANDOM EVALUATIONS OF NUCLEAR DATA USING SANDY
 
-outdir.mkdir(exist_ok=True)
-outdirEndf.mkdir(exist_ok=True)
+if not formatOnly:
+    outdir.mkdir(exist_ok=True)
+    outdirEndf.mkdir(exist_ok=True)
 
-for nuc in nucs:
+    for nuc in nucs:
 
-    nucDirEndf = outdirEndf / nuc
-    nucDirEndf.mkdir(exist_ok=True)
+        nucDirEndf = outdirEndf / nuc
+        nucDirEndf.mkdir(exist_ok=True)
 
-    shutil.copyfile(
-        libdir / "neutron" / nucDict[nuc]["fileName"],
-        nucDirEndf / nucDict[nuc]["fileName"],
-    )
-    os.chdir(nucDirEndf)
-    sandyCommand = "sandy {} --samples {} --outname {} --processes {}".format(
-        nucDict[nuc]["fileName"], args.samples, nuc, args.processes
-    )
-    os.system(sandyCommand)
+        shutil.copyfile(
+            libdir / "neutron" / nucDict[nuc]["fileName"],
+            nucDirEndf / nucDict[nuc]["fileName"],
+        )
+        os.chdir(nucDirEndf)
+        sandyCommand = "sandy {} --samples {} --outname {} --processes {}".format(
+            nucDict[nuc]["fileName"], args.samples, nuc, args.processes
+        )
+        os.system(sandyCommand)
 
+    os.chdir(scriptDir)
 
 # ==============================================================================
 # CONVERT RANDOM EVALUATIONS TO HDF5
@@ -164,10 +168,9 @@ lib = lib.from_xml(os.getenv("OPENMC_CROSS_SECTIONS"))  # Gets current
 
 for nuc in nucs:
     outDir = outdirHdf5 / nuc
-
     for i in range(1, fileNum + 1):
         fileOut = outDir / (nuc + "-" + str(i) + ".h5")
-        lib.register_file(fileOut, nuc + "-" + str(i))
+        lib.register_file(fileOut)
 
 pre = outdir / "cross_sections_Pre.xml"
 post = outdir / "cross_sections_Sandy.xml"

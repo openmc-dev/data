@@ -45,12 +45,12 @@ parser = argparse.ArgumentParser(
 parser.add_argument("-n", "--nuclides", choices=n_choices, nargs="+",
                     default="Fe56", help="The nuclides to be downloaded. Available are: "
                     "'O16','Si28', 'Si29','Si30', 'Fe54', 'Fe56', 'Fe57', 'Fe58', 'Na23', 'Pu240'. Use 'all' for all availiable")
-
 parser.add_argument( "-d", "--destination", default=None, 
                     help="Directory to create new library in")
-
 parser.add_argument("-b", "--batch", action="store_true", 
                     help="supresses standard in")
+parser.add_argument("-f", "--formatOnly", default=False,
+                    help="Only format previously sampled files to hdf5")
 
 args = parser.parse_args()
 
@@ -73,7 +73,6 @@ scriptDir = Path.cwd()
 
 library_name = "tendl_rand"  # this could be added as an argument to allow different libraries to be downloaded
 
-
 # the destination is decided after the release is know to avoid putting the release in a folder with a misleading name
 if args.destination is None:
     outputDir = scriptDir / library_name
@@ -85,6 +84,7 @@ endf_files_dir = outputDir / "endf"
 ace_files_dir = outputDir / "ace"
 hdf5_files_dir = outputDir / "hdf5"
 
+formatOnly = args.formatOnly
 
 release_details = {
     "ENDF2017": {
@@ -204,93 +204,95 @@ nuclide_details = {
     },
 }
 
-downloadFileSize = 0
-uncompressedFileSize = 0
-NumOfFiles = 0
+if not formatOnly:
 
-for i in list_:
-    downloadFileSize += nuclide_details[i]["downSize"]
-    uncompressedFileSize += nuclide_details[i]["fileSize"]
-    NumOfFiles += nuclide_details[i]["fileNum"]
+    downloadFileSize = 0
+    uncompressedFileSize = 0
+    NumOfFiles = 0
 
-downloadSize = "{} MB".format(downloadFileSize)
-uncomFileSize = "{} MB".format(uncompressedFileSize)
-if downloadFileSize > 1000:
-    downloadSize = "{} GB".format(downloadFileSize / 1000)
-if uncompressedFileSize > 1000:
-    uncomFileSize = "{} GB".format(uncompressedFileSize / 1000)
+    for i in list_:
+        downloadFileSize += nuclide_details[i]["downSize"]
+        uncompressedFileSize += nuclide_details[i]["fileSize"]
+        NumOfFiles += nuclide_details[i]["fileNum"]
 
-
-download_warning = """
-WARNING: This script will download {} of 
-data, which is {} of data when processed. 
-This corresponds to {} random crossections.
-
-The nuclides to be processed are: 
-{}
-
-Are you sure you want to continue? ([y]/n)
-""".format(
-    downloadSize, uncomFileSize, NumOfFiles, list_
-)
+    downloadSize = "{} MB".format(downloadFileSize)
+    uncomFileSize = "{} MB".format(uncompressedFileSize)
+    if downloadFileSize > 1000:
+        downloadSize = "{} GB".format(downloadFileSize / 1000)
+    if uncompressedFileSize > 1000:
+        uncomFileSize = "{} GB".format(uncompressedFileSize / 1000)
 
 
-response = input(download_warning) if not args.batch else "y"
-if response.lower().startswith("n"):
-    sys.exit()
+    download_warning = """
+    WARNING: This script will download {} of 
+    data, which is {} of data when processed. 
+    This corresponds to {} random crossections.
 
-# ==============================================================================
-# DOWNLOAD FILES FROM WEBSITE
+    The nuclides to be processed are: 
+    {}
 
-files_complete = []
-for nucs in list_:
-    # Establish connection to URL
-    url = (
-        release_details[nuclide_details[nucs]["release"]]["base_url"]
-        + nuclide_details[nucs]["webname"]
-        + release_details[nuclide_details[nucs]["release"]]["ending"]
+    Are you sure you want to continue? ([y]/n)
+    """.format(
+        downloadSize, uncomFileSize, NumOfFiles, list_
     )
-    print("Downloading {}...".format(nucs))
-    downloaded_file = download(url)
 
-# ==============================================================================
-# EXTRACT FILES FROM TGZ
 
-for nucs in list_:
-    f = nuclide_details[nucs]["webname"] + ".random.tgz"
-    suffix = nucs
-    isItENDF = nuclide_details[nucs]["isItENDF"]
-    if isItENDF:
-        outDir = endf_files_dir
-    else:
-        outDir = ace_files_dir
+    response = input(download_warning) if not args.batch else "y"
+    if response.lower().startswith("n"):
+        sys.exit()
 
-    with tarfile.open(f, "r") as tgz:
-        print("Extracting {0}...".format(f))
-        tgz.extractall(path=outDir / suffix)
+    # ==============================================================================
+    # DOWNLOAD FILES FROM WEBSITE
 
-# ==============================================================================
-# Format file names
+    files_complete = []
+    for nucs in list_:
+        # Establish connection to URL
+        url = (
+            release_details[nuclide_details[nucs]["release"]]["base_url"]
+            + nuclide_details[nucs]["webname"]
+            + release_details[nuclide_details[nucs]["release"]]["ending"]
+        )
+        print("Downloading {}...".format(nucs))
+        downloaded_file = download(url)
 
-for nucs in list_:
-    f = nuclide_details[nucs]["webname"] + ".random.tgz"
-    isItENDF = nuclide_details[nucs]["isItENDF"]
-    numFiles = nuclide_details[nucs]["fileNum"]
+    # ==============================================================================
+    # EXTRACT FILES FROM TGZ
 
-    if isItENDF:
-        outDir = endf_files_dir / nucs
-        prefix = "n-"
-        suffix = "-rand-"
+    for nucs in list_:
+        f = nuclide_details[nucs]["webname"] + ".random.tgz"
+        suffix = nucs
+        isItENDF = nuclide_details[nucs]["isItENDF"]
+        if isItENDF:
+            outDir = endf_files_dir
+        else:
+            outDir = ace_files_dir
 
-        for i in range(0, numFiles):
-            OldNumber = f"{i:04}"
-            OldFile = prefix + nuclide_details[nucs]["filename"] + suffix + OldNumber
-            newFile = nucs + "-" + str(i + 1)
-            
-            if nuclide_details[nucs]["gunzip"]:
-                os.system("gunzip " + str(outDir) + OldFile + ".gz")
-            os.rename(os.path.join(outDir, OldFile), os.path.join(outDir, newFile))
-    os.remove(f)
+        with tarfile.open(f, "r") as tgz:
+            print("Extracting {0}...".format(f))
+            tgz.extractall(path=outDir / suffix)
+
+    # ==============================================================================
+    # Format file names
+
+    for nucs in list_:
+        f = nuclide_details[nucs]["webname"] + ".random.tgz"
+        isItENDF = nuclide_details[nucs]["isItENDF"]
+        numFiles = nuclide_details[nucs]["fileNum"]
+
+        if isItENDF:
+            outDir = endf_files_dir / nucs
+            prefix = "n-"
+            suffix = "-rand-"
+
+            for i in range(0, numFiles):
+                OldNumber = f"{i:04}"
+                OldFile = prefix + nuclide_details[nucs]["filename"] + suffix + OldNumber
+                newFile = nucs + "-" + str(i + 1)
+                
+                if nuclide_details[nucs]["gunzip"]:
+                    os.system("gunzip " + str(outDir) + OldFile + ".gz")
+                os.rename(os.path.join(outDir, OldFile), os.path.join(outDir, newFile))
+        os.remove(f)
 
 # ==============================================================================
 # Convert ENDF files to HDF5 with njoy
@@ -341,7 +343,8 @@ for nuc in list_:
     outDir = hdf5_files_dir / nuc
     for i in range(1, fileNum + 1):
         fileOut = outDir / (nuc + "-" + str(i) + ".h5")
-        lib.register_file(fileOut, nuc + "-" + str(i))
+        #lib.register_file(fileOut, nuc + "-" + str(i))
+        lib.register_file(fileOut)
 
 
 pre = outputDir / "cross_sections_PreT.xml"

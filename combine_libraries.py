@@ -80,20 +80,18 @@ combined_library = openmc.data.DataLibrary()
 # Copy all of library 1 to new library
 for library in read_libraries[0].libraries:
     source_file = Path(library['path'])
-    nucName = library['materials']
     destination_file = source_file
     if copy:
         destination_file = args.destination / source_file.name
         shutil.copy(source_file, args.destination)
     print(f'Adding {source_file.name} from {args.libraries[0].resolve()}')
-    combined_library.register_file(destination_file, nucName)
+    combined_library.register_file(destination_file)
 
 # For each other libraries, check library and add if not already present
 for lib_num in range(1, len(read_libraries)):
     for library in read_libraries[lib_num].libraries:
         if not library_in_list(library, combined_library.libraries):
             source_file = Path(library['path'])
-            nucName = library['materials']
             destination_file = source_file
             if copy:
                 destination_file = args.destination / source_file.name
@@ -102,7 +100,7 @@ for lib_num in range(1, len(read_libraries)):
                                           ' exists in the combined library')
                 shutil.copy(source_file, args.destination)
             print(f'Adding {source_file.name} from {args.libraries[lib_num].resolve()}')
-            combined_library.register_file(destination_file, nucName)
+            combined_library.register_file(destination_file)
 
 # Write .xml file
 combined_library_path = args.destination / args.outputfilename
