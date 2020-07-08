@@ -6,10 +6,10 @@ import os
 import sys
 import tarfile
 from pathlib import Path
-
 from multiprocessing import Pool
 
 import openmc.data
+
 from utils import download
 
 description = """
