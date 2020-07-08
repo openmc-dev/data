@@ -262,10 +262,7 @@ if not format_only:
         f = nuclide_details[nucs]["webname"] + ".random.tgz"
         suffix = nucs
         isItENDF = nuclide_details[nucs]["isItENDF"]
-        if isItENDF:
-            outDir = endf_files_dir
-        else:
-            outDir = ace_files_dir
+        outDir = endf_files_dir if isItENDF else ace_files_dir
 
         with tarfile.open(f, "r") as tgz:
             print("Extracting {0}...".format(f))
