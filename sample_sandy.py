@@ -126,17 +126,17 @@ def process_neutron_random(nuc, i, outDir, inDir, fileNum):  # Need to add tempe
     """Process ENDF neutron sublibrary file into HDF5 and write into a
     specified output directory."""
 
-    fileIn = inDir / f"{nuc}-{str(i)}"
-    fileOut = outDir / f"{nuc}-{str(i)}.h5"
+    fileIn = inDir / f"{nuc}-{i}"
+    fileOut = outDir / f"{nuc}-{i}.h5"
 
     data = openmc.data.IncidentNeutron.from_njoy(fileIn)  # , temperatures=293.6)
-    data.name = f"{nuc}-{str(i)}"
+    data.name = f"{nuc}-{i}"
     data.export_to_hdf5(fileOut, "w")
     if i % 40 == 0:
         print(f"Nuclide {nuc} {i+1}/{fileNum} finished")
 
 
-print("Beginning njoy processing")
+print("Beginning NJOY processing")
 with Pool() as pool:
     results = []
     fileNum = int(args.samples)
