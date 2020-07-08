@@ -84,7 +84,7 @@ endf_files_dir = outputDir / "endf"
 ace_files_dir = outputDir / "ace"
 hdf5_files_dir = outputDir / "hdf5"
 
-formatOnly = args.formatOnly
+format_only = args.format_only
 
 release_details = {
     "ENDF2017": {
