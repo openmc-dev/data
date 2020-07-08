@@ -50,7 +50,7 @@ parser.add_argument( "-d", "--destination", default=None,
 parser.add_argument("-b", "--batch", action="store_true", 
                     help="supresses standard in")
 parser.add_argument("-f", "--formatOnly", default=False,
-                    help="Only format previously sampled files to hdf5")
+                    help="Only format previously sampled files to HDF5")
 
 args = parser.parse_args()
 
