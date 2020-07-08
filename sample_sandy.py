@@ -49,7 +49,7 @@ outdir = args.outdir
 if outdir == None:
     outdir = scriptDir / "sandy_rand"
 else:
-    outdir = Path(os.path.abspath(outdir))
+    outdir = Path(outdir).resolve()
 
 outdirEndf = outdir / "endf"
 outdirHdf5 = outdir / "hdf5"
@@ -58,7 +58,7 @@ libdir = args.destination
 if libdir == None:
     libdir = Path(os.getenv("NUCLEAR_DATA_DIR")) / "nndc-b7.1-endf"
 else:
-    libdir = Path(os.path.abspath(libdir))
+    libdir = Path(libdir).resolve()
 
 nucs = args.nuclides
 
@@ -86,7 +86,7 @@ for nuc in nucs:
 
     fileName = f"{prefix}{fileAtomic}_{atomicSym}_{fileMass}{suffix}"
 
-    if not os.path.isfile(libdir / "neutron" / fileName):
+    if not (libdir / "neutron" / fileName).isfile():
         print(f"File {libdir / "neutron" / fileName} does not exist")
         sys.exit()
     nucDict[nuc] = {
@@ -174,7 +174,7 @@ pre = outdir / "cross_sections_Pre.xml"
 post = outdir / "cross_sections_Sandy.xml"
 
 lib.export_to_xml(pre)
-if os.path.exists(post):
+if post.exists():
     command = f"python combine_libraries.py -l {pre} {post} -o {post}"
     os.system(command)
 else:
