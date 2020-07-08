@@ -55,7 +55,7 @@ parser.add_argument("-f", "--formatOnly", default=False,
 args = parser.parse_args()
 
 if "all" in args.nuclides:
-    list_ = [
+    nuclides = [
         "O16",
         "Si28",
         "Si29",
@@ -68,7 +68,7 @@ if "all" in args.nuclides:
         "Pu240",
     ]
 else:
-    list_ = args.nuclides
+    nuclides = args.nuclides
 scriptDir = Path.cwd()
 
 library_name = "tendl_rand"  # this could be added as an argument to allow different libraries to be downloaded
@@ -210,7 +210,7 @@ if not format_only:
     uncompressedFileSize = 0
     NumOfFiles = 0
 
-    for i in list_:
+    for i in nuclides:
         downloadFileSize += nuclide_details[i]["downSize"]
         uncompressedFileSize += nuclide_details[i]["fileSize"]
         NumOfFiles += nuclide_details[i]["fileNum"]
@@ -233,7 +233,7 @@ if not format_only:
 
     Are you sure you want to continue? ([y]/n)
     """.format(
-        downloadSize, uncomFileSize, NumOfFiles, list_
+        downloadSize, uncomFileSize, NumOfFiles, nuclides
     )
 
 
@@ -245,7 +245,7 @@ if not format_only:
     # DOWNLOAD FILES FROM WEBSITE
 
     files_complete = []
-    for nucs in list_:
+    for nucs in nuclides:
         # Establish connection to URL
         url = (
             release_details[nuclide_details[nucs]["release"]]["base_url"]
@@ -258,7 +258,7 @@ if not format_only:
     # ==============================================================================
     # EXTRACT FILES FROM TGZ
 
-    for nucs in list_:
+    for nucs in nuclides:
         f = nuclide_details[nucs]["webname"] + ".random.tgz"
         suffix = nucs
         isItENDF = nuclide_details[nucs]["isItENDF"]
@@ -271,7 +271,7 @@ if not format_only:
     # ==============================================================================
     # Format file names
 
-    for nucs in list_:
+    for nucs in nuclides:
         f = nuclide_details[nucs]["webname"] + ".random.tgz"
         isItENDF = nuclide_details[nucs]["isItENDF"]
         numFiles = nuclide_details[nucs]["fileNum"]
@@ -311,7 +311,7 @@ def process_neutron_random(nuc, i, outDir, inDir, fileNum):
 print("Beginning NJOY processing")
 with Pool() as pool:
     results = []
-    for nuc in list_:
+    for nuc in nuclides:
 
         fileNum = nuclide_details[nuc]["fileNum"]
         inDir = endf_files_dir / nuc
@@ -335,7 +335,7 @@ with Pool() as pool:
 lib = openmc.data.DataLibrary()
 lib = lib.from_xml(os.getenv("OPENMC_CROSS_SECTIONS"))  # Gets current
 
-for nuc in list_:
+for nuc in nuclides:
     fileNum = nuclide_details[nuc]["fileNum"]
     outDir = hdf5_files_dir / nuc
     for i in range(1, fileNum + 1):
