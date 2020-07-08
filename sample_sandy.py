@@ -39,7 +39,7 @@ parser.add_argument("-s", "--samples", default=200,
                     help="Number of samples per nuclide")
 parser.add_argument("-p", "--processes", default=1, 
                     help="number of worker processes (default = 1)")
-parser.add_argument("-f", "--formatOnly", default=False,
+parser.add_argument("-f", "--format_only", default=False,
                     help="Only format previously sampled files to hdf5")
 
 args = parser.parse_args()
@@ -62,7 +62,7 @@ else:
 
 nucs = args.nuclides
 
-formatOnly = args.formatOnly
+format_only = args.format_only
 
 # ==============================================================================
 # CHECK IF REQUEST IS VALID AND IF ENDF FILES EXIST
@@ -99,7 +99,7 @@ for nuc in nucs:
 # ==============================================================================
 # GENERATE RANDOM EVALUATIONS OF NUCLEAR DATA USING SANDY
 
-if not formatOnly:
+if not format_only:
     outdir.mkdir(exist_ok=True)
     outdirEndf.mkdir(exist_ok=True)
 

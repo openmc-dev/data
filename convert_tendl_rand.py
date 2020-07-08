@@ -49,7 +49,7 @@ parser.add_argument( "-d", "--destination", default=None,
                     help="Directory to create new library in")
 parser.add_argument("-b", "--batch", action="store_true", 
                     help="supresses standard in")
-parser.add_argument("-f", "--formatOnly", default=False,
+parser.add_argument("-f", "--format_only", default=False,
                     help="Only format previously sampled files to HDF5")
 
 args = parser.parse_args()
