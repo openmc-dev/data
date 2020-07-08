@@ -215,12 +215,12 @@ if not format_only:
         uncompressedFileSize += nuclide_details[i]["fileSize"]
         NumOfFiles += nuclide_details[i]["fileNum"]
 
-    downloadSize = "{} MB".format(downloadFileSize)
-    uncomFileSize = "{} MB".format(uncompressedFileSize)
+    downloadSize = f"{downloadFileSize} MB"
+    uncomFileSize = f"{uncompressedFileSize} MB"
     if downloadFileSize > 1000:
-        downloadSize = "{} GB".format(downloadFileSize / 1000)
+        downloadSize = f"{downloadFileSize / 1000} GB"
     if uncompressedFileSize > 1000:
-        uncomFileSize = "{} GB".format(uncompressedFileSize / 1000)
+        uncomFileSize = f"{uncompressedFileSize / 1000} GB"
 
 
     download_warning = """
@@ -252,7 +252,7 @@ if not format_only:
             + nuclide_details[nucs]["webname"]
             + release_details[nuclide_details[nucs]["release"]]["ending"]
         )
-        print("Downloading {}...".format(nucs))
+        print(f"Downloading {nucs}...")
         downloaded_file = download(url)
 
     # ==============================================================================
@@ -265,7 +265,7 @@ if not format_only:
         outDir = endf_files_dir if isItENDF else ace_files_dir
 
         with tarfile.open(f, "r") as tgz:
-            print("Extracting {0}...".format(f))
+            print(f"Extracting {f}...")
             tgz.extractall(path=outDir / suffix)
 
     # ==============================================================================
@@ -281,14 +281,14 @@ if not format_only:
             prefix = "n-"
             suffix = "-rand-"
 
-            for i in range(0, numFiles):
+            for i in range(numFiles):
                 OldNumber = f"{i:04}"
                 OldFile = prefix + nuclide_details[nucs]["filename"] + suffix + OldNumber
-                newFile = nucs + "-" + str(i + 1)
+                newFile = f"{nucs}-{i+1}"
                 
                 if nuclide_details[nucs]["gunzip"]:
-                    os.system("gunzip " + str(outDir) + OldFile + ".gz")
-                os.rename(os.path.join(outDir, OldFile), os.path.join(outDir, newFile))
+                    os.system(f"gunzip {outDir} {OldFile}.gz")
+                (outDir / OldFile).rename(outDir / newFile)
         os.remove(f)
 
 # ==============================================================================
@@ -298,17 +298,17 @@ def process_neutron_random(nuc, i, outDir, inDir, fileNum):
     """Process ENDF neutron sublibrary file into HDF5 and write into a
     specified output directory."""
 
-    fileIn = inDir / (nuc + "-" + str(i))
-    fileOut = outDir / (nuc + "-" + str(i) + ".h5")
+    fileIn = inDir / f"{nuc}-{i}"
+    fileOut = outDir / f"{nuc}-{i}.h5"
 
-    data = openmc.data.IncidentNeutron.from_njoy(fileIn)  # , temperatures=293.6)
-    data.name = nuc + "-" + str(i)
+    data = openmc.data.IncidentNeutron.from_njoy(fileIn)
+    data.name = f"{nuc}-{i}"
     data.export_to_hdf5(fileOut, "w")
     if i % 40 == 0:
-        print("Nuclide " + nuc + " " + str(i) + "/" + str(fileNum) + " finished")
+        print(f"Nuclide {nuc} {i}/{fileNum} finished")
 
 
-print("Beginning njoy processing")
+print("Beginning NJOY processing")
 with Pool() as pool:
     results = []
     for nuc in list_:
@@ -320,7 +320,7 @@ with Pool() as pool:
         hdf5_files_dir.mkdir(exist_ok=True)
         outDir.mkdir(exist_ok=True)
 
-        print("Beginning nuclide " + nuc + " ...")
+        print(f"Beginning nuclide {nuc} ...")
         for i in range(1, fileNum + 1):
             func_args = (nuc, i, outDir, inDir, fileNum)
             r = pool.apply_async(process_neutron_random, func_args)
@@ -339,8 +339,7 @@ for nuc in list_:
     fileNum = nuclide_details[nuc]["fileNum"]
     outDir = hdf5_files_dir / nuc
     for i in range(1, fileNum + 1):
-        fileOut = outDir / (nuc + "-" + str(i) + ".h5")
-        #lib.register_file(fileOut, nuc + "-" + str(i))
+        fileOut = outDir / f"{nuc}-{i}.h5"
         lib.register_file(fileOut)
 
 
@@ -348,11 +347,10 @@ pre = outputDir / "cross_sections_PreT.xml"
 post = outputDir / "cross_sections_Tendl.xml"
 
 lib.export_to_xml(pre)
-if os.path.exists(post):
-    command = "combine_libraries.py -l {} {} -o {}".format(
-        pre, post, post)
+if post.exists():
+    command = f"combine_libraries.py -l {pre} {post} -o {post}"
     os.system(command)
 else:
     lib.export_to_xml(post)
 
-os.remove(pre)
+pre.unlink()
