@@ -51,8 +51,8 @@ if outdir == None:
 else:
     outdir = Path(outdir).resolve()
 
-outdirEndf = outdir / "endf"
-outdirHdf5 = outdir / "hdf5"
+endf_files_dir = outdir / "endf"
+hdf5_files_dir = outdir / "hdf5"
 
 libdir = args.destination
 if libdir == None:
@@ -60,7 +60,7 @@ if libdir == None:
 else:
     libdir = Path(libdir).resolve()
 
-nucs = args.nuclides
+nuclides = args.nuclides
 
 format_only = args.format_only
 
@@ -73,7 +73,7 @@ suffix = ".endf"
 atomicDict = openmc.data.ATOMIC_NUMBER
 nucDict = {}
 
-for nuc in nucs:
+for nuc in nuclides:
     massNum = int(re.findall("(\d+)", nuc)[0])
     atomicSym = "".join([i for i in nuc if not i.isdigit()])
     if atomicSym not in atomicDict.keys():
@@ -101,11 +101,11 @@ for nuc in nucs:
 
 if not format_only:
     outdir.mkdir(exist_ok=True)
-    outdirEndf.mkdir(exist_ok=True)
+    endf_files_dir.mkdir(exist_ok=True)
 
-    for nuc in nucs:
+    for nuc in nuclides:
 
-        nucDirEndf = outdirEndf / nuc
+        nucDirEndf = endf_files_dir / nuc
         nucDirEndf.mkdir(exist_ok=True)
 
         shutil.copyfile(
@@ -140,12 +140,12 @@ print("Beginning NJOY processing")
 with Pool() as pool:
     results = []
     fileNum = int(args.samples)
-    for nuc in nucs:
+    for nuc in nuclides:
 
-        inDir = outdirEndf / nuc
-        outDir = outdirHdf5 / nuc
+        inDir = endf_files_dir / nuc
+        outDir = hdf5_files_dir / nuc
 
-        outdirHdf5.mkdir(exist_ok=True)
+        hdf5_files_dir.mkdir(exist_ok=True)
         outDir.mkdir(exist_ok=True)
 
         print(f"Beginning nuclide {nuc} ...")
@@ -164,8 +164,8 @@ with Pool() as pool:
 lib = openmc.data.DataLibrary()
 lib = lib.from_xml(os.getenv("OPENMC_CROSS_SECTIONS"))  # Gets current
 
-for nuc in nucs:
-    outDir = outdirHdf5 / nuc
+for nuc in nuclides:
+    outDir = hdf5_files_dir / nuc
     for i in range(1, fileNum + 1):
         fileOut = outDir / f"{nuc}-{i}.h5")
         lib.register_file(fileOut)
