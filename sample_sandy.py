@@ -129,7 +129,7 @@ def process_neutron_random(nuc, i, outDir, inDir, fileNum):  # Need to add tempe
     fileIn = inDir / f"{nuc}-{i}"
     fileOut = outDir / f"{nuc}-{i}.h5"
 
-    data = openmc.data.IncidentNeutron.from_njoy(fileIn)  # , temperatures=293.6)
+    data = openmc.data.IncidentNeutron.from_njoy(fileIn)
     data.name = f"{nuc}-{i}"
     data.export_to_hdf5(fileOut, "w")
     if i % 40 == 0:
