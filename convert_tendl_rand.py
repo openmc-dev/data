@@ -204,7 +204,7 @@ nuclide_details = {
     },
 }
 
-if not formatOnly:
+if not format_only:
 
     downloadFileSize = 0
     uncompressedFileSize = 0
