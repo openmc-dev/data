@@ -77,7 +77,7 @@ library_name = "tendl_rand"  # this could be added as an argument to allow diffe
 if args.destination is None:
     outputDir = scriptDir / library_name
 else:
-    outputDir = Path(os.path.abspath(args.destination))
+    outputDir = Path(args.destination).resolve()
 
 
 endf_files_dir = outputDir / "endf"
