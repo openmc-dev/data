@@ -206,21 +206,21 @@ nuclide_details = {
 
 if not format_only:
 
-    downloadFileSize = 0
-    uncompressedFileSize = 0
-    NumOfFiles = 0
+    download_file_size = 0
+    uncompressed_file_size = 0
+    num_of_files = 0
 
     for i in nuclides:
-        downloadFileSize += nuclide_details[i]["downSize"]
-        uncompressedFileSize += nuclide_details[i]["fileSize"]
-        NumOfFiles += nuclide_details[i]["fileNum"]
+        download_file_size += nuclide_details[i]["downSize"]
+        uncompressed_file_size += nuclide_details[i]["fileSize"]
+        num_of_files += nuclide_details[i]["fileNum"]
 
-    downloadSize = f"{downloadFileSize} MB"
-    uncomFileSize = f"{uncompressedFileSize} MB"
-    if downloadFileSize > 1000:
-        downloadSize = f"{downloadFileSize / 1000} GB"
-    if uncompressedFileSize > 1000:
-        uncomFileSize = f"{uncompressedFileSize / 1000} GB"
+    download_size = f"{download_file_size} MB"
+    uncom_file_size = f"{uncompressed_file_size} MB"
+    if download_file_size > 1000:
+        download_size = f"{download_file_size / 1000} GB"
+    if uncompressed_file_size > 1000:
+        uncom_file_size = f"{uncompressed_file_size / 1000} GB"
 
 
     download_warning = """
@@ -233,7 +233,7 @@ if not format_only:
 
     Are you sure you want to continue? ([y]/n)
     """.format(
-        downloadSize, uncomFileSize, NumOfFiles, nuclides
+        download_size, uncom_file_size, num_of_files, nuclides
     )
 
 

@@ -113,8 +113,8 @@ if not format_only:
             nucDirEndf / nucDict[nuc]["fileName"],
         )
         os.chdir(nucDirEndf)
-        sandyCommand = f"sandy {nucDict[nuc]["fileName"]} --samples {args.samples} --outname {nuc} --processes {args.processes}"
-        os.system(sandyCommand)
+        sandy_command = f"sandy {nucDict[nuc]["fileName"]} --samples {args.samples} --outname {nuc} --processes {args.processes}"
+        os.system(sandy_command)
 
     os.chdir(scriptDir)
 
