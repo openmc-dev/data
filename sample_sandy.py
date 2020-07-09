@@ -180,4 +180,4 @@ if post.exists():
 else:
     lib.export_to_xml(post)
 
-os.remove(pre)
+pre.unlink()
