@@ -170,8 +170,8 @@ for nuc in nuclides:
         fileOut = outDir / f"{nuc}-{i}.h5")
         lib.register_file(fileOut)
 
-pre = outdir / "cross_sections_Pre.xml"
-post = outdir / "cross_sections_Sandy.xml"
+pre = outdir / "cross_sections_pre.xml"
+post = outdir / "cross_sections_sandy.xml"
 
 lib.export_to_xml(pre)
 if post.exists():

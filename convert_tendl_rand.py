@@ -343,8 +343,8 @@ for nuc in nuclides:
         lib.register_file(fileOut)
 
 
-pre = outputDir / "cross_sections_PreT.xml"
-post = outputDir / "cross_sections_Tendl.xml"
+pre = outputDir / "cross_sections_pre.xml"
+post = outputDir / "cross_sections_tendl.xml"
 
 lib.export_to_xml(pre)
 if post.exists():
