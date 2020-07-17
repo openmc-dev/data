@@ -35,14 +35,18 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
 parser.add_argument('datadir', type=Path,
-                    help='Directory containing Lib80x and ENDF80SaB')
+                    help='Directory containing Lib80x and ENDF80SaB/ENDF80SaB2')
 
 args = parser.parse_args()
 assert args.datadir.is_dir()
 
 # Get a list of all ACE files
 lib80x = list(args.datadir.glob('Lib80x/**/*.80?nc'))
-lib80sab = list(args.datadir.glob('ENDF80SaB/**/*.??t'))
+if (args.datadir / 'ENDF80SaB2').is_dir():
+    thermal_dir = args.datadir / 'ENDF80SaB2'
+else:
+    thermal_dir = args.datadir / 'ENDF80SaB'
+lib80sab = list(thermal_dir.glob('**/*.??t'))
 
 # Find and fix B10 ACE files
 b10files = list(args.datadir.glob('Lib80x/**/5010.80?nc'))
