@@ -32,9 +32,9 @@ parser = argparse.ArgumentParser(
 parser.add_argument("-n", "--nuclides", nargs="+", 
                     default="Fe56", help="The nuclide(s) to be sampled")
 parser.add_argument("-d", "--destination", default=None, 
-                    help="Desitination of the endf library")
-parser.add_argument("-o", "--outdir", default=None, 
                     help="Directory to create new library in")
+parser.add_argument("-l", "--libdir", default=None, 
+                    help="Directory of endf library to sample")
 parser.add_argument("-s", "--samples", default=200, 
                     help="Number of samples per nuclide")
 parser.add_argument("-p", "--processes", default=1, 
@@ -45,7 +45,7 @@ parser.add_argument("-f", "--format_only", default=False,
 args = parser.parse_args()
 script_dir = Path.cwd()
 
-output_dir = args.outdir
+output_dir = args.destination
 if output_dir == None:
     output_dir = script_dir / "sandy_rand"
 else:
@@ -54,7 +54,7 @@ else:
 endf_files_dir = output_dir / "endf"
 hdf5_files_dir = output_dir / "hdf5"
 
-libdir = args.destination
+libdir = args.libdir
 if libdir == None:
     libdir = Path(os.getenv("NUCLEAR_DATA_DIR")) / "nndc-b7.1-endf"
 else:
