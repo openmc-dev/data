@@ -15,9 +15,6 @@ NEUTRON_LIB = 'https://tendl.web.psi.ch/tendl_2019/tar_files/TENDL-n.tgz'
 DECAY_LIB = 'https://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/JEFF33-rdd.zip'
 NFY_LIB = 'https://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/JEFF33-nfy.asc'
 
-# Modify list of transmutation reactions
-dep.chain.TRANSMUTATION_REACTIONS = list(dep.chain._REACTIONS.keys())
-
 
 def extract(filename, path=".", verbose=True):
     # Determine function to open archive
@@ -34,6 +31,7 @@ def extract(filename, path=".", verbose=True):
 
 
 def fix_jeff33_nfy(path):
+    print(f'Fixing TPID in {path}...')
     new_path = path.with_name(path.name + '_fixed')
     if not new_path.exists():
         with path.open('r') as f:
@@ -60,7 +58,10 @@ def main():
     decay_files = list((endf_dir / "decay").glob('*.ASC'))
     nfy_evals = openmc.data.endf.get_evaluations(nfy_file_fixed)
 
-    chain = dep.Chain.from_endf(decay_files, nfy_evals, neutron_files)
+    chain = dep.Chain.from_endf(
+        decay_files, nfy_evals, neutron_files,
+        reactions=dep.chain.REACTIONS.keys()
+    )
     chain.export_to_xml('chain_tendl2019_jeff33.xml')
 
 
