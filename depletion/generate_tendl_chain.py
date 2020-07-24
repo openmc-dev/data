@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import json
 import os
 from pathlib import Path
 import tarfile
@@ -54,7 +55,15 @@ def main():
     extract(decay_zip, endf_dir / 'decay')
     nfy_file_fixed = fix_jeff33_nfy(nfy_file)
 
-    neutron_files = list((endf_dir / "neutrons").glob("*.tendl"))
+    # Get list of transport nuclides in TENDL-2019
+    with open('tendl2019_nuclides.json', 'r') as fh:
+        transport_nuclides = set(json.load(fh))
+
+    neutron_files = [
+        p
+        for p in (endf_dir / "neutrons").glob("*.tendl")
+        if p.name[2:-6] in transport_nuclides  # filename is n-XXNNN.tendl
+    ]
     decay_files = list((endf_dir / "decay").glob('*.ASC'))
     nfy_evals = openmc.data.endf.get_evaluations(nfy_file_fixed)
 
