@@ -35,10 +35,10 @@ kwargs = {
         'Programming Language :: Python :: 3.8',
     ],
 
-    # Dependencies
+    # Dependencies, openmc is also required but not yet available via pip
     'python_requires': '>=3.5',
     'install_requires': [
-        'numpy>=1.9', 'h5py'
+        'numpy>=1.9', 'openmc'
     ],
 }
 
