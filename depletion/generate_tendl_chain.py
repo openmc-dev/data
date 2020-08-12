@@ -101,10 +101,10 @@ def main():
         nfy_files = openmc.data.endf.get_evaluations(nfy_file_fixed)
 
     elif args.lib == 'endf80':
-        decay_files = list(decay_dir.glob('**/*.endf'))
+        decay_files = list(decay_dir.rglob('*.endf'))
 
         extract(nfy_file, nfy_dir)
-        nfy_files = list(nfy_dir.glob('**/*.endf'))
+        nfy_files = list(nfy_dir.rglob('*.endf'))
 
     chain = dep.Chain.from_endf(
         decay_files, nfy_files, neutron_files,
