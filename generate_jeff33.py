@@ -80,6 +80,10 @@ files = [
     (base_endf, 'ENDF-B-VIII.0_atomic_relax.zip', 'e04d50098cb2a7e4fe404ec4071611cc'),
 ]
 
+tendl_files = [
+    'https://tendl.web.psi.ch/tendl_2019/neutron_file/C/C013/lib/endf/n-C013.tendl',
+    'https://tendl.web.psi.ch/tendl_2019/neutron_file/O/O017/lib/endf/n-O017.tendl',
+]
 
 neutron_dir = Path('endf6')
 thermal_dir = Path('JEFF33-tsl')
@@ -137,6 +141,20 @@ with tempfile.TemporaryDirectory() as tmpdir:
                 print(f'Extracting {f}...')
                 with tarfile.open(f) as tgz:
                     tgz.extractall()
+
+    # =========================================================================
+    # REPLACE C13 AND O17 WITH FILES FROM TENDL 2019
+
+    # The evaluations for C13 and O17 can't be processed by recent versions of
+    # NJOY 2016 because of a bug in MF=6 in the evaluations. Instead of trying
+    # to patch the evaluation, we just replace it with more recent evaluations
+    # from TENDL 2019
+
+    for url in tendl_files:
+        download(tendl_url, output_path=neutron_dir)
+
+    (neutron_dir / 'n-C013.tendl').rename(neutron_dir / '6-C-13g.jeff33')
+    (neutron_dir / 'n-O017.tendl').rename(neutron_dir / '8-O-17g.jeff33')
 
     # =========================================================================
     # PROCESS INCIDENT NEUTRON AND THERMAL SCATTERING DATA IN PARALLEL
