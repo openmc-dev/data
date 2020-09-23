@@ -34,7 +34,7 @@ parser.add_argument("-n", "--nuclides", nargs="+",
 parser.add_argument("-d", "--destination", default=None, 
                     help="Directory to create new library in")
 parser.add_argument("-l", "--libdir", default=None, 
-                    help="Directory of endf library to sample")
+                    help="Directory of endf library to sample eg. nndc-b7.1-endf folder")
 parser.add_argument("-s", "--samples", default=200, 
                     help="Number of samples per nuclide")
 parser.add_argument("-p", "--processes", default=1, 
@@ -56,7 +56,7 @@ hdf5_files_dir = output_dir / "hdf5"
 
 libdir = args.libdir
 if libdir == None:
-    libdir = Path(os.getenv("NUCLEAR_DATA_DIR")) / "nndc-b7.1-endf"
+    raise Exception("Directory of ENDF library required for sampling, eg. nndc-b7.1-endf folder. Use -l prefix to specify")
 else:
     libdir = Path(libdir).resolve()
 
