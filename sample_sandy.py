@@ -30,7 +30,7 @@ parser = argparse.ArgumentParser(
     description=description, formatter_class=CustomFormatter)
 
 parser.add_argument("-n", "--nuclides", nargs="+", 
-                    default="Fe56", help="The nuclide(s) to be sampled")
+                    default=["Fe56"], help="The nuclide(s) to be sampled")
 parser.add_argument("-d", "--destination", default=None, 
                     help="Directory to create new library in")
 parser.add_argument("-l", "--libdir", default=None, 
@@ -86,8 +86,8 @@ for nuc in nuclides:
 
     file_name = f"{prefix}{file_atomic}_{atomic_sym}_{file_mass}{suffix}"
 
-    if not (libdir / "neutron" / file_name).isfile():
-        print(f"File {libdir / "neutron" / file_name} does not exist")
+    if not (libdir / "neutron" / file_name).is_file():
+        print(f"File {libdir / 'neutron' / file_name} does not exist")
         sys.exit()
     nuc_dict[nuc] = {
         "sym": atomic_sym,
@@ -113,7 +113,7 @@ if not format_only:
             nuc_dir_endf / nuc_dict[nuc]["file_name"],
         )
         os.chdir(nuc_dir_endf)
-        sandy_command = f"sandy {nuc_dict[nuc]["file_name"]} --samples {args.samples} --outname {nuc} --processes {args.processes}"
+        sandy_command = f"sandy {nuc_dict[nuc]['file_name']} --samples {args.samples} --outname {nuc} --processes {args.processes}"
         os.system(sandy_command)
 
     os.chdir(script_dir)
@@ -167,7 +167,7 @@ lib = lib.from_xml(os.getenv("OPENMC_CROSS_SECTIONS"))  # Gets current
 for nuc in nuclides:
     out_dir = hdf5_files_dir / nuc
     for i in range(1, file_num + 1):
-        fileOut = out_dir / f"{nuc}-{i}.h5")
+        fileOut = out_dir / f"{nuc}-{i}.h5"
         lib.register_file(fileOut)
 
 pre = output_dir / "cross_sections_pre.xml"

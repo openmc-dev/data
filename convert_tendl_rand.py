@@ -43,7 +43,7 @@ parser = argparse.ArgumentParser(
     description=description, formatter_class=CustomFormatter
 )
 parser.add_argument("-n", "--nuclides", choices=n_choices, nargs="+",
-                    default="Fe56", help="The nuclides to be downloaded. Available are: "
+                    default=["Fe56"], help="The nuclides to be downloaded. Available are: "
                     "'O16','Si28', 'Si29','Si30', 'Fe54', 'Fe56', 'Fe57', 'Fe58', 'Na23', 'Pu240'. Use 'all' for all availiable")
 parser.add_argument( "-d", "--destination", default=None, 
                     help="Directory to create new library in")
@@ -226,7 +226,7 @@ if not format_only:
     download_warning = """
     WARNING: This script will download {} of 
     data, which is {} of data when processed. 
-    This corresponds to {} random crossections.
+    This corresponds to {} random cross sections.
 
     The nuclides to be processed are: 
     {}
@@ -287,7 +287,7 @@ if not format_only:
                 newFile = f"{nucs}-{i+1}"
                 
                 if nuclide_details[nucs]["gunzip"]:
-                    os.system(f"gunzip {out_dir} {OldFile}.gz")
+                    os.system(f"gunzip {out_dir}/{OldFile}.gz")
                 (out_dir / OldFile).rename(out_dir / newFile)
         os.remove(f)
 
