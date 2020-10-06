@@ -114,7 +114,8 @@ thermal_paths = [
 
 pwd = Path.cwd()
 
-(args.destination / 'photon').mkdir(parents=True, exist_ok=True)
+destination = args.destination.resolve()
+(destination / 'photon').mkdir(parents=True, exist_ok=True)
 
 with tempfile.TemporaryDirectory() as tmpdir:
     # Save current working directory and temporarily change dir
@@ -163,17 +164,17 @@ with tempfile.TemporaryDirectory() as tmpdir:
         neutron_paths = neutron_dir.glob('*.jeff33')
         results = []
         for p in neutron_paths:
-            func_args = (p, args.destination, args.libver, temperatures)
+            func_args = (p, destination, args.libver, temperatures)
             r = pool.apply_async(process_neutron, func_args)
             results.append(r)
         for p_neut, p_therm in thermal_paths:
-            func_args = (p_neut, p_therm, args.destination, args.libver)
+            func_args = (p_neut, p_therm, destination, args.libver)
             r = pool.apply_async(process_thermal, func_args)
             results.append(r)
         for r in results:
             r.wait()
 
-    for p in sorted(args.destination.glob('*.h5'), key=sort_key):
+    for p in sorted(destination.glob('*.h5'), key=sort_key):
         library.register_file(p)
 
     # =========================================================================
@@ -189,11 +190,11 @@ with tempfile.TemporaryDirectory() as tmpdir:
         data = openmc.data.IncidentPhoton.from_endf(photo_file, atom_file)
 
         # Write HDF5 file and register it
-        outfile = args.destination / 'photon' / f'{element}.h5'
+        outfile = destination / 'photon' / f'{element}.h5'
         data.export_to_hdf5(outfile, 'w', libver=args.libver)
         library.register_file(outfile)
 
-    library.export_to_xml(args.destination / 'cross_sections.xml')
+    library.export_to_xml(destination / 'cross_sections.xml')
 
     # Change back to original directory
     if args.tmpdir:
