@@ -28,10 +28,6 @@ from utils import download, process_neutron, process_thermal
 assert sys.version_info >= (3, 6), "Python 3.6+ is required"
 
 
-
-temperatures = [250.0, 293.6, 600.0, 900.0, 1200.0, 2500.0]
-
-
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
                       argparse.RawDescriptionHelpFormatter):
     pass
@@ -59,9 +55,11 @@ parser.add_argument('--extract', action='store_true',
                     help='Extract zip files')
 parser.add_argument('--no-extract', dest='extract', action='store_false',
                     help='Do not extract zip files')
+parser.add_argument('--temperatures', type=float,
+                    default=[250.0, 293.6, 600.0, 900.0, 1200.0, 2500.0],
+                    help="Temperatures in Kelvin", nargs='+')
 parser.set_defaults(download=True, extract=True, tmpdir=True)
 args = parser.parse_args()
-
 
 def sort_key(path):
     if path.name.startswith('c_'):
@@ -152,7 +150,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
     # from TENDL 2019
 
     for url in tendl_files:
-        download(tendl_url, output_path=neutron_dir)
+        download(url, output_path=neutron_dir)
 
     (neutron_dir / 'n-C013.tendl').rename(neutron_dir / '6-C-13g.jeff33')
     (neutron_dir / 'n-O017.tendl').rename(neutron_dir / '8-O-17g.jeff33')
@@ -164,7 +162,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
         neutron_paths = neutron_dir.glob('*.jeff33')
         results = []
         for p in neutron_paths:
-            func_args = (p, destination, args.libver, temperatures)
+            func_args = (p, destination, args.libver, args.temperatures)
             r = pool.apply_async(process_neutron, func_args)
             results.append(r)
         for p_neut, p_therm in thermal_paths:
