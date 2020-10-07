@@ -26,8 +26,6 @@ photon, and thermal scattering data.
 
 """
 
-temperatures = [250.0, 293.6, 600.0, 900.0, 1200.0, 2500.0]
-
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
                       argparse.RawDescriptionHelpFormatter):
@@ -56,6 +54,9 @@ parser.add_argument('--extract', action='store_true',
                     help='Extract zip files')
 parser.add_argument('--no-extract', dest='extract', action='store_false',
                     help='Do not extract zip files')
+parser.add_argument('--temperatures', type=float,
+                    default=[250.0, 293.6, 600.0, 900.0, 1200.0, 2500.0],
+                    help="Temperatures in Kelvin", nargs='+')
 parser.set_defaults(download=True, extract=True, tmpdir=True)
 args = parser.parse_args()
 
@@ -165,7 +166,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
             if p.name == 'n-000_n_001.endf':
                 continue
 
-            func_args = (p, destination, args.libver, temperatures)
+            func_args = (p, destination, args.libver, args.temperatures)
             r = pool.apply_async(process_neutron, func_args)
             results.append(r)
         for p_neut, p_therm in thermal_paths:
