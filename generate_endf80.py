@@ -74,16 +74,16 @@ base_errata = 'https://www.nndc.bnl.gov/endf/b8.0/erratafiles/'
 files = [
     (base_endf, 'ENDF-B-VIII.0_neutrons.zip', '90c1b1a6653a148f17cbf3c5d1171859'),
     (base_endf, 'ENDF-B-VIII.0_photoat.zip', 'd49f5b54be278862e1ce742ccd94f5c0'),
-    (base_endf, 'ENDF-B-VIII.0_atomic_relax.zip', 'e04d50098cb2a7e4fe404ec4071611cc'),
     (base_endf, 'ENDF-B-VIII.0_thermal_scatt.zip', 'ecd503d3f8214f703e95e17cc947062c'),
-    (base_errata, 'n-005_B_010.endf', None)
+    (base_errata, 'atomic_relax.tar.gz', '805f877c59ad22dcf57a0446d266ceea'),
+    (base_errata, 'n-005_B_010.endf', 'eaf71eb22258f759abc205a129d8715a')
 ]
 
 
 neutron_dir = Path('ENDF-B-VIII.0_neutrons')
 thermal_dir = Path('ENDF-B-VIII.0_thermal_scatt')
 photoat_dir = Path('ENDF-B-VIII.0_photoat')
-atomic_dir = Path('ENDF-B-VIII.0_atomic_relax')
+atomic_dir = Path('atomic_relax')
 thermal_paths = [
     (neutron_dir / 'n-001_H_001.endf', thermal_dir / 'tsl-HinC5O2H8.endf'),
     (neutron_dir / 'n-001_H_001.endf', thermal_dir / 'tsl-HinH2O.endf'),
