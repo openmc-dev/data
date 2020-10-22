@@ -9,7 +9,7 @@ https://openmc.mcs.anl.gov.
 
 
 
-|       |                      | Download from [ openmc.mcs.anl.gov/ ] ( https://openmc.mcs.anl.gov/ ) | Download ACE files and convert HDF5 | Download ENDF files and generate HDF5 | Convert local files |
+|       |                      | Download from [openmc.mcs.anl.gov](https://openmc.mcs.anl.gov/)       | Download ACE files and convert HDF5 | Download ENDF files and generate HDF5 | Convert local files |
 |-------|----------------------|-----------------------------------------------------------------------|-------------------------------------|---------------------------------------|---------------------|
 | CENDL | 3.1                  |                                                                       |                                     | generate_cendl.py                     |                     |
 | ENDF  | B-VII.1              | :heavy_check_mark:                                                    | convert_nndc71.py                   | generate_endf71.py                    |                     |
