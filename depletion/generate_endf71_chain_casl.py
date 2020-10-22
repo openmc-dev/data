@@ -17,7 +17,7 @@ except ImportError:
 import openmc.data
 import openmc.deplete
 from openmc._xml import clean_indentation
-from openmc.deplete.chain import _REACTIONS, replace_missing_fpy
+from openmc.deplete.chain import REACTIONS, replace_missing_fpy
 from openmc.deplete.nuclide import Nuclide, DecayTuple, ReactionTuple, \
     FissionYieldDistribution
 
@@ -127,8 +127,7 @@ def main():
     for idx, parent in enumerate(sorted(decay_data, key=openmc.data.zam)):
         data = decay_data[parent]
 
-        nuclide = Nuclide()
-        nuclide.name = parent
+        nuclide = Nuclide(parent)
 
         chain.nuclides.append(nuclide)
         chain.nuclide_dict[parent] = idx
@@ -148,7 +147,7 @@ def main():
 
                 # Append decay mode
                 br = mode.branching_ratio.nominal_value
-                nuclide.decay_modes.append(DecayTuple(decay_type, target, br))
+                nuclide.add_decay_mode(decay_type, target, br)
 
             # Ensure sum of branching ratios is unity by slightly modifying last
             # value if necessary
@@ -156,22 +155,22 @@ def main():
             if sum_br != 1.0 and nuclide.decay_modes and parent not in UNMODIFIED_DECAY_BR:
                 decay_type, target, br = nuclide.decay_modes.pop()
                 br = 1.0 - sum(m.branching_ratio for m in nuclide.decay_modes)
-                nuclide.decay_modes.append(DecayTuple(decay_type, target, br))
+                nuclide.add_decay_mode(decay_type, target, br)
 
         # If nuclide has incident neutron data, we need to list what
         # transmutation reactions are possible
         fissionable = False
+        transmutation_reactions = ('(n,2n)', '(n,3n)', '(n,4n)', '(n,gamma)',
+                                   '(n,p)', '(n,a)')
         if parent in reactions:
             reactions_available = reactions[parent].keys()
-            for name, mts, changes in _REACTIONS:
+            for name in transmutation_reactions:
+                mts, changes, _ = REACTIONS[name]
                 if mts & reactions_available:
                     delta_A, delta_Z = changes
                     A = data.nuclide['mass_number'] + delta_A
                     Z = data.nuclide['atomic_number'] + delta_Z
                     daughter = '{}{}'.format(openmc.data.ATOMIC_SYMBOL[Z], A)
-
-                    if name not in chain.reactions:
-                        chain.reactions.append(name)
 
                     if daughter not in decay_data:
                         daughter = replace_missing_decay_product(
@@ -188,18 +187,13 @@ def main():
                     else:
                         q_value = 0.0
 
-                    nuclide.reactions.append(ReactionTuple(
-                        name, daughter, q_value, 1.0))
+                    nuclide.add_reaction(name, daughter, q_value, 1.0)
 
             # Check for fission reactions
             if any(mt in reactions_available for mt in [18, 19, 20, 21, 38]):
                 q_value = reactions[parent][18]
-                nuclide.reactions.append(
-                    ReactionTuple('fission', None, q_value, 1.0))
+                nuclide.add_reaction('fission', None, q_value, 1.0)
                 fissionable = True
-
-                if 'fission' not in chain.reactions:
-                    chain.reactions.append('fission')
 
         if fissionable:
             if parent in fpy_data:
