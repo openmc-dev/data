@@ -5,9 +5,9 @@ libraries that can be used with OpenMC. Some of these scripts convert existing
 ACE libraries (such as those produced by LANL) whereas generate scripts use
 NJOY to process ENDF files directly. Note that unless you are interested in
 making a customized library, you can find pregenerated HDF5 libraries at
-https://openmc.mcs.anl.gov. Another source of data libraries for OpenMC is the
+https://openmc.org. Another source of data libraries for OpenMC is the
 [Windowed Multipole Library](https://github.com/mit-crpg/WMP_Library)
-repository which allows on-the-fly Doppler broadening to an arbitrary
+repository which enables on-the-fly Doppler broadening to an arbitrary
 temperature.
 
 | Library | Release | Processed by | Download from [openmc.org](https://openmc.org/) | Download ACE files and convert HDF5 | Download ENDF files and generate HDF5 | Convert local ACE files |
