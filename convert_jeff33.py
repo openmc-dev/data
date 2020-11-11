@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
 """
-Convert JEFF 3.3 ACE data distributed by OECD/NEA into an HDF5 library
-that can be used by OpenMC. It will download an 1.3 GB archive containing
-all the ACE files, extract it, convert them, and write HDF5 files into a
-destination directory.
+Convert JEFF 3.3 ACE data distributed by OECD/NEA into an HDF5 library that can
+be used by OpenMC. It will download archives containing all the ACE files,
+extract them, convert them, and write HDF5 files into a destination directory.
 """
 
 import argparse
@@ -16,6 +15,7 @@ from shutil import rmtree
 from urllib.parse import urljoin
 
 import openmc.data
+
 from utils import download
 
 
@@ -65,41 +65,48 @@ cwd = Path.cwd()
 ace_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'ace']))
 download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
 
-# This dictionary contains all the unique information about each release. This can be exstened to accommodated new releases
+# This dictionary contains all the unique information about each release. This
+# can be extended to accommodate new releases
 release_details = {
     '3.3': {
-        'base_url': 'http://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/',
-        'compressed_files': ['JEFF33-n_tsl-ace.tgz'],
-        'neutron_files': sorted(ace_files_dir.rglob('*.[Aa][Cc][Ee]')),
-        'metastables': ace_files_dir.glob('neutron_file/*/*/lib/endf/*m-n.ace'),
-        'compressed_file_size': '1.3 GB',
-        'uncompressed_file_size': '8.2 GB'
+        'base_url': 'http://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/temperatures/',
+        'compressed_files': [
+            'ace_293.tar.gz',
+            'ace_600.tar.gz',
+            'ace_900.tar.gz',
+            'ace_1200.tar.gz',
+            'ace_1500.tar.gz',
+            'ace_1800.tar.gz',
+            'ace_tsl.tar.gz',
+        ],
+        'neutron_files': ace_files_dir.rglob('*-[A-Z]*.ace'),
+        'thermal_files': (ace_files_dir / 'ace_tsl').glob('*.ace'),
+        'metastables': ace_files_dir.rglob('*[0-9]m-*.ace'),
+        'compressed_file_size': '7.7 GB',
+        'uncompressed_file_size': '37 GB'
     }
 }
 
-
-download_warning = """
-WARNING: This script will download {} of data.
-Extracting and processing the data requires {} of additional free disk space.
-""".format(release_details[args.release]['compressed_file_size'],
-           release_details[args.release]['uncompressed_file_size'])
+details = release_details[args.release]
 
 # ==============================================================================
 # DOWNLOAD FILES FROM WEBSITE
 
+download_warning = """
+WARNING: This script will download {} of data.
+Extracting and processing the data requires {} of additional free disk space.
+""".format(details['compressed_file_size'], details['uncompressed_file_size'])
+
 if args.download:
     print(download_warning)
-    for f in release_details[args.release]['compressed_files']:
-        # Establish connection to URL
-        download(urljoin(release_details[args.release]['base_url'], f),
-                 output_path=download_path)
-
+    for f in details['compressed_files']:
+        download(urljoin(details['base_url'], f), output_path=download_path)
 
 # ==============================================================================
 # EXTRACT FILES FROM TGZ
 
 if args.extract:
-    for f in release_details[args.release]['compressed_files']:
+    for f in details['compressed_files']:
         with tarfile.open(download_path / f, 'r') as tgz:
             print(f'Extracting {f}...')
             tgz.extractall(path=ace_files_dir)
@@ -107,23 +114,81 @@ if args.extract:
     if args.cleanup and download_path.exists():
         rmtree(download_path)
 
+# ==============================================================================
+# CONVERT INCIDENT NEUTRON FILES
+
 # Create output directory if it doesn't exist
 args.destination.mkdir(parents=True, exist_ok=True)
 
-# Get a list of all ACE files
-paths = sorted(ace_files_dir.rglob('*.[Aa][Cc][Ee]'))
-
 lib = openmc.data.DataLibrary()
-for p in sorted(paths):
+
+
+def key(p):
+    """Return (temperature, atomic number, mass number, metastable)"""
+    z, x, a, temp = p.stem.split('-')
+    return int(temp), int(z), int(a[:-1]), a[-1]
+
+
+for p in sorted((ace_files_dir / 'ace_293').glob('*.ace'), key=key):
     print(f'Converting: {p}')
-    if 'jeff33' in str(p):
-        data = openmc.data.IncidentNeutron.from_ace(p)
-        if 'm.' in str(p):
-            # Correct metastable
-            data.metastable = 1
-            data.name += '_m1'
-    else:
-        data = openmc.data.ThermalScattering.from_ace(p)
+    temp, z, a, m = key(p)
+
+    data = openmc.data.IncidentNeutron.from_ace(p)
+    if m == 'm' and not data.name.endswith('_m1'):
+        # Correct metastable
+        data.metastable = 1
+        data.name += '_m1'
+
+    for T in ('600', '900', '1200', '1500', '1800'):
+        p_add = ace_files_dir / f'ace_{T}' / (p.stem.replace('293', T) + '.ace')
+        print(f'Adding temperature: {p_add}')
+        data.add_temperature_from_ace(p_add)
+
+    h5_file = args.destination / f'{data.name}.h5'
+    data.export_to_hdf5(h5_file, 'w', libver=args.libver)
+    lib.register_file(h5_file)
+
+# ==============================================================================
+# CONVERT THERMAL SCATTERING FILES
+
+thermal_mats = [
+    'al-sap',
+    'be',
+    'ca-cah2',
+    'd-d2o',
+    'graph',
+    'h-cah2',
+    'h-ch2',
+    'h-h2o',
+    'h-ice',
+    'h-zrh',
+    'mesi',
+    'mg',
+    'o-d2o',
+    'orto-d',
+    'orto-h',
+    'o-sap',
+    'para-d',
+    'para-h',
+    'sili',
+    'tolu',
+]
+
+
+def thermal_temp(p):
+    return int(p.stem.split('-')[-1])
+
+
+thermal_dir = ace_files_dir / 'ace_tsl'
+
+for mat in thermal_mats:
+    for i, p in enumerate(sorted(thermal_dir.glob(f'{mat}*.ace'), key=thermal_temp)):
+        if i == 0:
+            print(f'Converting: {p}')
+            data = openmc.data.ThermalScattering.from_ace(p)
+        else:
+            print(f'Adding temperature: {p}')
+            data.add_temperature_from_ace(p)
 
     h5_file = args.destination / f'{data.name}.h5'
     data.export_to_hdf5(h5_file, 'w', libver=args.libver)
