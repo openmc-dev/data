@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 """
-Download ENDF/B-VII.1 incident neutron ENDF data and incident photon ENDF data
-from NNDC and convert it to an HDF5 library for use with OpenMC. This data is
-used for OpenMC's regression test suite.
+Download ENDF/B-VIII.0 or ENDF/B-VII.1 library for use in OpenMC by first
+processing ENDF files using NJOY. The resulting library will contain incident
+neutron, incident photon, and thermal scattering data.
 """
+
 
 import argparse
 import sys
@@ -32,7 +33,7 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument('-d', '--destination', type=Path,
-                    default=Path('endf-b7.1-hdf5'),
+                    default=None,
                     help='Directory to create new library in')
 parser.add_argument('--download', action='store_true',
                     help='Download zip files from NNDC')
@@ -46,15 +47,23 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='earliest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
+parser.add_argument('-r', '--release', choices=['b7.1', 'b8.0'],
+                    default='b8.0', help="The nuclear data library release "
+                    "version. The currently supported options are b7.1, "
+                    "b8.0")
 parser.add_argument('-p', '--particles', choices=['neutron', 'photon', 'wmp'],
-                    nargs='+', default=['neutron', 'photon', 'wmp'],
-                    help="Incident particles to include")
+                    nargs='+', default=['neutron', 'photon'],
+                    help="Incident particles to include, wmp is not available "
+                    "for release b8.0 at the moment")
 parser.add_argument('--cleanup', action='store_true',
                     help="Remove download directories when data has "
                     "been processed")
 parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
                     help="Do not remove download directories when data has "
                     "been processed")
+parser.add_argument('--temperatures', type=float,
+                    default=[250.0, 293.6, 600.0, 900.0, 1200.0, 2500.0],
+                    help="Temperatures in Kelvin", nargs='+')
 parser.set_defaults(download=True, extract=True, cleanup=False)
 args = parser.parse_args()
 
@@ -68,17 +77,17 @@ def sort_key(path):
 
 
 library_name = 'endf'
-release = 'b7.1'
 
 cwd = Path.cwd()
 
-wmp_files_dir = args.destination / 'wmp'
-endf_files_dir = cwd.joinpath('-'.join([library_name, release, 'endf']))
+endf_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'endf']))
 neutron_dir = endf_files_dir / 'neutrons'
 thermal_dir = endf_files_dir / 'thermal_scatt'
-download_path = cwd.joinpath('-'.join([library_name, release, 'download']))
-
-temperatures = [250.0, 293.6, 600.0, 900.0, 1200.0, 2500.0]
+download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
+# the destination is decided after the release is known
+# to avoid putting the release in a folder with a misleading name
+if args.destination is None:
+    args.destination = Path('-'.join([library_name, args.release, 'hdf5']))
 
 # This dictionary contains all the unique information about each release. This
 # can be extended to accommodate new releases
@@ -137,14 +146,77 @@ release_details = {
             'compressed_file_size': 12,
             'uncompressed_file_size': 17
         }
+    },
+    'b8.0': {
+        'neutron': {
+            'base_url': 'https://www.nndc.bnl.gov/endf/b8.0/',
+            'compressed_files': ['zips/ENDF-B-VIII.0_neutrons.zip',
+                                 'zips/ENDF-B-VIII.0_thermal_scatt.zip',
+                                 'erratafiles/n-005_B_010.endf'],
+            'checksums': ['90c1b1a6653a148f17cbf3c5d1171859',
+                          'ecd503d3f8214f703e95e17cc947062c',
+                          'eaf71eb22258f759abc205a129d8715a'],
+            'file_type': 'endf',
+            'endf_files': endf_files_dir.rglob('n-*.endf'),
+            'sab_files': [
+                (neutron_dir / 'n-001_H_001.endf', thermal_dir / 'tsl-HinC5O2H8.endf'),
+                (neutron_dir / 'n-001_H_001.endf', thermal_dir / 'tsl-HinH2O.endf'),
+                (neutron_dir / 'n-001_H_001.endf', thermal_dir / 'tsl-HinCH2.endf'),
+                (neutron_dir / 'n-001_H_001.endf', thermal_dir / 'tsl-HinZrH.endf'),
+                (neutron_dir / 'n-001_H_001.endf', thermal_dir / 'tsl-HinIceIh.endf'),
+                (neutron_dir / 'n-001_H_001.endf', thermal_dir / 'tsl-HinYH2.endf'),
+                (neutron_dir / 'n-001_H_001.endf', thermal_dir / 'tsl-ortho-H.endf'),
+                (neutron_dir / 'n-001_H_001.endf', thermal_dir / 'tsl-para-H.endf'),
+                (neutron_dir / 'n-001_H_001.endf', thermal_dir / 'tsl-benzene.endf'),
+                (neutron_dir / 'n-001_H_001.endf', thermal_dir / 'tsl-l-CH4.endf'),
+                (neutron_dir / 'n-001_H_001.endf', thermal_dir / 'tsl-s-CH4.endf'),
+                (neutron_dir / 'n-001_H_002.endf', thermal_dir / 'tsl-DinD2O.endf'),
+                (neutron_dir / 'n-001_H_002.endf', thermal_dir / 'tsl-ortho-D.endf'),
+                (neutron_dir / 'n-001_H_002.endf', thermal_dir / 'tsl-para-D.endf'),
+                (neutron_dir / 'n-004_Be_009.endf', thermal_dir / 'tsl-BeinBeO.endf'),
+                (neutron_dir / 'n-004_Be_009.endf', thermal_dir / 'tsl-Be-metal.endf'),
+                (neutron_dir / 'n-006_C_012.endf', thermal_dir / 'tsl-CinSiC.endf'),
+                (neutron_dir / 'n-006_C_012.endf', thermal_dir / 'tsl-crystalline-graphite.endf'),
+                (neutron_dir / 'n-006_C_012.endf', thermal_dir / 'tsl-reactor-graphite-10P.endf'),
+                (neutron_dir / 'n-006_C_012.endf', thermal_dir / 'tsl-reactor-graphite-30P.endf'),
+                (neutron_dir / 'n-007_N_014.endf', thermal_dir / 'tsl-NinUN.endf'),
+                (neutron_dir / 'n-008_O_016.endf', thermal_dir / 'tsl-OinBeO.endf'),
+                (neutron_dir / 'n-008_O_016.endf', thermal_dir / 'tsl-OinD2O.endf'),
+                (neutron_dir / 'n-008_O_016.endf', thermal_dir / 'tsl-OinIceIh.endf'),
+                (neutron_dir / 'n-008_O_016.endf', thermal_dir / 'tsl-OinUO2.endf'),
+                (neutron_dir / 'n-013_Al_027.endf', thermal_dir / 'tsl-013_Al_027.endf'),
+                (neutron_dir / 'n-026_Fe_056.endf', thermal_dir / 'tsl-026_Fe_056.endf'),
+                (neutron_dir / 'n-014_Si_028.endf', thermal_dir / 'tsl-SiinSiC.endf'),
+                (neutron_dir / 'n-014_Si_028.endf', thermal_dir / 'tsl-SiO2-alpha.endf'),
+                (neutron_dir / 'n-014_Si_028.endf', thermal_dir / 'tsl-SiO2-beta.endf'),
+                (neutron_dir / 'n-039_Y_089.endf', thermal_dir / 'tsl-YinYH2.endf'),
+                (neutron_dir / 'n-040_Zr_090.endf', thermal_dir / 'tsl-ZrinZrH.endf'),
+                (neutron_dir / 'n-092_U_238.endf', thermal_dir / 'tsl-UinUN.endf'),
+                (neutron_dir / 'n-092_U_238.endf', thermal_dir / 'tsl-UinUO2.endf')
+            ],
+            'compressed_file_size': 296+59+0.849,
+            'uncompressed_file_size': 999999
+        },
+        'photon': {
+            'base_url': 'https://www.nndc.bnl.gov/endf/b8.0/',
+            'compressed_files': ['zips/ENDF-B-VIII.0_photoat.zip',
+                                 'erratafiles/atomic_relax.tar.gz'],
+            'checksums': ['d49f5b54be278862e1ce742ccd94f5c0',
+                          '805f877c59ad22dcf57a0446d266ceea'],
+            'file_type': 'endf',
+            'photo_files': endf_files_dir.joinpath('photoat').rglob('*.endf'),
+            'atom_files': endf_files_dir.joinpath('atomic_relax').rglob('*.endf'),
+            'compressed_file_size': 1.2+35,
+            'uncompressed_file_size': 999999
+        }
     }
 }
 
 compressed_file_size, uncompressed_file_size = 0, 0
-for r in release:
+for r in args.release:
     for p in args.particles:
-        compressed_file_size += release_details[release][p]['compressed_file_size']
-        uncompressed_file_size += release_details[release][p]['uncompressed_file_size']
+        compressed_file_size += release_details[args.release][p]['compressed_file_size']
+        uncompressed_file_size += release_details[args.release][p]['uncompressed_file_size']
 
 download_warning = """
 WARNING: This script will download up to {} MB of data. Extracting and
@@ -161,7 +233,7 @@ for use with OpenMC.
 if args.download:
     print(download_warning)
     for particle in args.particles:
-        details = release_details[release][particle]
+        details = release_details[args.release][particle]
         for i, f in enumerate(details['compressed_files']):
             url = details['base_url'] + f
             if 'checksums' in details.keys():
@@ -180,26 +252,28 @@ if args.download:
 if args.extract:
     for particle in args.particles:
 
-        if release_details[release][particle]['file_type'] == 'wmp':
-            extraction_dir = wmp_files_dir
-        elif release_details[release][particle]['file_type'] == 'endf':
+        if release_details[args.release][particle]['file_type'] == 'wmp':
+            extraction_dir = args.destination / 'wmp'
+        elif release_details[args.release][particle]['file_type'] == 'endf':
             extraction_dir = endf_files_dir
 
-        for f in release_details[release][particle]['compressed_files']:
-
+        for f in release_details[args.release][particle]['compressed_files']:
+            fname = Path(f).name
             # Extract files different depending on compression method
-            if f.endswith('.zip'):
-                with zipfile.ZipFile(download_path / particle / f, 'r') as zipf:
-                    print(f'Extracting {f}...')
+            if fname.endswith('.zip'):
+                with zipfile.ZipFile(download_path / particle / fname, 'r') as zipf:
+                    print(f'Extracting {fname}...')
                     zipf.extractall(extraction_dir)
-            else:
-                with tarfile.open(download_path / particle / f, 'r') as tgz:
-                    print(f'Extracting {f}...')
+            if fname.endswith('.tar.gz'):
+                with tarfile.open(download_path / particle / fname, 'r') as tgz:
+                    print(f'Extracting {fname}...')
                     # extract files ignoring the internal folder structure
                     for member in tgz.getmembers():
                         if member.isreg():
                             member.name = Path(member.name).name
                             tgz.extract(member, path=extraction_dir)
+            else:
+                print(f'Not extracting {fname}...')
 
     if args.cleanup and download_path.exists():
         rmtree(download_path)
@@ -217,11 +291,11 @@ library = openmc.data.DataLibrary()
 if 'neutron' in args.particles:
     particle = 'neutron'
     with Pool() as pool:
-        details = release_details[release][particle]
+        details = release_details[args.release][particle]
         results = []
         for filename in details['endf_files']:
             func_args = (filename, args.destination / particle, args.libver,
-                         temperatures)
+                         args.temperatures)
             r = pool.apply_async(process_neutron, func_args)
             results.append(r)
 
@@ -243,7 +317,7 @@ if 'neutron' in args.particles:
 
 if 'photon' in args.particles:
     particle = 'photon'
-    details = release_details[release][particle]
+    details = release_details[args.release][particle]
     for photo_path, atom_path in zip(sorted(details['photo_files']),
                                      sorted(details['atom_files'])):
         # Generate instance of IncidentPhoton
@@ -261,7 +335,7 @@ if 'photon' in args.particles:
 # INCIDENT WMP NEUTRON DATA
 
 if 'wmp' in args.particles:
-    for h5_file in Path(wmp_files_dir).rglob('*.h5'):
+    for h5_file in Path(args.destination / 'wmp').rglob('*.h5'):
         library.register_file(h5_file)
 
 # Write cross_sections.xml

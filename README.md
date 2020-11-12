@@ -15,9 +15,9 @@ temperature.
 | CENDL | 3.1 |  |  |  | generate_cendl.py |  |
 | ENDF/B | VII.0 | LANL | :heavy_check_mark: |  |  | convert_mcnp70.py |
 | ENDF/B | VII.1 | LANL | :heavy_check_mark: |  |  | convert_mcnp71.py |
-| ENDF/B | VII.1 | NNDC | :heavy_check_mark: | convert_nndc71.py | generate_endf71.py |  |
+| ENDF/B | VII.1 | NNDC | :heavy_check_mark: | convert_nndc71.py | generate_endf.py |  |
 | ENDF/B | VIII.0 | LANL | :heavy_check_mark: |  |  | convert_lib80x.py |
-| ENDF/B | VIII.0 | NNDC | :heavy_check_mark: |  | generate_endf80.py |  |
+| ENDF/B | VIII.0 | NNDC | :heavy_check_mark: |  | generate_endf.py |  |
 | FENDL | 2.1 3.0 3.1a 3.1d |  |  | convert_fendl.py |  |  |
 | JENDL | 4.0 |  |  |  | generate_jendl.py |  |
 | JEFF | 3.2 |  | :heavy_check_mark: | convert_jeff32.py |  |  |
