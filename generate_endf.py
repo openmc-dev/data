@@ -13,7 +13,7 @@ import tarfile
 import zipfile
 from multiprocessing import Pool
 from pathlib import Path
-from shutil import rmtree
+from shutil import rmtree, copy, copyfileobj
 
 import openmc.data
 from utils import download, process_neutron, process_thermal
@@ -33,7 +33,6 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument('-d', '--destination', type=Path,
-                    default=None,
                     help='Directory to create new library in')
 parser.add_argument('--download', action='store_true',
                     help='Download zip files from NNDC')
@@ -205,7 +204,7 @@ release_details = {
                           '805f877c59ad22dcf57a0446d266ceea'],
             'file_type': 'endf',
             'photo_files': endf_files_dir.joinpath('photoat').rglob('*.endf'),
-            'atom_files': endf_files_dir.joinpath('atomic_relax').rglob('*.endf'),
+            'atom_files': endf_files_dir.joinpath('atom').rglob('*.endf'),
             'compressed_file_size': 1.2+35,
             'uncompressed_file_size': 999999
         }
@@ -253,18 +252,28 @@ if args.extract:
     for particle in args.particles:
 
         if release_details[args.release][particle]['file_type'] == 'wmp':
-            extraction_dir = args.destination / 'wmp'
+            extraction_dir = args.destination / 'wmp' / particle
         elif release_details[args.release][particle]['file_type'] == 'endf':
-            extraction_dir = endf_files_dir
+            extraction_dir = endf_files_dir / particle
+        Path.mkdir(extraction_dir, parents=True, exist_ok=True)
 
         for f in release_details[args.release][particle]['compressed_files']:
             fname = Path(f).name
             # Extract files different depending on compression method
             if fname.endswith('.zip'):
-                with zipfile.ZipFile(download_path / particle / fname, 'r') as zipf:
-                    print(f'Extracting {fname}...')
-                    zipf.extractall(extraction_dir)
-            if fname.endswith('.tar.gz'):
+                print(f'Extracting {fname}...')
+                with zipfile.ZipFile(download_path / particle / fname) as zipf:
+                    # Extracts files without folder structure in the zip file
+                    for member in zipf.namelist():
+                        filename = Path(member).name
+                        # skip directories
+                        if not filename:
+                            continue
+                        source = zipf.open(member)
+                        target = open(extraction_dir / filename, "wb")
+                        with source, target:
+                            copyfileobj(source, target)
+            elif fname.endswith('.tar.gz'):
                 with tarfile.open(download_path / particle / fname, 'r') as tgz:
                     print(f'Extracting {fname}...')
                     # extract files ignoring the internal folder structure
@@ -273,7 +282,9 @@ if args.extract:
                             member.name = Path(member.name).name
                             tgz.extract(member, path=extraction_dir)
             else:
-                print(f'Not extracting {fname}...')
+                # File is not compressed. Used for erratafiles. This ensures
+                # the n-005_B_010.endf erratafile overwrites the orginal
+                copy(download_path/particle/fname, extraction_dir/fname)
 
     if args.cleanup and download_path.exists():
         rmtree(download_path)
@@ -294,6 +305,11 @@ if 'neutron' in args.particles:
         details = release_details[args.release][particle]
         results = []
         for filename in details['endf_files']:
+
+            # Skip neutron evaluation that fails the processing stage
+            if filename == 'n-000_n_001.endf' and args.release == 'b8.0':
+                continue
+
             func_args = (filename, args.destination / particle, args.libver,
                          args.temperatures)
             r = pool.apply_async(process_neutron, func_args)
