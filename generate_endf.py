@@ -80,7 +80,7 @@ library_name = 'endf'
 cwd = Path.cwd()
 
 endf_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'endf']))
-neutron_dir = endf_files_dir / 'neutrons'
+neutron_dir = endf_files_dir / 'neutron'
 thermal_dir = endf_files_dir / 'thermal_scatt'
 download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
 # the destination is decided after the release is known
