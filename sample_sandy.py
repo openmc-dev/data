@@ -35,6 +35,8 @@ parser.add_argument("-d", "--destination", default=None,
                     help="Directory to create new library in")
 parser.add_argument("-l", "--libdir", default=None, 
                     help="Directory of endf library to sample eg. nndc-b7.1-endf folder")
+parser.add_argument("-x", "--xlib", default=None, 
+                    help="cross_section.xml library to add random evaluations to. Default is OPENMC_CROSS_SECTIONS")
 parser.add_argument("-s", "--samples", default=200, 
                     help="Number of samples per nuclide")
 parser.add_argument("-p", "--processes", default=1, 
@@ -59,6 +61,12 @@ if libdir == None:
     raise Exception("Directory of ENDF library required for sampling, eg. nndc-b7.1-endf folder. Use -l prefix to specify")
 else:
     libdir = Path(libdir).resolve()
+
+xslib = args.xslib
+if xslib == None:
+    xslib = os.getenv("OPENMC_CROSS_SECTIONS")
+else:
+    xslib = Path(xslib).resolve()
 
 nuclides = args.nuclides
 
@@ -162,7 +170,7 @@ with Pool() as pool:
 # Create xml library
 
 lib = openmc.data.DataLibrary()
-lib = lib.from_xml(os.getenv("OPENMC_CROSS_SECTIONS"))  # Gets current
+lib = lib.from_xml(xslib)  # Gets current
 
 for nuc in nuclides:
     out_dir = hdf5_files_dir / nuc

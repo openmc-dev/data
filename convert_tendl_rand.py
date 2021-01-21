@@ -45,8 +45,10 @@ parser = argparse.ArgumentParser(
 parser.add_argument("-n", "--nuclides", choices=n_choices, nargs="+",
                     default=["Fe56"], help="The nuclides to be downloaded. Available are: "
                     "'O16','Si28', 'Si29','Si30', 'Fe54', 'Fe56', 'Fe57', 'Fe58', 'Na23', 'Pu240'. Use 'all' for all availiable")
-parser.add_argument( "-d", "--destination", default=None, 
+parser.add_argument("-d", "--destination", default=None, 
                     help="Directory to create new library in")
+parser.add_argument("-x", "--xlib", default=None, 
+                    help="cross_section.xml library to add random evaluations to")
 parser.add_argument("-b", "--batch", action="store_true", 
                     help="supresses standard in")
 parser.add_argument("-f", "--format_only", default=False,
@@ -79,6 +81,11 @@ if args.destination is None:
 else:
     output_dir = Path(args.destination).resolve()
 
+xslib = args.xslib
+if xslib == None:
+    xslib = os.getenv("OPENMC_CROSS_SECTIONS")
+else:
+    xslib = Path(xslib).resolve()
 
 endf_files_dir = output_dir / "endf"
 ace_files_dir = output_dir / "ace"
@@ -333,7 +340,7 @@ with Pool() as pool:
 # Create xml library
 
 lib = openmc.data.DataLibrary()
-lib = lib.from_xml(os.getenv("OPENMC_CROSS_SECTIONS"))  # Gets current
+lib = lib.from_xml(xslib)  # Gets current
 
 for nuc in nuclides:
     file_num = nuclide_details[nuc]["file_num"]
