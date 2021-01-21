@@ -183,7 +183,7 @@ post = output_dir / "cross_sections_sandy.xml"
 
 lib.export_to_xml(pre)
 if post.exists():
-    command = f"python combine_libraries.py -l {pre} {post} -o {post}"
+    command = f"combine_libraries.py -l {pre} {post} -o {post}"
     os.system(command)
 else:
     lib.export_to_xml(post)
