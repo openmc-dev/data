@@ -307,7 +307,7 @@ if 'neutron' in args.particles:
         for filename in details['endf_files']:
 
             # Skip neutron evaluation that fails the processing stage
-            if filename == 'n-000_n_001.endf' and args.release == 'b8.0':
+            if filename.name == 'n-000_n_001.endf':
                 continue
 
             func_args = (filename, args.destination / particle, args.libver,
