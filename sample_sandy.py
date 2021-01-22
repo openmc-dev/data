@@ -62,11 +62,11 @@ if libdir == None:
 else:
     libdir = Path(libdir).resolve()
 
-xslib = args.xslib
-if xslib == None:
-    xslib = os.getenv("OPENMC_CROSS_SECTIONS")
+xlib = args.xlib
+if xlib == None:
+    xlib = os.getenv("OPENMC_CROSS_SECTIONS")
 else:
-    xslib = Path(xslib).resolve()
+    xlib = Path(xlib).resolve()
 
 nuclides = args.nuclides
 
@@ -170,7 +170,7 @@ with Pool() as pool:
 # Create xml library
 
 lib = openmc.data.DataLibrary()
-lib = lib.from_xml(xslib)  # Gets current
+lib = lib.from_xml(xlib)  # Gets current
 
 for nuc in nuclides:
     out_dir = hdf5_files_dir / nuc

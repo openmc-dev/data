@@ -81,11 +81,11 @@ if args.destination is None:
 else:
     output_dir = Path(args.destination).resolve()
 
-xslib = args.xslib
-if xslib == None:
-    xslib = os.getenv("OPENMC_CROSS_SECTIONS")
+xlib = args.xlib
+if xlib == None:
+    xlib = os.getenv("OPENMC_CROSS_SECTIONS")
 else:
-    xslib = Path(xslib).resolve()
+    xlib = Path(xlib).resolve()
 
 endf_files_dir = output_dir / "endf"
 ace_files_dir = output_dir / "ace"
@@ -340,7 +340,7 @@ with Pool() as pool:
 # Create xml library
 
 lib = openmc.data.DataLibrary()
-lib = lib.from_xml(xslib)  # Gets current
+lib = lib.from_xml(xlib)  # Gets current
 
 for nuc in nuclides:
     file_num = nuclide_details[nuc]["file_num"]
