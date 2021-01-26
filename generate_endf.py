@@ -46,10 +46,10 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='earliest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
-parser.add_argument('-r', '--release', choices=['b7.1', 'b8.0'],
-                    default='b8.0', help="The nuclear data library release "
-                    "version. The currently supported options are b7.1, "
-                    "b8.0")
+parser.add_argument('-r', '--release', choices=['vii.1', 'viii.0'],
+                    default='viii.0', help="The nuclear data library release "
+                    "version. The currently supported options are vii.1, "
+                    "viii.0")
 parser.add_argument('-p', '--particles', choices=['neutron', 'photon', 'wmp'],
                     nargs='+', default=['neutron', 'photon'],
                     help="Incident particles to include, wmp is not available "
@@ -75,7 +75,7 @@ def sort_key(path):
         return openmc.data.zam(path.stem)
 
 
-library_name = 'endf'
+library_name = 'endfb'
 
 cwd = Path.cwd()
 
@@ -91,7 +91,7 @@ if args.destination is None:
 # This dictionary contains all the unique information about each release. This
 # can be extended to accommodate new releases
 release_details = {
-    'b7.1': {
+    'vii.1': {
         'neutron': {
             'base_url': 'http://www.nndc.bnl.gov/endf/b7.1/zips/',
             'compressed_files': ['ENDF-B-VII.1-neutrons.zip',
@@ -99,7 +99,7 @@ release_details = {
             'checksums': ['e5d7f441fc4c92893322c24d1725e29c',
                           'fe590109dde63b2ec5dc228c7b8cab02'],
             'file_type': 'endf',
-            'endf_files': endf_files_dir.rglob('n-*.endf'),
+            'endf_files': neutron_dir.rglob('n-*.endf'),
             'sab_files': [
                 (neutron_dir / 'n-001_H_001.endf', neutron_dir / 'tsl-HinH2O.endf'),
                 (neutron_dir / 'n-001_H_001.endf', neutron_dir / 'tsl-HinCH2.endf'),
@@ -146,7 +146,7 @@ release_details = {
             'uncompressed_file_size': 17
         }
     },
-    'b8.0': {
+    'viii.0': {
         'neutron': {
             'base_url': 'https://www.nndc.bnl.gov/endf/b8.0/',
             'compressed_files': ['zips/ENDF-B-VIII.0_neutrons.zip',
@@ -156,7 +156,7 @@ release_details = {
                           'ecd503d3f8214f703e95e17cc947062c',
                           'eaf71eb22258f759abc205a129d8715a'],
             'file_type': 'endf',
-            'endf_files': endf_files_dir.rglob('n-*.endf'),
+            'endf_files': neutron_dir.rglob('n-*.endf'),
             'sab_files': [
                 (neutron_dir / 'n-001_H_001.endf', neutron_dir / 'tsl-HinC5O2H8.endf'),
                 (neutron_dir / 'n-001_H_001.endf', neutron_dir / 'tsl-HinH2O.endf'),
@@ -220,7 +220,7 @@ for r in args.release:
 download_warning = """
 WARNING: This script will download up to {} MB of data. Extracting and
 processing the data may require as much as {} MB of additional free disk
-space. This script downloads ENDF/B-VII.1 incident neutron ACE data and
+space. This script downloads ENDF/B incident neutron ACE data and
 incident photon ENDF data from NNDC and convert it to an HDF5 library
 for use with OpenMC.
 """.format(compressed_file_size, uncompressed_file_size)
