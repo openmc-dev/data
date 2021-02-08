@@ -13,7 +13,6 @@ temperature.
 | Library | Release | Processed by | Download from [openmc.org](https://openmc.org/) | Download ACE files and convert HDF5 | Download ENDF files and generate HDF5 | Convert local ACE files |
 |-|-|-|-|-|-|-|
 | CENDL | <p>3.1<br>3.2</p> |  |  |  | generate_cendl.py |  |
-| CENDL | <p>3.1<br>3.2</p> |  |  |  |  |  |
 | ENDF/B | VII.0 | LANL | :heavy_check_mark: |  |  | convert_mcnp70.py |
 | ENDF/B | VII.1 | LANL | :heavy_check_mark: |  |  | convert_mcnp71.py |
 | ENDF/B | VII.1 | NNDC | :heavy_check_mark: | convert_nndc71.py | generate_endf.py |  |
