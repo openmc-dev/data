@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 """
-Download CENDL 3.1 data from OECD NEA and convert it to a HDF5 library for
-use with OpenMC.
+Download CENDL 3.1 data from OECD NEA or CENDL-3.2 from CNDC
+and convert it to a HDF5 library for use with OpenMC.
 """
 
 import argparse
@@ -39,9 +39,9 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='latest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
-parser.add_argument('-r', '--release', choices=['3.1'],
-                    default='3.1', help="The nuclear data library release "
-                    "version. The only option currently supported is 3.1")
+parser.add_argument('-r', '--release', choices=['3.1', '3.2'],
+                    default='3.2', help="The nuclear data library release "
+                    "version. The currently supported options are 3.1, 3.2")
 parser.add_argument('--cleanup', action='store_true',
                     help="Remove download directories when data has "
                     "been processed")
@@ -73,7 +73,15 @@ release_details = {
         'metastables': endf_files_dir.glob('*m.C31'),
         'compressed_file_size': '0.03 GB',
         'uncompressed_file_size': '0.4 GB'
-    }
+    },
+    '3.2': {
+       'base_url': 'http://www.nuclear.csdb.cn/endf/CENDL/',
+       'compressed_files': ['n-CENDL-3.2.zip'],
+       'neutron_files': endf_files_dir.glob('n-CENDL-3.2/CENDL-3.2/*.C32'),
+       'metastables': endf_files_dir.glob('n-CENDL-3.2/CENDL-3.2/*m.C32'),
+       'compressed_file_size': '0.11 GB',
+       'uncompressed_file_size': '0.41 GB'
+       }
 }
 
 download_warning = """
