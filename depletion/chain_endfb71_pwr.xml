@@ -28,7 +28,7 @@
   </nuclide>
   <nuclide name="He4" reactions="0"/>
   <nuclide name="He5" half_life="7.595e-22" decay_modes="1" decay_energy="890000.0" reactions="0">
-    <decay type="alpha" target="H1" branching_ratio="1.0"/>
+    <decay type="alpha" branching_ratio="1.0"/>
   </nuclide>
   <nuclide name="He6" half_life="0.8067" decay_modes="1" decay_energy="1567620.0" reactions="0">
     <decay type="beta-" target="Li6" branching_ratio="1.0"/>
@@ -81,11 +81,6 @@
   </nuclide>
   <nuclide name="Be6" half_life="4.95326e-21" decay_modes="1" decay_energy="1372000.0" reactions="0">
     <decay type="p,p" target="He4" branching_ratio="1.0"/>
-  </nuclide>
-  <nuclide name="Be7" half_life="4598208.0" decay_modes="1" decay_energy="49861.81" reactions="2">
-    <decay type="ec/beta+" target="Li7" branching_ratio="1.0"/>
-    <reaction type="(n,p)" Q="1644300.0" target="Li7"/>
-    <reaction type="(n,a)" Q="18992000.0" target="He4"/>
   </nuclide>
   <nuclide name="Be8" half_life="8.18132e-17" decay_modes="1" decay_energy="91840.0" reactions="0">
     <decay type="alpha" target="He4" branching_ratio="1.0"/>

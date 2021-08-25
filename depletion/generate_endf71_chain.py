@@ -29,9 +29,13 @@ def main():
                 zf.extractall()
         endf_dir = Path(".")
 
-    decay_files = tuple((endf_dir / "decay").glob("*endf"))
-    neutron_files = tuple((endf_dir / "neutrons").glob("*endf"))
-    nfy_files = tuple((endf_dir / "nfy").glob("*endf"))
+    decay_files = list((endf_dir / "decay").glob("*endf"))
+    neutron_files = list((endf_dir / "neutrons").glob("*endf"))
+    nfy_files = list((endf_dir / "nfy").glob("*endf"))
+
+    # Remove erroneous Be7 evaluation that can cause problems
+    decay_files.remove(endf_dir / "decay" / "dec-004_Be_007.endf")
+    neutron_files.remove(endf_dir / "neutrons" / "n-004_Be_007.endf")
 
     # check files exist
     for flist, ftype in [(decay_files, "decay"), (neutron_files, "neutron"),
