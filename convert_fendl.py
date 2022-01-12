@@ -108,20 +108,20 @@ if args.destination is None:
 release_details = {
     '3.2': {
         'neutron': {
-            'base_url': 'https://www-nds.iaea.org/fendl_library/preliminary/data/neutron/',
+            'base_url': 'https://www-nds.iaea.org/fendl/data/neutron/',
             'compressed_files': ['fendl32-neutron-ace.zip'],
             'file_type': 'ace',
-            'ace_files': ace_files_dir.glob('*.ace'),
-            'compressed_file_size': 1,
-            'uncompressed_file_size': 1
+            'ace_files': ace_files_dir.joinpath('neutron/ace').glob('*[!.xsd]'),
+            'compressed_file_size': 565,
+            'uncompressed_file_size': 4226
         },
         'photon': {
-            'base_url': 'https://www-nds.iaea.org/fendl_library/preliminary/data/atom/',
+            'base_url': 'https://www-nds.iaea.org/fendl/data/atom/',
             'compressed_files': ['fendl32-atom-endf.zip'],
             'file_type': 'endf',
-            'photo_files': endf_files_dir.joinpath('endf').glob('*.txt'),
-            'compressed_file_size': 1,
-            'uncompressed_file_size': 1
+            'photo_files': endf_files_dir.joinpath('atom/endf').rglob('*.endf'),
+            'compressed_file_size': 4,
+            'uncompressed_file_size': 33
         }
     },
     '3.1a': {
