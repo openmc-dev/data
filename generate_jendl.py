@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Download JENDL 4.0 data from JAEA and convert it to a HDF5 library for
+Download JENDL 4.0 or JENDL-5 ENDF data from JAEA and convert it to a HDF5 library for
 use with OpenMC.
 """
 
@@ -40,9 +40,9 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='latest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
-parser.add_argument('-r', '--release', choices=['4.0'], default='4.0',
+parser.add_argument('-r', '--release', choices=['4.0', '5.0'], default='5.0',
                     help="The nuclear data library release version. "
-                    "The only option currently supported is 4.0")
+                    "The currently supported options are 4.0, 5.0")
 parser.add_argument('--cleanup', action='store_true',
                     help="Remove download directories when data has "
                     "been processed")
@@ -74,6 +74,14 @@ release_details = {
         'metastables': endf_files_dir.joinpath('jendl40-or-up_20160106').glob('*m.dat'),
         'compressed_file_size': '0.2 GB',
         'uncompressed_file_size': '2 GB'
+    },
+    '5.0':{
+        'base_url': 'https://wwwndc.jaea.go.jp/ftpnd/ftp/JENDL/',
+        'compressed_files': ['jendl5-n.tar.gz'],
+        'endf_files': endf_files_dir.joinpath('jendl5-n').glob('*.dat'),
+        'metastables': endf_files_dir.joinpath('jendl5-n').glob('*m1.dat'),
+        'compressed_file_size': '4.1 GB',
+        'uncompressed_file_size': '16 GB'
     }
 }
 
