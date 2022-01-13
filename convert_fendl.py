@@ -42,7 +42,7 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
 parser.add_argument('-r', '--release', choices=['3.2','3.1d', '3.1a', '3.0',
-                    '2.1'],  default='3.1d', help="The nuclear data library "
+                    '2.1'],  default='3.2', help="The nuclear data library "
                     "release version. The currently supported options are "
                     "3.2, 3.1d, 3.1a, 3.0 and 2.1")
 parser.add_argument('-p', '--particles', choices=['neutron', 'photon'],
