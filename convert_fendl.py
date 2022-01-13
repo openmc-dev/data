@@ -41,10 +41,10 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='earliest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
-parser.add_argument('-r', '--release', choices=['3.1d', '3.1a', '3.0', '2.1'],
-                    default='3.1d', help="The nuclear data library release "
-                    "version. The currently supported options are "
-                    "3.1d, 3.1a, 3.0 and 2.1")
+parser.add_argument('-r', '--release', choices=['3.2','3.1d', '3.1a', '3.0',
+                    '2.1'],  default='3.2', help="The nuclear data library "
+                    "release version. The currently supported options are "
+                    "3.2, 3.1d, 3.1a, 3.0 and 2.1")
 parser.add_argument('-p', '--particles', choices=['neutron', 'photon'],
                     nargs='+', default=['neutron', 'photon'],
                     help="Incident particles to include")
@@ -106,6 +106,24 @@ if args.destination is None:
 # This dictionary contains all the unique information about each release.
 # This can be extended to accommodate new releases
 release_details = {
+    '3.2': {
+        'neutron': {
+            'base_url': 'https://www-nds.iaea.org/fendl/data/neutron/',
+            'compressed_files': ['fendl32-neutron-ace.zip'],
+            'file_type': 'ace',
+            'ace_files': ace_files_dir.joinpath('neutron/ace').glob('*[!.xsd]'),
+            'compressed_file_size': 565,
+            'uncompressed_file_size': 4226
+        },
+        'photon': {
+            'base_url': 'https://www-nds.iaea.org/fendl/data/atom/',
+            'compressed_files': ['fendl32-atom-endf.zip'],
+            'file_type': 'endf',
+            'photo_files': endf_files_dir.joinpath('atom/endf').rglob('*.endf'),
+            'compressed_file_size': 4,
+            'uncompressed_file_size': 33
+        }
+    },
     '3.1a': {
         'neutron': {
             'base_url': 'https://www-nds.iaea.org/fendl31/data/neutron/',
