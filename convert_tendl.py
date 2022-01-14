@@ -99,7 +99,7 @@ release_details = {
         'neutron_files': ace_files_dir.glob('tendl21c/*'),
         'metastables': ace_files_dir.glob('tendl21c/*m'),
         'compressed_file_size': '2.2 GB',
-        'uncompressed_file_size': '10.0 GB'
+        'uncompressed_file_size': '10.5 GB'
     }
 }
 
