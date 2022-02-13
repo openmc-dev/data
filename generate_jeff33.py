@@ -69,7 +69,7 @@ def sort_key(path):
         return openmc.data.zam(path.stem)
 
 
-base_endf = 'https://www.nndc.bnl.gov/endf/b8.0/zips/'
+base_endf = 'https://www.nndc.bnl.gov/endf-b8.0/zips/'
 base_jeff = 'http://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/'
 files = [
     (base_jeff, 'JEFF33-n.tgz', '88771640ab08f4dccce8e542fdf90062'),
