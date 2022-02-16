@@ -72,7 +72,7 @@ def sort_key(path):
 base_endf = 'https://www.nndc.bnl.gov/endf-b8.0/zips/'
 base_jeff = 'http://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/'
 files = [
-    (base_jeff, 'JEFF33-n.tgz', '88771640ab08f4dccce8e542fdf90062'),
+    (base_jeff, 'JEFF33-n.tgz', 'e540bbf95179257280c61acfa75c83de'),
     (base_jeff, 'JEFF33-tsl.tgz', '82a6df4cb802aa4a09b95309f7861c54'),
     (base_endf, 'ENDF-B-VIII.0_photoat.zip', 'd49f5b54be278862e1ce742ccd94f5c0'),
     (base_endf, 'ENDF-B-VIII.0_atomic_relax.zip', 'e04d50098cb2a7e4fe404ec4071611cc'),
