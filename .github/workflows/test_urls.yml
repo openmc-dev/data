@@ -26,6 +26,7 @@ jobs:
       - name: Install testing dependencies
         run: |
           pip install pytest
+          pip install requests
 
       - name: test urls
         run: |
