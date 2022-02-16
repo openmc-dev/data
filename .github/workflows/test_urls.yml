@@ -1,0 +1,21 @@
+
+name: test_urls
+on:  
+  workflow_dispatch:
+  pull_request:    
+    branches:
+    - main  
+  push:
+    branches:
+    - main
+  schedule:
+    - cron: "0 0 * * *"
+# cron job runs every day
+
+jobs:
+    build:
+      runs-on: ubuntu-latest
+      steps:
+      - name: test urls
+        run: |
+          pytest tests/tests_urls.py
