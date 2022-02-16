@@ -1,6 +1,7 @@
 
-name: auto_benchmark
+name: test_urls
 on:  
+  workflow_dispatch:
   pull_request:    
     branches:
     - main  
