@@ -16,6 +16,17 @@ jobs:
     build:
       runs-on: ubuntu-latest
       steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Install testing dependencies
+        run: |
+          pip install pytest
+
       - name: test urls
         run: |
           pytest tests/tests_urls.py
