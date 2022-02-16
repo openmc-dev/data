@@ -4,7 +4,7 @@ import requests
 from urls import all_release_details
 
 
-def test_fendl_urls():
+def test_tendl_urls():
     print(all_release_details)
 
     for release, value in all_release_details['tendl'].items():
