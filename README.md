@@ -1,3 +1,5 @@
+[![test_urls](https://github.com/shimwell/data/actions/workflows/test_urls.yml/badge.svg)](https://github.com/shimwell/data/actions/workflows/test_urls.yml)
+
 # OpenMC Data Scripts
 
 This repository contains a collection of scripts for generating HDF5 data
