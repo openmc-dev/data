@@ -93,7 +93,7 @@ if args.destination is None:
 release_details = {
     'vii.1': {
         'neutron': {
-            'base_url': 'http://www.nndc.bnl.gov/endf/b7.1/zips/',
+            'base_url': 'http://www.nndc.bnl.gov/endf-b7.1/zips/',
             'compressed_files': ['ENDF-B-VII.1-neutrons.zip',
                                  'ENDF-B-VII.1-thermal_scatt.zip'],
             'checksums': ['e5d7f441fc4c92893322c24d1725e29c',
@@ -127,7 +127,7 @@ release_details = {
             'uncompressed_file_size': 916
         },
         'photon': {
-            'base_url': 'http://www.nndc.bnl.gov/endf/b7.1/zips/',
+            'base_url': 'http://www.nndc.bnl.gov/endf-b7.1/zips/',
             'compressed_files': ['ENDF-B-VII.1-photoat.zip',
                                  'ENDF-B-VII.1-atomic_relax.zip'],
             'checksums': ['5192f94e61f0b385cf536f448ffab4a4',
@@ -148,7 +148,7 @@ release_details = {
     },
     'viii.0': {
         'neutron': {
-            'base_url': 'https://www.nndc.bnl.gov/endf/b8.0/',
+            'base_url': 'https://www.nndc.bnl.gov/endf-b8.0/',
             'compressed_files': ['zips/ENDF-B-VIII.0_neutrons.zip',
                                  'zips/ENDF-B-VIII.0_thermal_scatt.zip',
                                  'erratafiles/n-005_B_010.endf'],
@@ -197,7 +197,7 @@ release_details = {
             'uncompressed_file_size': 999999
         },
         'photon': {
-            'base_url': 'https://www.nndc.bnl.gov/endf/b8.0/',
+            'base_url': 'https://www.nndc.bnl.gov/endf-b8.0/',
             'compressed_files': ['zips/ENDF-B-VIII.0_photoat.zip',
                                  'erratafiles/atomic_relax.tar.gz'],
             'checksums': ['d49f5b54be278862e1ce742ccd94f5c0',
