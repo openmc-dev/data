@@ -10,9 +10,9 @@ from utils import download
 
 
 URLS = [
-    'https://www.nndc.bnl.gov/endf/b7.1/zips/ENDF-B-VII.1-neutrons.zip',
-    'https://www.nndc.bnl.gov/endf/b7.1/zips/ENDF-B-VII.1-decay.zip',
-    'https://www.nndc.bnl.gov/endf/b7.1/zips/ENDF-B-VII.1-nfy.zip'
+    'https://www.nndc.bnl.gov/endf-b7.1/zips/ENDF-B-VII.1-neutrons.zip',
+    'https://www.nndc.bnl.gov/endf-b7.1/zips/ENDF-B-VII.1-decay.zip',
+    'https://www.nndc.bnl.gov/endf-b7.1/zips/ENDF-B-VII.1-nfy.zip'
 ]
 
 def main():

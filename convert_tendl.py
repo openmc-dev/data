@@ -42,10 +42,10 @@ parser.add_argument('--libver', choices=['earliest', 'latest'],
                     default='latest', help="Output HDF5 versioning. Use "
                     "'earliest' for backwards compatibility or 'latest' for "
                     "performance")
-parser.add_argument('-r', '--release', choices=['2015', '2017', '2019'],
-                    default='2019', help="The nuclear data library release "
+parser.add_argument('-r', '--release', choices=['2015', '2017', '2019', '2021'],
+                    default='2021', help="The nuclear data library release "
                     "version. The currently supported options are 2015, "
-                    "2017, and 2019.")
+                    "2017, 2019, and 2021.")
 parser.add_argument('--cleanup', action='store_true',
                     help="Remove download directories when data has "
                     "been processed")
@@ -92,6 +92,14 @@ release_details = {
         'metastables': ace_files_dir.glob('tendl19c/*m'),
         'compressed_file_size': '2.3 GB',
         'uncompressed_file_size': '10.1 GB'
+    },
+    '2021': {
+        'base_url': 'https://tendl.web.psi.ch/tendl_2021/tar_files/',
+        'compressed_files': ['tendl21c.tar.bz2'],
+        'neutron_files': ace_files_dir.glob('tendl21c/*'),
+        'metastables': ace_files_dir.glob('tendl21c/*m'),
+        'compressed_file_size': '2.2 GB',
+        'uncompressed_file_size': '10.5 GB'
     }
 }
 
