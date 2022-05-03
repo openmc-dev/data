@@ -1,4 +1,3 @@
-
 # OpenMC Data Scripts
 
 This repository contains a collection of scripts for generating HDF5 data

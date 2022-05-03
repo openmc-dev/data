@@ -8,10 +8,7 @@ used for OpenMC's regression test suite.
 
 import argparse
 import sys
-import tarfile
-import zipfile
 from pathlib import Path
-from shutil import rmtree
 
 import openmc.data
 from utils import download, extract

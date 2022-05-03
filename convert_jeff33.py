@@ -7,11 +7,8 @@ extract them, convert them, and write HDF5 files into a destination directory.
 """
 
 import argparse
-import tarfile
 import sys
-import os
 from pathlib import Path
-from shutil import rmtree
 from urllib.parse import urljoin
 
 import openmc.data

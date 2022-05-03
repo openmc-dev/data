@@ -6,10 +6,8 @@ and convert it to a HDF5 library for use with OpenMC.
 """
 
 import argparse
-import zipfile
 from multiprocessing import Pool
 from pathlib import Path
-from shutil import rmtree
 from urllib.parse import urljoin
 
 import openmc.data

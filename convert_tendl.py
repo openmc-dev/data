@@ -7,9 +7,7 @@ convert them to HDF5 libraries for use with OpenMC.
 
 import argparse
 import sys
-import tarfile
 from pathlib import Path
-from shutil import rmtree
 from urllib.parse import urljoin
 
 import openmc.data
