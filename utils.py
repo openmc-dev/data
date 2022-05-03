@@ -54,6 +54,20 @@ def extract(
     del_compressed_file=False,
     verbose=True,
 ):
+    """Extracts zip, tar.gz or tgz compressed files
+
+    Parameters
+    ----------
+    compressed_files : iterable
+        The files to extract.
+    extraction_dir : str
+        The directory to extract the files to.
+    del_compressed_file : bool
+        Wheather the compressed file should be deleted (True) or not (False)
+    verbose : bool
+        Controls the printing to terminal, if True filenames of the extracted
+        files will be printed.
+    """
     Path.mkdir(extraction_dir, parents=True, exist_ok=True)
 
     for f in compressed_files:
