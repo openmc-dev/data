@@ -69,7 +69,7 @@ download_path = cwd.joinpath('-'.join([library_name, release, 'download']))
 release_details = {
     'b7.1': {
         'neutron': {
-            'base_url': 'http://www.nndc.bnl.gov/endf/b7.1/aceFiles/',
+            'base_url': 'http://www.nndc.bnl.gov/endf-b7.1/aceFiles/',
             'compressed_files': ['ENDF-B-VII.1-neutron-293.6K.tar.gz',
                                  'ENDF-B-VII.1-tsl.tar.gz'],
             'checksums': ['9729a17eb62b75f285d8a7628ace1449',
@@ -81,7 +81,7 @@ release_details = {
             'uncompressed_file_size': 1200
         },
         'photon': {
-            'base_url': 'http://www.nndc.bnl.gov/endf/b7.1/zips/',
+            'base_url': 'http://www.nndc.bnl.gov/endf-b7.1/zips/',
             'compressed_files': ['ENDF-B-VII.1-photoat.zip',
                                  'ENDF-B-VII.1-atomic_relax.zip'],
             'checksums': ['5192f94e61f0b385cf536f448ffab4a4',

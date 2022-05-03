@@ -23,11 +23,11 @@ from utils import download
 NEUTRON_LIB = 'https://tendl.web.psi.ch/tendl_2019/tar_files/TENDL-n.tgz'
 DECAY_LIB = {
     'jeff33': 'https://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/JEFF33-rdd.zip',
-    'endf80': 'https://www.nndc.bnl.gov/endf/b8.0/zips/ENDF-B-VIII.0_decay.zip',
+    'endf80': 'https://www.nndc.bnl.gov/endf-b8.0/zips/ENDF-B-VIII.0_decay.zip',
 }
 NFY_LIB = {
     'jeff33': 'https://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/JEFF33-nfy.asc',
-    'endf80': 'https://www.nndc.bnl.gov/endf/b8.0/zips/ENDF-B-VIII.0_nfy.zip',
+    'endf80': 'https://www.nndc.bnl.gov/endf-b8.0/zips/ENDF-B-VIII.0_nfy.zip',
 }
 
 
