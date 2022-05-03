@@ -14,7 +14,7 @@ from pathlib import Path
 from shutil import rmtree
 
 import openmc.data
-from utils import download
+from utils import download, extract
 
 # Make sure Python version is sufficient
 assert sys.version_info >= (3, 6), "Python 3.6+ is required"
@@ -134,20 +134,12 @@ if args.extract:
         elif release_details[release][particle]['file_type'] == 'endf':
             extraction_dir = endf_files_dir
 
-        for f in release_details[release][particle]['compressed_files']:
+        extract(
+            compressed_files=[download_path/ particle/ f for f in release_details[release][particle]['compressed_files']],
+            extraction_dir=extraction_dir,
+            del_compressed_file=args.cleanup
+        )
 
-            # Extract files
-            if f.endswith('.zip'):
-                with zipfile.ZipFile(download_path / particle / f, 'r') as zipf:
-                    print(f'Extracting {f}...')
-                    zipf.extractall(extraction_dir)
-            else:
-                with tarfile.open(download_path / particle / f, 'r') as tgz:
-                    print(f'Extracting {f}...')
-                    tgz.extractall(path=extraction_dir)
-
-    if args.cleanup and download_path.exists():
-        rmtree(download_path)
 
 # ==============================================================================
 # FIX ZAID ASSIGNMENTS FOR VARIOUS S(A,B) TABLES

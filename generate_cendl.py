@@ -13,7 +13,7 @@ from shutil import rmtree
 from urllib.parse import urljoin
 
 import openmc.data
-from utils import download, process_neutron
+from utils import download, extract, process_neutron
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
@@ -104,13 +104,12 @@ if args.download:
 # ==============================================================================
 # EXTRACT FILES FROM ZIP
 if args.extract:
-    for f in release_details[args.release]['compressed_files']:
-        with zipfile.ZipFile(download_path / f) as zf:
-            print('Extracting {0}...'.format(f))
-            zf.extractall(path=endf_files_dir)
+    extract(
+            compressed_files=[download_path/ f for f in release_details[args.release]['compressed_files']],
+            extraction_dir=endf_files_dir,
+            del_compressed_file=args.cleanup
+        )
 
-    if args.cleanup and download_path.exists():
-        rmtree(download_path)
 
 # ==============================================================================
 # GENERATE HDF5 LIBRARY -- NEUTRON FILES

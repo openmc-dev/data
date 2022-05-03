@@ -13,8 +13,7 @@ from shutil import rmtree
 from urllib.parse import urljoin
 
 import openmc.data
-from utils import download
-from tests.urls import all_release_details
+from utils import download, extract
 
 # Make sure Python version is sufficient
 assert sys.version_info >= (3, 6), "Python 3.6+ is required"
@@ -69,7 +68,40 @@ if args.destination is None:
 
 # This dictionary contains all the unique information about each release.
 # This can be exstened to accommodated new releases
-release_details = all_release_details[library_name]
+release_details = {
+    '2015': {
+        'base_url': 'https://tendl.web.psi.ch/tendl_2015/tar_files/',
+        'compressed_files': ['ACE-n.tgz'],
+        'neutron_files': ace_files_dir.glob('neutron_file/*/*/lib/endf/*-n.ace'),
+        'metastables': ace_files_dir.glob('neutron_file/*/*/lib/endf/*m-n.ace'),
+        'compressed_file_size': '5.1 GB',
+        'uncompressed_file_size': '40 GB'
+    },
+    '2017': {
+        'base_url': 'https://tendl.web.psi.ch/tendl_2017/tar_files/',
+        'compressed_files': ['tendl17c.tar.bz2'],
+        'neutron_files': ace_files_dir.glob('ace-17/*'),
+        'metastables': ace_files_dir.glob('ace-17/*m'),
+        'compressed_file_size': '2.1 GB',
+        'uncompressed_file_size': '14 GB'
+    },
+    '2019': {
+        'base_url': 'https://tendl.web.psi.ch/tendl_2019/tar_files/',
+        'compressed_files': ['tendl19c.tar.bz2'],
+        'neutron_files': ace_files_dir.glob('tendl19c/*'),
+        'metastables': ace_files_dir.glob('tendl19c/*m'),
+        'compressed_file_size': '2.3 GB',
+        'uncompressed_file_size': '10.1 GB'
+    },
+    '2021': {
+        'base_url': 'https://tendl.web.psi.ch/tendl_2021/tar_files/',
+        'compressed_files': ['tendl21c.tar.bz2'],
+        'neutron_files': ace_files_dir.glob('tendl21c/*'),
+        'metastables': ace_files_dir.glob('tendl21c/*m'),
+        'compressed_file_size': '2.2 GB',
+        'uncompressed_file_size': '10.5 GB'
+    }
+}
 
 download_warning = """
 WARNING: This script will download {} of data.
@@ -91,18 +123,17 @@ if args.download:
 # EXTRACT FILES FROM TGZ
 
 if args.extract:
-    for f in release_details[args.release]['compressed_files']:
-        with tarfile.open(download_path / f, 'r') as tgz:
-            print(f'Extracting {f}...')
-            tgz.extractall(path=ace_files_dir)
+    extract(
+        compressed_files=[download_path/ f for f in release_details[args.release]['compressed_files']],
+        extraction_dir=ace_files_dir,
+        del_compressed_file=args.cleanup
+    )
 
-    if args.cleanup and download_path.exists():
-        rmtree(download_path)
 
 # ==============================================================================
 # CHANGE ZAID FOR METASTABLES
 
-metastables = ace_files_dir.glob(release_details[args.release]['metastables'])
+metastables = release_details[args.release]['metastables']
 for path in metastables:
     print('    Fixing {} (ensure metastable)...'.format(path))
     text = open(path, 'r').read()
@@ -115,7 +146,7 @@ for path in metastables:
 # GENERATE HDF5 LIBRARY -- NEUTRON FILES
 
 # Get a list of all ACE files
-neutron_files = ace_files_dir.glob(release_details[args.release]['neutron_files'])
+neutron_files = release_details[args.release]['neutron_files']
 
 # Create output directory if it doesn't exist
 args.destination.mkdir(parents=True, exist_ok=True)
