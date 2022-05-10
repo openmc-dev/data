@@ -30,7 +30,7 @@ jobs:
           cd build
           cmake ..
           make -j2
-          make -j2 install
+          sudo make -j2 install
           cd ..
           pip install .
           pip install .[tests]
