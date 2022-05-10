@@ -7,16 +7,13 @@ extract them, convert them, and write HDF5 files into a destination directory.
 """
 
 import argparse
-import tarfile
 import sys
-import os
 from pathlib import Path
-from shutil import rmtree
 from urllib.parse import urljoin
 
 import openmc.data
 
-from utils import download
+from utils import download, extract
 
 
 # Make sure Python version is sufficient
@@ -106,13 +103,12 @@ if args.download:
 # EXTRACT FILES FROM TGZ
 
 if args.extract:
-    for f in details['compressed_files']:
-        with tarfile.open(download_path / f, 'r') as tgz:
-            print(f'Extracting {f}...')
-            tgz.extractall(path=ace_files_dir)
+    extract(
+        compressed_files=[download_path/ f for f in release_details[args.release]['compressed_files']],
+        extraction_dir=ace_files_dir,
+        del_compressed_file=args.cleanup,
+    )
 
-    if args.cleanup and download_path.exists():
-        rmtree(download_path)
 
 # ==============================================================================
 # CONVERT INCIDENT NEUTRON FILES

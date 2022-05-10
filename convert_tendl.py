@@ -7,13 +7,11 @@ convert them to HDF5 libraries for use with OpenMC.
 
 import argparse
 import sys
-import tarfile
 from pathlib import Path
-from shutil import rmtree
 from urllib.parse import urljoin
 
 import openmc.data
-from utils import download
+from utils import download, extract
 
 # Make sure Python version is sufficient
 assert sys.version_info >= (3, 6), "Python 3.6+ is required"
@@ -123,13 +121,12 @@ if args.download:
 # EXTRACT FILES FROM TGZ
 
 if args.extract:
-    for f in release_details[args.release]['compressed_files']:
-        with tarfile.open(download_path / f, 'r') as tgz:
-            print(f'Extracting {f}...')
-            tgz.extractall(path=ace_files_dir)
+    extract(
+        compressed_files=[download_path/ f for f in release_details[args.release]['compressed_files']],
+        extraction_dir=ace_files_dir,
+        del_compressed_file=args.cleanup
+    )
 
-    if args.cleanup and download_path.exists():
-        rmtree(download_path)
 
 # ==============================================================================
 # CHANGE ZAID FOR METASTABLES

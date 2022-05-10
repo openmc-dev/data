@@ -1,9 +1,13 @@
 import hashlib
+import tarfile
 import warnings
-import openmc.data
+import zipfile
 from pathlib import Path
+from shutil import rmtree
 from urllib.parse import urlparse
-from urllib.request import urlopen, Request
+from urllib.request import Request, urlopen
+
+import openmc.data
 
 _BLOCK_SIZE = 16384
 
@@ -42,6 +46,45 @@ def process_thermal(path_neutron, path_thermal, output_dir, libver):
     h5_file = output_dir / f'{data.name}.h5'
     print(f'Writing {h5_file} ...')
     data.export_to_hdf5(h5_file, 'w', libver=libver)
+
+
+def extract(
+    compressed_files,
+    extraction_dir,
+    del_compressed_file=False,
+    verbose=True,
+):
+    """Extracts zip, tar.gz or tgz compressed files
+
+    Parameters
+    ----------
+    compressed_files : iterable
+        The files to extract.
+    extraction_dir : str
+        The directory to extract the files to.
+    del_compressed_file : bool
+        Wheather the compressed file should be deleted (True) or not (False)
+    verbose : bool
+        Controls the printing to terminal, if True filenames of the extracted
+        files will be printed.
+    """
+    Path.mkdir(extraction_dir, parents=True, exist_ok=True)
+
+    for f in compressed_files:
+        if str(f).endswith('.zip'):
+            with zipfile.ZipFile(f, 'r') as zipf:
+                if verbose:
+                    print(f'Extracting {f}...')
+                zipf.extractall(path=extraction_dir)
+
+        if str(f).endswith('.tar.gz') or str(f).endswith('.tgz'):
+            with tarfile.open(f, 'r') as tgz:
+                if verbose:
+                    print(f'Extracting {f}...')
+                tgz.extractall(path=extraction_dir)
+
+    if del_compressed_file:
+        rmtree(compressed_files,ignore_errors=True)
 
 
 def download(url, checksum=None, as_browser=False, output_path=None, **kwargs):
