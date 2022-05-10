@@ -1,5 +1,5 @@
 
-name: test_urls
+name: test_package
 on:  
   workflow_dispatch:
   pull_request:    
@@ -11,7 +11,7 @@ on:
 
 
 jobs:
-    build:
+    run_scripts:
       runs-on: ubuntu-latest
       steps:
       - uses: actions/checkout@v2
@@ -22,5 +22,9 @@ jobs:
           python-version: 3.9
 
       - name: Install testing dependencies
+        run: |
+          pip install .[tests]
+
+      - name: Test scripts exist
         run: |
           python convert_fendl
