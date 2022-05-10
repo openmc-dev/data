@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 
 import argparse
-import glob
 import os
 import sys
-import tarfile
 from multiprocessing import Pool
 import re
 import shutil

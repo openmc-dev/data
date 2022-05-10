@@ -12,6 +12,29 @@ https://openmc.org. Another source of data libraries for OpenMC is the
 repository which enables on-the-fly Doppler broadening to an arbitrary
 temperature.
 
+# Installation
+
+```
+pip install openmc_data
+```
+
+# Usage
+
+Once install several scripts are added to your python path that are able to
+download and process nuclear data.
+
+The scripts accept input arguments, to find out the input arguments available
+for a particular script run the script name with ```--help``` after the name.
+For example:
+
+```convert_fendl --help```
+
+Two categories of scripts are available, those that generate h5 cross section
+files for using in OpenMC and those that generate chain files for use in
+depletion simulations.
+
+## Cross Section
+
 | Library | Release | Processed by | Download from [openmc.org](https://openmc.org/) | Download ACE files and convert HDF5 | Download ENDF files and generate HDF5 | Convert local ACE files |
 |-|-|-|-|-|-|-|
 | CENDL | 3.1<br>3.2 |  |  |  | generate_cendl.py |  |
@@ -25,3 +48,10 @@ temperature.
 | JEFF | 3.2 |  | :heavy_check_mark: | convert_jeff32.py |  |  |
 | JEFF | 3.3 |  | :heavy_check_mark: | convert_jeff33.py |  |  |
 | TENDL | 2015<br>2017<br>2019<br>2021|  |  | convert_tendl.py |  |  |
+
+## Depletion Chains
+
+| Library | Release | Processed by | Download from [openmc.org](https://openmc.org/) | Download ENDF files and XML chain files |
+|-|-|-|-|
+|-|-|-|-|
+TODO

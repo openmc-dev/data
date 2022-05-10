@@ -11,8 +11,8 @@ from pathlib import Path
 from urllib.parse import urljoin
 
 import openmc.data
-from utils import download, extract
-from tests.urls import all_release_details
+from .utils import download, extract
+from .urls import all_release_details
 
 
 # Make sure Python version is sufficient

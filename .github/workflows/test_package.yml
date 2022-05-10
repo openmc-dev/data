@@ -1,5 +1,5 @@
 
-name: test_urls
+name: test_package
 on:  
   workflow_dispatch:
   pull_request:    
@@ -8,12 +8,10 @@ on:
   push:
     branches:
     - main
-  schedule:
-    - cron: "0 0 * * *"
-# cron job runs every day
+
 
 jobs:
-    ping_urls:
+    run_scripts:
       runs-on: ubuntu-latest
       steps:
       - uses: actions/checkout@v2
@@ -36,8 +34,8 @@ jobs:
           cd ..
           pip install .
           cd ..
-          pip install .[tests]
+          pip install .
 
-      - name: test urls
+      - name: Test scripts exist
         run: |
-          pytest -v tests/test_urls.py
+          convert_fendl --help
