@@ -57,6 +57,7 @@ parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
 parser.set_defaults(download=True, extract=True, cleanup=False)
 args = parser.parse_args()
 
+
 # =============================================================================
 # FUNCTIONS FOR DEALING WITH SPECIAL CASES
 #
@@ -91,273 +92,275 @@ def check_special_case(particle_details, script_step):
     return {}
 
 
-library_name = 'fendl'
-cwd = Path.cwd()
+def main():
 
-ace_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'ace']))
-endf_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'endf']))
+    library_name = 'fendl'
+    cwd = Path.cwd()
 
-download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
-# the destination is decided after the release is know to avoid putting
-# the release in a folder with a misleading name
-if args.destination is None:
-    args.destination = Path('-'.join([library_name, args.release, 'hdf5']))
+    ace_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'ace']))
+    endf_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'endf']))
 
-# This dictionary contains all the unique information about each release.
-# This can be extended to accommodate new releases
-release_details = {
-    '3.2': {
-        'neutron': {
-            'base_url': 'https://www-nds.iaea.org/fendl/data/neutron/',
-            'compressed_files': ['fendl32-neutron-ace.zip'],
-            'file_type': 'ace',
-            'ace_files': ace_files_dir.joinpath('neutron/ace').glob('*[!.xsd]'),
-            'compressed_file_size': 565,
-            'uncompressed_file_size': 4226
-        },
-        'photon': {
-            'base_url': 'https://www-nds.iaea.org/fendl/data/atom/',
-            'compressed_files': ['fendl32-atom-endf.zip'],
-            'file_type': 'endf',
-            'photo_files': endf_files_dir.joinpath('atom/endf').rglob('*.endf'),
-            'compressed_file_size': 4,
-            'uncompressed_file_size': 33
-        }
-    },
-    '3.1a': {
-        'neutron': {
-            'base_url': 'https://www-nds.iaea.org/fendl31/data/neutron/',
-            'compressed_files': ['fendl31a-neutron-ace.zip'],
-            'file_type': 'ace',
-            'ace_files': ace_files_dir.glob('*.ace'),
-            'compressed_file_size': 384,
-            'uncompressed_file_size': 2250
-        },
-        'photon': {
-            'base_url': 'https://www-nds.iaea.org/fendl31/data/atom/',
-            'compressed_files': ['fendl30-atom-endf.zip'],
-            'file_type': 'endf',
-            'photo_files': endf_files_dir.joinpath('endf').glob('*.txt'),
-            'compressed_file_size': 4,
-            'uncompressed_file_size': 12
-        }
-    },
-    '3.1d': {
-        'neutron': {
-            'base_url': 'https://www-nds.iaea.org/fendl31d/data/neutron/',
-            'compressed_files': ['fendl31d-neutron-ace.zip'],
-            'file_type': 'ace',
-            'ace_files': ace_files_dir.joinpath('fendl31d_ACE').glob('*'),
-            'compressed_file_size': 425,
-            'uncompressed_file_size': 2290
-        },
-        'photon': {
-            'base_url': 'https://www-nds.iaea.org/fendl31d/data/atom/',
-            'compressed_files': ['fendl30-atom-endf.zip'],
-            'file_type': 'endf',
-            'photo_files': endf_files_dir.joinpath('endf').glob('*.txt'),
-            'compressed_file_size': 4,
-            'uncompressed_file_size': 12
-        }
-    },
-    '3.0': {
-        'neutron': {
-            'base_url': 'https://www-nds.iaea.org/fendl30/data/neutron/',
-            'compressed_files': ['fendl30-neutron-ace.zip'],
-            'file_type': 'ace',
-            'ace_files': ace_files_dir.joinpath('ace').glob('*.ace'),
-            'compressed_file_size': 364,
-            'uncompressed_file_size': 2200,
-            'special_cases': {
-                'process': {'19K_039.ace': fendl30_k39}
+    download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
+    # the destination is decided after the release is know to avoid putting
+    # the release in a folder with a misleading name
+    if args.destination is None:
+        args.destination = Path('-'.join([library_name, args.release, 'hdf5']))
+
+    # This dictionary contains all the unique information about each release.
+    # This can be extended to accommodate new releases
+    release_details = {
+        '3.2': {
+            'neutron': {
+                'base_url': 'https://www-nds.iaea.org/fendl/data/neutron/',
+                'compressed_files': ['fendl32-neutron-ace.zip'],
+                'file_type': 'ace',
+                'ace_files': ace_files_dir.joinpath('neutron/ace').glob('*[!.xsd]'),
+                'compressed_file_size': 565,
+                'uncompressed_file_size': 4226
+            },
+            'photon': {
+                'base_url': 'https://www-nds.iaea.org/fendl/data/atom/',
+                'compressed_files': ['fendl32-atom-endf.zip'],
+                'file_type': 'endf',
+                'photo_files': endf_files_dir.joinpath('atom/endf').rglob('*.endf'),
+                'compressed_file_size': 4,
+                'uncompressed_file_size': 33
             }
         },
-        'photon': {
-            'base_url': 'https://www-nds.iaea.org/fendl30/data/atom/',
-            'compressed_files': ['fendl30-atom-endf.zip'],
-            'file_type': 'endf',
-            'photo_files': endf_files_dir.joinpath('endf').glob('*.txt'),
-            'compressed_file_size': 4,
-            'uncompressed_file_size': 12
-        }
-    },
-    '2.1': {
-        'neutron': {
-            'base_url': 'https://www-nds.iaea.org/fendl21/fendl21mc/',
-            'compressed_files': ['H001mc.zip',  'H002mc.zip',  'H003mc.zip',  'He003mc.zip',
-                    'He004mc.zip', 'Li006mc.zip', 'Li007mc.zip', 'Be009mc.zip',
-                    'B010mc.zip',  'B011mc.zip',  'C012mc.zip',  'N014mc.zip',
-                    'N015mc.zip',  'O016mc.zip',  'F019mc.zip',  'Na023mc.zip',
-                    'Mg000mc.zip', 'Al027mc.zip', 'Si028mc.zip', 'Si029mc.zip',
-                    'Si030mc.zip', 'P031mc.zip',  'S000mc.zip',  'Cl035mc.zip',
-                    'Cl037mc.zip', 'K000mc.zip',  'Ca000mc.zip', 'Ti046mc.zip',
-                    'Ti047mc.zip', 'Ti048mc.zip', 'Ti049mc.zip', 'Ti050mc.zip',
-                    'V000mc.zip',  'Cr050mc.zip', 'Cr052mc.zip', 'Cr053mc.zip',
-                    'Cr054mc.zip', 'Mn055mc.zip', 'Fe054mc.zip', 'Fe056mc.zip',
-                    'Fe057mc.zip', 'Fe058mc.zip', 'Co059mc.zip', 'Ni058mc.zip',
-                    'Ni060mc.zip', 'Ni061mc.zip', 'Ni062mc.zip', 'Ni064mc.zip',
-                    'Cu063mc.zip', 'Cu065mc.zip', 'Ga000mc.zip', 'Zr000mc.zip',
-                    'Nb093mc.zip', 'Mo092mc.zip', 'Mo094mc.zip', 'Mo095mc.zip',
-                    'Mo096mc.zip', 'Mo097mc.zip', 'Mo098mc.zip', 'Mo100mc.zip',
-                    'Sn000mc.zip', 'Ta181mc.zip', 'W182mc.zip',  'W183mc.zip',
-                    'W184mc.zip',  'W186mc.zip',  'Au197mc.zip', 'Pb206mc.zip',
-                    'Pb207mc.zip', 'Pb208mc.zip', 'Bi209mc.zip'],
-            'file_type': 'ace',
-            'ace_files': ace_files_dir.glob('*.ace'),
-            'compressed_file_size': 100,
-            'uncompressed_file_size': 600
+        '3.1a': {
+            'neutron': {
+                'base_url': 'https://www-nds.iaea.org/fendl31/data/neutron/',
+                'compressed_files': ['fendl31a-neutron-ace.zip'],
+                'file_type': 'ace',
+                'ace_files': ace_files_dir.glob('*.ace'),
+                'compressed_file_size': 384,
+                'uncompressed_file_size': 2250
+            },
+            'photon': {
+                'base_url': 'https://www-nds.iaea.org/fendl31/data/atom/',
+                'compressed_files': ['fendl30-atom-endf.zip'],
+                'file_type': 'endf',
+                'photo_files': endf_files_dir.joinpath('endf').glob('*.txt'),
+                'compressed_file_size': 4,
+                'uncompressed_file_size': 12
+            }
         },
-        'photon': {
-            'base_url': 'https://www-nds.iaea.org/fendl21/fendl21e/',
-            'compressed_files': ['FENDLEP.zip'],
-            'file_type': 'endf',
-            'photo_files': endf_files_dir.glob('*.endf'),
-            'compressed_file_size': 2,
-            'uncompressed_file_size': 5
+        '3.1d': {
+            'neutron': {
+                'base_url': 'https://www-nds.iaea.org/fendl31d/data/neutron/',
+                'compressed_files': ['fendl31d-neutron-ace.zip'],
+                'file_type': 'ace',
+                'ace_files': ace_files_dir.joinpath('fendl31d_ACE').glob('*'),
+                'compressed_file_size': 425,
+                'uncompressed_file_size': 2290
+            },
+            'photon': {
+                'base_url': 'https://www-nds.iaea.org/fendl31d/data/atom/',
+                'compressed_files': ['fendl30-atom-endf.zip'],
+                'file_type': 'endf',
+                'photo_files': endf_files_dir.joinpath('endf').glob('*.txt'),
+                'compressed_file_size': 4,
+                'uncompressed_file_size': 12
+            }
+        },
+        '3.0': {
+            'neutron': {
+                'base_url': 'https://www-nds.iaea.org/fendl30/data/neutron/',
+                'compressed_files': ['fendl30-neutron-ace.zip'],
+                'file_type': 'ace',
+                'ace_files': ace_files_dir.joinpath('ace').glob('*.ace'),
+                'compressed_file_size': 364,
+                'uncompressed_file_size': 2200,
+                'special_cases': {
+                    'process': {'19K_039.ace': fendl30_k39}
+                }
+            },
+            'photon': {
+                'base_url': 'https://www-nds.iaea.org/fendl30/data/atom/',
+                'compressed_files': ['fendl30-atom-endf.zip'],
+                'file_type': 'endf',
+                'photo_files': endf_files_dir.joinpath('endf').glob('*.txt'),
+                'compressed_file_size': 4,
+                'uncompressed_file_size': 12
+            }
+        },
+        '2.1': {
+            'neutron': {
+                'base_url': 'https://www-nds.iaea.org/fendl21/fendl21mc/',
+                'compressed_files': ['H001mc.zip',  'H002mc.zip',  'H003mc.zip',  'He003mc.zip',
+                        'He004mc.zip', 'Li006mc.zip', 'Li007mc.zip', 'Be009mc.zip',
+                        'B010mc.zip',  'B011mc.zip',  'C012mc.zip',  'N014mc.zip',
+                        'N015mc.zip',  'O016mc.zip',  'F019mc.zip',  'Na023mc.zip',
+                        'Mg000mc.zip', 'Al027mc.zip', 'Si028mc.zip', 'Si029mc.zip',
+                        'Si030mc.zip', 'P031mc.zip',  'S000mc.zip',  'Cl035mc.zip',
+                        'Cl037mc.zip', 'K000mc.zip',  'Ca000mc.zip', 'Ti046mc.zip',
+                        'Ti047mc.zip', 'Ti048mc.zip', 'Ti049mc.zip', 'Ti050mc.zip',
+                        'V000mc.zip',  'Cr050mc.zip', 'Cr052mc.zip', 'Cr053mc.zip',
+                        'Cr054mc.zip', 'Mn055mc.zip', 'Fe054mc.zip', 'Fe056mc.zip',
+                        'Fe057mc.zip', 'Fe058mc.zip', 'Co059mc.zip', 'Ni058mc.zip',
+                        'Ni060mc.zip', 'Ni061mc.zip', 'Ni062mc.zip', 'Ni064mc.zip',
+                        'Cu063mc.zip', 'Cu065mc.zip', 'Ga000mc.zip', 'Zr000mc.zip',
+                        'Nb093mc.zip', 'Mo092mc.zip', 'Mo094mc.zip', 'Mo095mc.zip',
+                        'Mo096mc.zip', 'Mo097mc.zip', 'Mo098mc.zip', 'Mo100mc.zip',
+                        'Sn000mc.zip', 'Ta181mc.zip', 'W182mc.zip',  'W183mc.zip',
+                        'W184mc.zip',  'W186mc.zip',  'Au197mc.zip', 'Pb206mc.zip',
+                        'Pb207mc.zip', 'Pb208mc.zip', 'Bi209mc.zip'],
+                'file_type': 'ace',
+                'ace_files': ace_files_dir.glob('*.ace'),
+                'compressed_file_size': 100,
+                'uncompressed_file_size': 600
+            },
+            'photon': {
+                'base_url': 'https://www-nds.iaea.org/fendl21/fendl21e/',
+                'compressed_files': ['FENDLEP.zip'],
+                'file_type': 'endf',
+                'photo_files': endf_files_dir.glob('*.endf'),
+                'compressed_file_size': 2,
+                'uncompressed_file_size': 5
+            }
         }
     }
-}
 
-compressed_file_size = uncompressed_file_size = 0
-for p in ('neutron', 'photon'):
-    if p in args.particles:
-        compressed_file_size += release_details[args.release][p]['compressed_file_size']
-        uncompressed_file_size += release_details[args.release][p]['uncompressed_file_size']
+    compressed_file_size = uncompressed_file_size = 0
+    for p in ('neutron', 'photon'):
+        if p in args.particles:
+            compressed_file_size += release_details[args.release][p]['compressed_file_size']
+            uncompressed_file_size += release_details[args.release][p]['uncompressed_file_size']
 
-download_warning = """
-WARNING: This script will download {} MB of data.
-Extracting and processing the data requires {} MB of additional free disk space.
-""".format(compressed_file_size, uncompressed_file_size)
+    download_warning = """
+    WARNING: This script will download {} MB of data.
+    Extracting and processing the data requires {} MB of additional free disk space.
+    """.format(compressed_file_size, uncompressed_file_size)
 
-# Warnings to be printed at the end of the script.
-output_warnings = []
+    # Warnings to be printed at the end of the script.
+    output_warnings = []
 
-# ==============================================================================
-# DOWNLOAD FILES FROM IAEA SITE
+    # ==============================================================================
+    # DOWNLOAD FILES FROM IAEA SITE
 
-if args.download:
-    print(download_warning)
+    if args.download:
+        print(download_warning)
+
+        for particle in args.particles:
+            # Create a directory to hold the downloads
+            particle_download_path = download_path / particle
+
+            particle_details = release_details[args.release][particle]
+            for f in particle_details['compressed_files']:
+                download(urljoin(particle_details['base_url'], f),
+                        as_browser=True, context=ssl._create_unverified_context(),
+                        output_path=particle_download_path)
+
+
+    # ==============================================================================
+    # EXTRACT FILES FROM ZIP
+    if args.extract:
+        for particle in args.particles:
+
+            particle_details = release_details[args.release][particle]
+            special_cases = check_special_case(particle_details, 'extract')
+
+            if particle_details['file_type'] == "ace":
+                extraction_dir = ace_files_dir
+            elif particle_details['file_type'] == "endf":
+                extraction_dir = endf_files_dir
+
+            for f in particle_details['compressed_files']:
+                # Check if file requires special handling
+                if f in special_cases:
+                    ret = special_cases[f](Path(f))
+                    if 'err_msg' in ret:
+                        output_warnings.append(ret['err_msg'])
+                    if ret['skip_file']:
+                        continue
+
+                # Extract files, the fendl release was compressed using type 9 zip format
+                # unfortunatly which is incompatible with the standard python zipfile library
+                # therefore the following system command is used
+                subprocess.call(['unzip', '-o', download_path / particle / f, '-d', extraction_dir])
+
+        if args.cleanup and download_path.exists():
+            rmtree(download_path)
+
+
+    # ==============================================================================
+    # GENERATE HDF5 LIBRARY
+
+    library = openmc.data.DataLibrary()
 
     for particle in args.particles:
-        # Create a directory to hold the downloads
-        particle_download_path = download_path / particle
+        # Create output directories if it doesn't exist
+        particle_destination = args.destination / particle
+        particle_destination.mkdir(parents=True, exist_ok=True)
 
         particle_details = release_details[args.release][particle]
-        for f in particle_details['compressed_files']:
-            download(urljoin(particle_details['base_url'], f),
-                     as_browser=True, context=ssl._create_unverified_context(),
-                     output_path=particle_download_path)
 
+        # Get dictionary of special cases for particle
+        special_cases = check_special_case(particle_details, 'process')
 
-# ==============================================================================
-# EXTRACT FILES FROM ZIP
-if args.extract:
-    for particle in args.particles:
+        if particle == 'neutron':
+            # Get a list of all ACE files, excluding files ending with _ that are
+            # old incorrect files kept in the release for backwards compatability
+            neutron_files = [
+                f
+                for f in particle_details['ace_files']
+                if not f.name.endswith('_') and not f.name.endswith('.xsd')
+            ]
 
-        particle_details = release_details[args.release][particle]
-        special_cases = check_special_case(particle_details, 'extract')
+            for filename in sorted(neutron_files):
+                # Handling for special cases
+                if filename.name in special_cases:
+                    ret = special_cases[filename.name](filename)
+                    if 'err_msg' in ret:
+                        output_warnings.append(ret['err_msg'])
+                    if ret['skip_file']:
+                        continue
 
-        if particle_details['file_type'] == "ace":
-            extraction_dir = ace_files_dir
-        elif particle_details['file_type'] == "endf":
-            extraction_dir = endf_files_dir
+                print(f'Converting: {filename}')
+                data = openmc.data.IncidentNeutron.from_ace(filename)
 
-        for f in particle_details['compressed_files']:
-            # Check if file requires special handling
-            if f in special_cases:
-                ret = special_cases[f](Path(f))
-                if 'err_msg' in ret:
-                    output_warnings.append(ret['err_msg'])
-                if ret['skip_file']:
-                    continue
-
-            # Extract files, the fendl release was compressed using type 9 zip format
-            # unfortunatly which is incompatible with the standard python zipfile library
-            # therefore the following system command is used
-            subprocess.call(['unzip', '-o', download_path / particle / f, '-d', extraction_dir])
-
-    if args.cleanup and download_path.exists():
-        rmtree(download_path)
-
-
-# ==============================================================================
-# GENERATE HDF5 LIBRARY
-
-library = openmc.data.DataLibrary()
-
-for particle in args.particles:
-    # Create output directories if it doesn't exist
-    particle_destination = args.destination / particle
-    particle_destination.mkdir(parents=True, exist_ok=True)
-
-    particle_details = release_details[args.release][particle]
-
-    # Get dictionary of special cases for particle
-    special_cases = check_special_case(particle_details, 'process')
-
-    if particle == 'neutron':
-        # Get a list of all ACE files, excluding files ending with _ that are
-        # old incorrect files kept in the release for backwards compatability
-        neutron_files = [
-            f
-            for f in particle_details['ace_files']
-            if not f.name.endswith('_') and not f.name.endswith('.xsd')
-        ]
-
-        for filename in sorted(neutron_files):
-            # Handling for special cases
-            if filename.name in special_cases:
-                ret = special_cases[filename.name](filename)
-                if 'err_msg' in ret:
-                    output_warnings.append(ret['err_msg'])
-                if ret['skip_file']:
-                    continue
-
-            print(f'Converting: {filename}')
-            data = openmc.data.IncidentNeutron.from_ace(filename)
-
-            # Export HDF5 file
-            h5_file = particle_destination / f'{data.name}.h5'
-            print(f'Writing {h5_file}...')
-            data.export_to_hdf5(h5_file, 'w', libver=args.libver)
-
-            # Register with library
-            library.register_file(h5_file)
-
-        # Remove the ace files if required
-        if args.cleanup and ace_files_dir.exists():
-            rmtree(ace_files_dir)
-
-    elif particle == 'photon':
-        for photo_path in sorted(particle_details['photo_files']):
-            # Check if file requires special handling
-            if photo_path.name in special_cases:
-                ret = special_cases[photo_path.name](photo_path)
-                if 'err_msg' in ret:
-                    output_warnings.append(ret['err_msg'])
-                if ret['skip_file']:
-                    continue
-
-            print(f'Converting: {photo_path}')
-            evaluations = openmc.data.endf.get_evaluations(photo_path)
-            for ev in evaluations:
                 # Export HDF5 file
-                data = openmc.data.IncidentPhoton.from_endf(ev)
                 h5_file = particle_destination / f'{data.name}.h5'
                 print(f'Writing {h5_file}...')
                 data.export_to_hdf5(h5_file, 'w', libver=args.libver)
 
-            # Register with library
-            library.register_file(h5_file)
+                # Register with library
+                library.register_file(h5_file)
 
-        # Remove the ENDF files if required
-        if args.cleanup and endf_files_dir.exists():
-            rmtree(endf_files_dir)
+            # Remove the ace files if required
+            if args.cleanup and ace_files_dir.exists():
+                rmtree(ace_files_dir)
 
-# Write cross_sections.xml
-print('Writing ', args.destination / 'cross_sections.xml')
-library.export_to_xml(args.destination / 'cross_sections.xml')
+        elif particle == 'photon':
+            for photo_path in sorted(particle_details['photo_files']):
+                # Check if file requires special handling
+                if photo_path.name in special_cases:
+                    ret = special_cases[photo_path.name](photo_path)
+                    if 'err_msg' in ret:
+                        output_warnings.append(ret['err_msg'])
+                    if ret['skip_file']:
+                        continue
 
-# Print any warnings
-for warning in output_warnings:
-    warnings.warn(warning)
+                print(f'Converting: {photo_path}')
+                evaluations = openmc.data.endf.get_evaluations(photo_path)
+                for ev in evaluations:
+                    # Export HDF5 file
+                    data = openmc.data.IncidentPhoton.from_endf(ev)
+                    h5_file = particle_destination / f'{data.name}.h5'
+                    print(f'Writing {h5_file}...')
+                    data.export_to_hdf5(h5_file, 'w', libver=args.libver)
+
+                # Register with library
+                library.register_file(h5_file)
+
+            # Remove the ENDF files if required
+            if args.cleanup and endf_files_dir.exists():
+                rmtree(endf_files_dir)
+
+    # Write cross_sections.xml
+    print('Writing ', args.destination / 'cross_sections.xml')
+    library.export_to_xml(args.destination / 'cross_sections.xml')
+
+    # Print any warnings
+    for warning in output_warnings:
+        warnings.warn(warning)
