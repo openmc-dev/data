@@ -40,4 +40,4 @@ jobs:
 
       - name: test urls
         run: |
-          pytest -v tests/tests_urls.py
+          pytest -v tests/test_urls.py

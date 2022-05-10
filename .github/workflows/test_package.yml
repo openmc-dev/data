@@ -38,4 +38,4 @@ jobs:
 
       - name: Test scripts exist
         run: |
-          convert_fendl
+          convert_fendl --help
