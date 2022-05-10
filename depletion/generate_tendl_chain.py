@@ -7,20 +7,57 @@ be borrowed from another library. The --lib flag for this script indicates what
 library should be used for decay and FPY evaluations and defaults to JEFF 3.3.
 """
 
-from argparse import ArgumentParser
 import json
-import os
-from pathlib import Path
 import tarfile
+from argparse import ArgumentParser
+from pathlib import Path
+from urllib.parse import urljoin
 from zipfile import ZipFile
 
-import openmc.deplete as dep
 import openmc.data
+import openmc.deplete as dep
 
 from utils import download
 
+# Parse command line arguments
+parser = ArgumentParser()
+parser.add_argument('--lib', choices=('jeff33', 'endf80'), default='jeff33',
+                    help='Library to use for decay and fission product yields')
+parser.add_argument('-r', '--release', choices=['2019', '2021'],
+                    default='2021', help="The nuclear data library release "
+                    "version. The currently supported options are 2019, "
+                    "and 2021.")
+args = parser.parse_args()
 
-NEUTRON_LIB = 'https://tendl.web.psi.ch/tendl_2019/tar_files/TENDL-n.tgz'
+
+library_name = 'tendl'
+
+cwd = Path.cwd()
+
+endf_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'endf']))
+download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
+
+neutron_dir = endf_files_dir / "neutrons"
+decay_dir = endf_files_dir / "decay"
+nfy_dir = endf_files_dir / "nfy"
+
+# This dictionary contains all the unique information about each release.
+# This can be extended to accommodated new releases
+release_details = {
+    '2019': {
+        'base_url': 'https://tendl.web.psi.ch/tendl_2019/tar_files/',
+        'compressed_files': ['TENDL-n.tgz'],
+        'transport_nuclides': 'depletion/tendl2019_nuclides.json',
+        'neutron_files': endf_files_dir.glob('tendl19c/*'),
+    },
+    '2021': {
+        'base_url': 'https://tendl.web.psi.ch/tendl_2021/tar_files/',
+        'compressed_files': ['TENDL-n.tgz'],
+        'transport_nuclides': 'depletion/tendl2021_nuclides.json',
+        'neutron_files': endf_files_dir.glob('tendl21c/*'),
+    }
+}
+
 DECAY_LIB = {
     'jeff33': 'https://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/JEFF33-rdd.zip',
     'endf80': 'https://www.nndc.bnl.gov/endf-b8.0/zips/ENDF-B-VIII.0_decay.zip',
@@ -41,7 +78,7 @@ def extract(filename, path=".", verbose=True):
     # Open archive and extract files
     with func(filename, 'r') as fh:
         if verbose:
-            print(f'Extracting {filename}...')
+            print(f'Extracting {filename} to {path}')
         fh.extractall(path)
 
 
@@ -58,60 +95,48 @@ def fix_jeff33_nfy(path):
     return new_path
 
 
-def main():
-    # Parse command line arguments
-    parser = ArgumentParser()
-    parser.add_argument('--lib', choices=('jeff33', 'endf80'), default='jeff33',
-                        help='Library to use for decay and fission product yields')
-    args = parser.parse_args()
-
-    # Setup output directories
-    endf_dir = Path("tendl-download")
-    neutron_dir = endf_dir / "neutrons"
-    decay_dir = endf_dir / "decay"
-    nfy_dir = endf_dir / "nfy"
-
-    # ==========================================================================
-    # Incident neutron data
-
-    neutron_tgz = download(NEUTRON_LIB, output_path=endf_dir)
-    extract(neutron_tgz, neutron_dir)
-
-    # Get list of transport nuclides in TENDL-2019
-    with open('tendl2019_nuclides.json', 'r') as fh:
-        transport_nuclides = set(json.load(fh))
-
-    neutron_files = [
-        p
-        for p in (endf_dir / "neutrons").glob("*.tendl")
-        if p.name[2:-6] in transport_nuclides  # filename is n-XXNNN.tendl
-    ]
-
-    # ==========================================================================
-    # Decay and fission product yield data
-
-    decay_zip = download(DECAY_LIB[args.lib], output_path=endf_dir)
-    nfy_file = download(NFY_LIB[args.lib], output_path=endf_dir)
-
-    extract(decay_zip, decay_dir)
-    if args.lib == 'jeff33':
-        decay_files = list(decay_dir.glob('*.ASC'))
-
-        nfy_file_fixed = fix_jeff33_nfy(nfy_file)
-        nfy_files = openmc.data.endf.get_evaluations(nfy_file_fixed)
-
-    elif args.lib == 'endf80':
-        decay_files = list(decay_dir.rglob('*.endf'))
-
-        extract(nfy_file, nfy_dir)
-        nfy_files = list(nfy_dir.rglob('*.endf'))
-
-    chain = dep.Chain.from_endf(
-        decay_files, nfy_files, neutron_files,
-        reactions=dep.chain.REACTIONS.keys()
+# ==========================================================================
+# Incident neutron data
+for f in release_details[args.release]['compressed_files']:
+    downloaded_file = download(
+        url=urljoin(release_details[args.release]['base_url'], f),
+        output_path=download_path
     )
-    chain.export_to_xml(f'chain_tendl2019_{args.lib}.xml')
 
+for f in release_details[args.release]['compressed_files']:
+    extract(downloaded_file, neutron_dir)
 
-if __name__ == '__main__':
-    main()
+# Get list of transport nuclides in TENDL-2019
+with open(release_details[args.release]['transport_nuclides'], 'r') as fh:
+    transport_nuclides = set(json.load(fh))
+
+neutron_files = [
+    p
+    for p in release_details[args.release]['neutron_files']
+    if p.name[2:-6] in transport_nuclides  # filename is n-XXNNN.tendl
+]
+
+# ==========================================================================
+# Decay and fission product yield data
+
+decay_zip = download(DECAY_LIB[args.lib], output_path=download_path)
+nfy_file = download(NFY_LIB[args.lib], output_path=download_path)
+
+extract(decay_zip, decay_dir)
+if args.lib == 'jeff33':
+    decay_files = list(decay_dir.glob('*.ASC'))
+
+    nfy_file_fixed = fix_jeff33_nfy(nfy_file)
+    nfy_files = openmc.data.endf.get_evaluations(nfy_file_fixed)
+
+elif args.lib == 'endf80':
+    decay_files = list(decay_dir.rglob('*.endf'))
+
+    extract(nfy_file, nfy_dir)
+    nfy_files = list(nfy_dir.rglob('*.endf'))
+
+chain = dep.Chain.from_endf(
+    decay_files, nfy_files, neutron_files,
+    reactions=dep.chain.REACTIONS.keys()
+)
+chain.export_to_xml(f'chain_{library_name}_{args.release}_{args.lib}.xml')

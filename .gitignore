@@ -3,3 +3,9 @@
 *.zip
 mcnp_endfb70/
 mcnp_endfb71/
+
+# standard output folders produced by data scripts
+*-ace/
+*-endf/
+*-hdf5/
+*-download/
