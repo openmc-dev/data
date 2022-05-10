@@ -27,4 +27,4 @@ jobs:
 
       - name: Test scripts exist
         run: |
-          python convert_fendl
+          convert_fendl
