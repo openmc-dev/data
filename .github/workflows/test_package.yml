@@ -8,9 +8,7 @@ on:
   push:
     branches:
     - main
-  schedule:
-    - cron: "0 0 * * *"
-# cron job runs every day
+
 
 jobs:
     build:
@@ -25,8 +23,4 @@ jobs:
 
       - name: Install testing dependencies
         run: |
-          pip install .[tests]
-
-      - name: test urls
-        run: |
-          pytest -v tests/tests_urls.py
+          python convert_fendl
