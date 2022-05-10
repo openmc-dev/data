@@ -23,6 +23,15 @@ jobs:
 
       - name: Install testing dependencies
         run: |
+          git clone --single-branch --branch develop --depth 1 https://github.com/openmc-dev/openmc.git
+          cd openmc
+          mkdir build
+          cd build
+          cmake ..
+          make -j2
+          make -j2 install
+          cd ..
+          pip install .
           pip install .[tests]
 
       - name: Test scripts exist
