@@ -33,7 +33,8 @@ jobs:
           sudo make -j2 install
           cd ..
           pip install .
-          pip install .[tests]
+          cd ..
+          pip install .
 
       - name: Test scripts exist
         run: |
