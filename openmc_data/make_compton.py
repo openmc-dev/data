@@ -6,7 +6,7 @@ import tarfile
 import numpy as np
 import h5py
 
-from utils import download
+from .utils import download
 
 
 base_url = 'http://geant4.cern.ch/support/source/'

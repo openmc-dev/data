@@ -1,7 +1,7 @@
 
 import requests
 
-from urls import all_release_details
+from openmc_data import all_release_details
 
 
 def test_tendl_urls():

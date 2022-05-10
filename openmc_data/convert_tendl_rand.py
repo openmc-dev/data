@@ -10,7 +10,7 @@ from multiprocessing import Pool
 
 import openmc.data
 
-from utils import download
+from .utils import download
 
 description = """
 Download random TENDL libraries from PSI and convert it to a HDF5 library for use with OpenMC. 

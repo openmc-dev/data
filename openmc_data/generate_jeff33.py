@@ -10,11 +10,9 @@ atomic relaxation data so these are obtained from ENDF/B-VIII.0.
 
 import argparse
 import os
-import shutil
 import sys
 import tarfile
 import tempfile
-import warnings
 import zipfile
 from multiprocessing import Pool
 from pathlib import Path
