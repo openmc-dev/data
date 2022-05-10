@@ -23,6 +23,7 @@ jobs:
 
       - name: Install testing dependencies
         run: |
+          sudo apt-get install libhdf5-serial-dev
           git clone --single-branch --branch develop --depth 1 https://github.com/openmc-dev/openmc.git
           cd openmc
           mkdir build
