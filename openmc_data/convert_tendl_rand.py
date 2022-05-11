@@ -71,6 +71,20 @@ parser.add_argument(
 args = parser.parse_args()
 
 
+def process_neutron_random(nuc, i, out_dir, in_dir, file_num):
+    """Process ENDF neutron sublibrary file into HDF5 and write into a
+    specified output directory."""
+
+    fileIn = in_dir / f"{nuc}-{i}"
+    fileOut = out_dir / f"{nuc}-{i}.h5"
+
+    data = openmc.data.IncidentNeutron.from_njoy(fileIn)
+    data.name = f"{nuc}-{i}"
+    data.export_to_hdf5(fileOut, "w")
+    if i % 40 == 0:
+        print(f"Nuclide {nuc} {i}/{file_num} finished")
+
+
 def main():
 
     if "all" in args.nuclides:
@@ -259,9 +273,7 @@ def main():
             download_size, uncom_file_size, num_of_files, nuclides
         )
 
-        response = input(download_warning) if not args.batch else "y"
-        if response.lower().startswith("n"):
-            sys.exit()
+        print(download_warning)
 
         # ==============================================================================
         # DOWNLOAD FILES FROM WEBSITE
@@ -317,19 +329,6 @@ def main():
 
     # ==============================================================================
     # Convert ENDF files to HDF5 with njoy
-
-    def process_neutron_random(nuc, i, out_dir, in_dir, file_num):
-        """Process ENDF neutron sublibrary file into HDF5 and write into a
-        specified output directory."""
-
-        fileIn = in_dir / f"{nuc}-{i}"
-        fileOut = out_dir / f"{nuc}-{i}.h5"
-
-        data = openmc.data.IncidentNeutron.from_njoy(fileIn)
-        data.name = f"{nuc}-{i}"
-        data.export_to_hdf5(fileOut, "w")
-        if i % 40 == 0:
-            print(f"Nuclide {nuc} {i}/{file_num} finished")
 
     print("Beginning NJOY processing")
     with Pool() as pool:

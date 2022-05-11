@@ -87,4 +87,4 @@ jobs:
         if: contains(steps.changed-files-specific.outputs.modified_files, 'openmc_data/convert_tendl_rand.py')
         run: |
           echo "openmc_data/convert_tendl_rand.py file has been modified."
-          convert_tendl_rand --cleanup
+          convert_tendl_rand --nuclides O16 --cleanup
