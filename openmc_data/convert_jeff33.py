@@ -67,6 +67,28 @@ parser.add_argument(
     "The only currently supported option is 3.3.",
 )
 parser.add_argument(
+    "-t",
+    "--temperatures",
+    choices=[
+        "293",
+        "600",
+        "900",
+        "1200",
+        "1500",
+        "1800",
+    ],
+    default=[
+        "293",
+        "600",
+        "900",
+        "1200",
+        "1500",
+        "1800",
+    ],
+    help="Temperatures to download in Kelvin",
+    nargs="+",
+)
+parser.add_argument(
     "--cleanup",
     action="store_true",
     help="Remove download directories when data has " "been processed",
@@ -80,7 +102,11 @@ parser.add_argument(
 parser.set_defaults(download=True, extract=True, cleanup=False)
 args = parser.parse_args()
 
-
+def key(p):
+    """Return (temperature, atomic number, mass number, metastable)"""
+    z, x, a, temp = p.stem.split("-")
+    return int(temp), int(z), int(a[:-1]), a[-1]
+    
 def main():
 
     library_name = "jeff"
@@ -104,6 +130,15 @@ def main():
                 "ace_1800.tar.gz",
                 "ace_tsl.tar.gz",
             ],
+            "temperatures": [
+                "293",
+                "600",
+                "900",
+                "1200",
+                "1500",
+                "1800",
+                None
+            ],
             "neutron_files": ace_files_dir.rglob("*-[A-Z]*.ace"),
             "thermal_files": (ace_files_dir / "ace_tsl").glob("*.ace"),
             "metastables": ace_files_dir.rglob("*[0-9]m-*.ace"),
@@ -126,8 +161,9 @@ def main():
 
     if args.download:
         print(download_warning)
-        for f in details["compressed_files"]:
-            download(urljoin(details["base_url"], f), output_path=download_path)
+        for f, t in zip(details["compressed_files"], details["temperatures"]):
+            if t in args.temperatures or t is None:
+                download(urljoin(details["base_url"], f), output_path=download_path)
 
     # ==============================================================================
     # EXTRACT FILES FROM TGZ
@@ -136,7 +172,8 @@ def main():
         extract(
             compressed_files=[
                 download_path / f
-                for f in release_details[args.release]["compressed_files"]
+                for f,t in zip(details["compressed_files"], details["temperatures"])
+                if t in args.temperatures or t is None
             ],
             extraction_dir=ace_files_dir,
             del_compressed_file=args.cleanup,
@@ -150,11 +187,6 @@ def main():
 
     lib = openmc.data.DataLibrary()
 
-    def key(p):
-        """Return (temperature, atomic number, mass number, metastable)"""
-        z, x, a, temp = p.stem.split("-")
-        return int(temp), int(z), int(a[:-1]), a[-1]
-
     for p in sorted((ace_files_dir / "ace_293").glob("*.ace"), key=key):
         print(f"Converting: {p}")
         temp, z, a, m = key(p)
@@ -165,7 +197,7 @@ def main():
             data.metastable = 1
             data.name += "_m1"
 
-        for T in ("600", "900", "1200", "1500", "1800"):
+        for T in list(filter(None, args.temperatures)):
             p_add = ace_files_dir / f"ace_{T}" / (p.stem.replace("293", T) + ".ace")
             print(f"Adding temperature: {p_add}")
             data.add_temperature_from_ace(p_add)
