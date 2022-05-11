@@ -14,7 +14,7 @@ from string import digits
 from urllib.parse import urljoin
 
 import openmc.data
-from utils import download
+from .utils import download
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
