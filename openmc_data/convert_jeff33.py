@@ -13,7 +13,7 @@ from urllib.parse import urljoin
 
 import openmc.data
 
-from utils import download, extract
+from .utils import download, extract
 
 
 # Make sure Python version is sufficient
