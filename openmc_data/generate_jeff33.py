@@ -20,7 +20,7 @@ from urllib.parse import urljoin
 
 import openmc.data
 
-from utils import download, process_neutron, process_thermal
+from .utils import download, process_neutron, process_thermal
 
 # Make sure Python version is sufficient
 assert sys.version_info >= (3, 6), "Python 3.6+ is required"
@@ -198,3 +198,7 @@ def main():
         # Change back to original directory
         if args.tmpdir:
             os.chdir(pwd)
+
+
+if __name__ == '__main__':
+    main()

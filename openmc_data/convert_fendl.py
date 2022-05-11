@@ -266,3 +266,7 @@ def main():
     # Print any warnings
     for warning in output_warnings:
         warnings.warn(warning)
+
+
+if __name__ == '__main__':
+    main()

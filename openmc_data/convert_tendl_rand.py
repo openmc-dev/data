@@ -363,3 +363,7 @@ def main():
         lib.export_to_xml(post)
 
     pre.unlink()
+
+
+if __name__ == '__main__':
+    main()

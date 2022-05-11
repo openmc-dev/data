@@ -40,6 +40,7 @@ jobs:
         # the scripts are not run or checked for correct behaviour
       - name: Test scripts exist
         run: |
+          combine_libraries --help
           convert_fendl --help
           convert_jeff32 --help
           convert_jeff33 --help

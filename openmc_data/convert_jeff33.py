@@ -55,6 +55,7 @@ parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
 parser.set_defaults(download=True, extract=True, cleanup=False)
 args = parser.parse_args()
 
+
 def main():
 
     library_name = 'jeff'
@@ -193,3 +194,7 @@ def main():
         lib.register_file(h5_file)
 
     lib.export_to_xml(args.destination / 'cross_sections.xml')
+
+
+if __name__ == '__main__':
+    main()
