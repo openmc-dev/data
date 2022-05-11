@@ -12,11 +12,20 @@ https://openmc.org. Another source of data libraries for OpenMC is the
 repository which enables on-the-fly Doppler broadening to an arbitrary
 temperature.
 
+# Prerequisites
+
+You should have already installed OpenMC, see the [docs](https://docs.openmc.org/en/stable/quickinstall.html) for installation instructions.
 # Installation
 
+
+Currently the package can be installed from this temporary repository.
+
+```bash
+sudo pip install -e git+https://github.com/openmc-data-storage/openmc_data.git
 ```
-pip install openmc_data
-```
+
+In the future pip installing from PyPi or Conda could be provided
+
 
 # Usage
 
