@@ -42,92 +42,95 @@ parser.add_argument('mcnpdata', type=Path,
                     help="Directory containing endf70[a-k], endf70sab, and mcplib")
 args = parser.parse_args()
 
-# Check arguments to make sure they're valid
-assert args.mcnpdata.is_dir(), 'mcnpdata argument must be a directory'
-if args.photon is not None:
-    assert args.photon.is_file(), 'photon argument must be an existing file'
 
-# Get a list of all neutron ACE files
-endf70 = args.mcnpdata.glob('endf70[a-k]')
+def main():
 
-# Create output directory if it doesn't exist
-(args.destination / 'photon').mkdir(parents=True, exist_ok=True)
+    # Check arguments to make sure they're valid
+    assert args.mcnpdata.is_dir(), 'mcnpdata argument must be a directory'
+    if args.photon is not None:
+        assert args.photon.is_file(), 'photon argument must be an existing file'
 
-library = openmc.data.DataLibrary()
+    # Get a list of all neutron ACE files
+    endf70 = args.mcnpdata.glob('endf70[a-k]')
 
-for path in sorted(endf70):
-    print(f'Loading data from {path}...')
-    lib = openmc.data.ace.Library(path)
+    # Create output directory if it doesn't exist
+    (args.destination / 'photon').mkdir(parents=True, exist_ok=True)
 
-    # Group together tables for the same nuclide
-    tables = defaultdict(list)
-    for table in lib.tables:
-        zaid, xs = table.name.split('.')
-        tables[zaid].append(table)
+    library = openmc.data.DataLibrary()
 
-    for zaid, tables in sorted(tables.items()):
-        # Convert first temperature for the table
-        print(f'Converting: {tables[0].name}')
-        data = openmc.data.IncidentNeutron.from_ace(tables[0], 'mcnp')
+    for path in sorted(endf70):
+        print(f'Loading data from {path}...')
+        lib = openmc.data.ace.Library(path)
 
-        # For each higher temperature, add cross sections to the existing table
-        for table in tables[1:]:
-            print(f'Adding: {table.name}')
-            data.add_temperature_from_ace(table, 'mcnp')
+        # Group together tables for the same nuclide
+        tables = defaultdict(list)
+        for table in lib.tables:
+            zaid, xs = table.name.split('.')
+            tables[zaid].append(table)
 
-        # Export HDF5 file
-        h5_file = args.destination / f'{data.name}.h5'
-        print(f'Writing {h5_file}...')
-        data.export_to_hdf5(h5_file, 'w', libver=args.libver)
+        for zaid, tables in sorted(tables.items()):
+            # Convert first temperature for the table
+            print(f'Converting: {tables[0].name}')
+            data = openmc.data.IncidentNeutron.from_ace(tables[0], 'mcnp')
 
-        # Register with library
-        library.register_file(h5_file)
+            # For each higher temperature, add cross sections to the existing table
+            for table in tables[1:]:
+                print(f'Adding: {table.name}')
+                data.add_temperature_from_ace(table, 'mcnp')
 
-# Handle S(a,b) tables
-endf70sab = args.mcnpdata / 'endf70sab'
-if endf70sab.exists():
-    lib = openmc.data.ace.Library(endf70sab)
+            # Export HDF5 file
+            h5_file = args.destination / f'{data.name}.h5'
+            print(f'Writing {h5_file}...')
+            data.export_to_hdf5(h5_file, 'w', libver=args.libver)
 
-    # Group together tables for the same nuclide
-    tables = defaultdict(list)
-    for table in lib.tables:
-        name, xs = table.name.split('.')
-        tables[name].append(table)
+            # Register with library
+            library.register_file(h5_file)
 
-    for zaid, tables in sorted(tables.items()):
-        # Convert first temperature for the table
-        print(f'Converting: {tables[0].name}')
-        data = openmc.data.ThermalScattering.from_ace(tables[0])
+    # Handle S(a,b) tables
+    endf70sab = args.mcnpdata / 'endf70sab'
+    if endf70sab.exists():
+        lib = openmc.data.ace.Library(endf70sab)
 
-        # For each higher temperature, add cross sections to the existing table
-        for table in tables[1:]:
-            print(f'Adding: {table.name}')
-            data.add_temperature_from_ace(table)
+        # Group together tables for the same nuclide
+        tables = defaultdict(list)
+        for table in lib.tables:
+            name, xs = table.name.split('.')
+            tables[name].append(table)
 
-        # Export HDF5 file
-        h5_file = args.destination / f'{data.name}.h5'
-        print(f'Writing {h5_file}...')
-        data.export_to_hdf5(h5_file, 'w', libver=args.libver)
+        for zaid, tables in sorted(tables.items()):
+            # Convert first temperature for the table
+            print(f'Converting: {tables[0].name}')
+            data = openmc.data.ThermalScattering.from_ace(tables[0])
 
-        # Register with library
-        library.register_file(h5_file)
+            # For each higher temperature, add cross sections to the existing table
+            for table in tables[1:]:
+                print(f'Adding: {table.name}')
+                data.add_temperature_from_ace(table)
 
-# Handle photoatomic data
-if args.photon is not None:
-    lib = openmc.data.ace.Library(args.photon)
+            # Export HDF5 file
+            h5_file = args.destination / f'{data.name}.h5'
+            print(f'Writing {h5_file}...')
+            data.export_to_hdf5(h5_file, 'w', libver=args.libver)
 
-    for table in lib.tables:
-        # Convert first temperature for the table
-        print(f'Converting: {table.name}')
-        data = openmc.data.IncidentPhoton.from_ace(table)
+            # Register with library
+            library.register_file(h5_file)
 
-        # Export HDF5 file
-        h5_file = args.destination / 'photon' / f'{data.name}.h5'
-        print(f'Writing {h5_file}...')
-        data.export_to_hdf5(h5_file, 'w', libver=args.libver)
+    # Handle photoatomic data
+    if args.photon is not None:
+        lib = openmc.data.ace.Library(args.photon)
 
-        # Register with library
-        library.register_file(h5_file)
+        for table in lib.tables:
+            # Convert first temperature for the table
+            print(f'Converting: {table.name}')
+            data = openmc.data.IncidentPhoton.from_ace(table)
 
-# Write cross_sections.xml
-library.export_to_xml(args.destination / 'cross_sections.xml')
+            # Export HDF5 file
+            h5_file = args.destination / 'photon' / f'{data.name}.h5'
+            print(f'Writing {h5_file}...')
+            data.export_to_hdf5(h5_file, 'w', libver=args.libver)
+
+            # Register with library
+            library.register_file(h5_file)
+
+    # Write cross_sections.xml
+    library.export_to_xml(args.destination / 'cross_sections.xml')

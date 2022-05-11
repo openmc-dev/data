@@ -36,8 +36,23 @@ jobs:
           cd ..
           pip install .
 
+        # this just check the scripts are accessible after the install
+        # the scripts are not run or checked for correct behaviour
       - name: Test scripts exist
         run: |
           convert_fendl --help
-          convert_tendl --help
           convert_jeff32 --help
+          convert_jeff33 --help
+          convert_lib80x --help
+          convert_mcnp70 --help
+          convert_mcnp71 --help
+          convert_nndc71 --help
+          convert_tendl --help
+          convert_tendl_rand --help
+          generate_cendl --help
+          generate_endf --help
+          generate_jeff33 --help
+          generate_jendl --help
+          # make_compton --help commented out as the script needs adapting
+          # make_stopping_powers --help commented out as the script needs adapting
+          sample_sandy --help
