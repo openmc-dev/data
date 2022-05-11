@@ -12,7 +12,7 @@ from pathlib import Path
 from urllib.parse import urljoin
 
 import openmc.data
-from utils import download, extract, process_neutron
+from .utils import download, extract, process_neutron
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
