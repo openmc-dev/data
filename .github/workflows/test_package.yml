@@ -39,3 +39,5 @@ jobs:
       - name: Test scripts exist
         run: |
           convert_fendl --help
+          convert_tendl --help
+          convert_jeff32 --help

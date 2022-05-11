@@ -55,92 +55,95 @@ parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
 parser.set_defaults(download=True, extract=True, cleanup=False)
 args = parser.parse_args()
 
-library_name = 'tendl'
 
-cwd = Path.cwd()
+def main():
 
-ace_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'ace']))
-download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
-# the destination is decided after the release is known
-# to avoid putting the release in a folder with a misleading name
-if args.destination is None:
-    args.destination = Path('-'.join([library_name, args.release, 'hdf5']))
+    library_name = 'tendl'
 
-# This dictionary contains all the unique information about each release.
-# This can be exstened to accommodated new releases
-release_details = all_release_details[library_name]
+    cwd = Path.cwd()
 
-download_warning = """
-WARNING: This script will download {} of data.
-Extracting and processing the data requires {} of additional free disk space.
-""".format(release_details[args.release]['compressed_file_size'],
-           release_details[args.release]['uncompressed_file_size'])
+    ace_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'ace']))
+    download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
+    # the destination is decided after the release is known
+    # to avoid putting the release in a folder with a misleading name
+    if args.destination is None:
+        args.destination = Path('-'.join([library_name, args.release, 'hdf5']))
 
-# ==============================================================================
-# DOWNLOAD FILES FROM WEBSITE
+    # This dictionary contains all the unique information about each release.
+    # This can be exstened to accommodated new releases
+    release_details = all_release_details[library_name]
 
-if args.download:
-    print(download_warning)
-    for f in release_details[args.release]['compressed_files']:
-        # Establish connection to URL
-        download(urljoin(release_details[args.release]['base_url'], f),
-                 output_path=download_path)
+    download_warning = """
+    WARNING: This script will download {} of data.
+    Extracting and processing the data requires {} of additional free disk space.
+    """.format(release_details[args.release]['compressed_file_size'],
+            release_details[args.release]['uncompressed_file_size'])
 
-# ==============================================================================
-# EXTRACT FILES FROM TGZ
+    # ==============================================================================
+    # DOWNLOAD FILES FROM WEBSITE
 
-if args.extract:
-    extract(
-        compressed_files=[download_path/ f for f in release_details[args.release]['compressed_files']],
-        extraction_dir=ace_files_dir,
-        del_compressed_file=args.cleanup
-    )
+    if args.download:
+        print(download_warning)
+        for f in release_details[args.release]['compressed_files']:
+            # Establish connection to URL
+            download(urljoin(release_details[args.release]['base_url'], f),
+                    output_path=download_path)
+
+    # ==============================================================================
+    # EXTRACT FILES FROM TGZ
+
+    if args.extract:
+        extract(
+            compressed_files=[download_path/ f for f in release_details[args.release]['compressed_files']],
+            extraction_dir=ace_files_dir,
+            del_compressed_file=args.cleanup
+        )
 
 
-# ==============================================================================
-# CHANGE ZAID FOR METASTABLES
+    # ==============================================================================
+    # CHANGE ZAID FOR METASTABLES
 
-metastables = ace_files_dir.glob(release_details[args.release]['metastables'])
-for path in metastables:
-    print('    Fixing {} (ensure metastable)...'.format(path))
-    text = open(path, 'r').read()
-    mass_first_digit = int(text[3])
-    if mass_first_digit <= 2:
-        text = text[:3] + str(mass_first_digit + 4) + text[4:]
-        open(path, 'w').write(text)
+    metastables = ace_files_dir.glob(release_details[args.release]['metastables'])
+    for path in metastables:
+        print('    Fixing {} (ensure metastable)...'.format(path))
+        text = open(path, 'r').read()
+        mass_first_digit = int(text[3])
+        if mass_first_digit <= 2:
+            text = text[:3] + str(mass_first_digit + 4) + text[4:]
+            open(path, 'w').write(text)
 
-# ==============================================================================
-# GENERATE HDF5 LIBRARY -- NEUTRON FILES
+    # ==============================================================================
+    # GENERATE HDF5 LIBRARY -- NEUTRON FILES
 
-# Get a list of all ACE files
-neutron_files = ace_files_dir.glob(release_details[args.release]['neutron_files'])
+    # Get a list of all ACE files
+    neutron_files = ace_files_dir.glob(release_details[args.release]['neutron_files'])
 
-# Create output directory if it doesn't exist
-args.destination.mkdir(parents=True, exist_ok=True)
+    # Create output directory if it doesn't exist
+    args.destination.mkdir(parents=True, exist_ok=True)
 
-library = openmc.data.DataLibrary()
+    library = openmc.data.DataLibrary()
 
-for filename in sorted(neutron_files):
+    for filename in sorted(neutron_files):
 
-    # this is a fix for the TENDL-2017 release where the B10 ACE file which has an error on one of the values
-    if library_name == 'tendl' and args.release == '2017' and filename.name == 'B010':
-        text = open(filename, 'r').read()
-        if text[423:428] == '86843':
-            print('Manual fix for incorrect value in ACE file')
-            # see OpenMC user group issue for more details
-            text = ''.join(text[:423])+'86896'+''.join(text[428:])
-            open(filename, 'w').write(text)
+        # this is a fix for the TENDL-2017 release where the B10 ACE file which has an error on one of the values
+        if library_name == 'tendl' and args.release == '2017' and filename.name == 'B010':
+            text = open(filename, 'r').read()
+            if text[423:428] == '86843':
+                print('Manual fix for incorrect value in ACE file')
+                # see OpenMC user group issue for more details
+                text = ''.join(text[:423])+'86896'+''.join(text[428:])
+                open(filename, 'w').write(text)
 
-    print(f'Converting: {filename}')
-    data = openmc.data.IncidentNeutron.from_ace(filename)
+        print(f'Converting: {filename}')
+        data = openmc.data.IncidentNeutron.from_ace(filename)
 
-    # Export HDF5 file
-    h5_file = args.destination / f'{data.name}.h5'
-    print('Writing {}...'.format(h5_file))
-    data.export_to_hdf5(h5_file, 'w', libver=args.libver)
+        # Export HDF5 file
+        h5_file = args.destination / f'{data.name}.h5'
+        print('Writing {}...'.format(h5_file))
+        data.export_to_hdf5(h5_file, 'w', libver=args.libver)
 
-    # Register with library
-    library.register_file(h5_file)
+        # Register with library
+        library.register_file(h5_file)
 
-# Write cross_sections.xml
-library.export_to_xml(args.destination / 'cross_sections.xml')
+    # Write cross_sections.xml
+    library.export_to_xml(args.destination / 'cross_sections.xml')
