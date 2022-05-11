@@ -40,4 +40,4 @@ jobs:
         run: |
           convert_fendl --help
           convert_tendl --help
-          convert_teasdndl --help
+          convert_jeff32 --help
