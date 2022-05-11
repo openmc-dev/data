@@ -5,12 +5,16 @@ from openmc_data import all_release_details
 
 
 def test_tendl_urls():
-    print(all_release_details)
+    """Cycles through all the urls in each nuclear data library and checks
+    that they return a status 200 code (success)"""
 
-    for release, value in all_release_details['tendl'].items():
-
-        for file in value['compressed_files']:
-            url = value['base_url'] + file
-
-            responce = requests.get(url, stream=True)
-            assert responce.status_code == 200
+    for library, releases in all_release_details.items():
+        for release, particles in releases.items():
+            for particle, value in particles.items():
+                for file in value['compressed_files']:
+                    url = value['base_url'] + file
+                    responce = requests.get(url, stream=True)
+                    # printing output so that in the event of a failure the
+                    # failing url can be identified
+                    print(library, release, particle, responce.status_code)
+                    assert responce.status_code == 200
