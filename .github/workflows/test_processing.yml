@@ -57,11 +57,13 @@ jobs:
           echo "openmc_data/convert_fendl.py file has been modified."
           convert_fendl
 
+      # this running convert_jeff32 in with default arguments produces 49GB of
+      # data. Hence the use of arguments to process just one temperature
       - name: test default convert_jeff32
         if: contains(steps.changed-files-specific.outputs.modified_files, 'openmc_data/convert_jeff32.py')
         run: |
           echo "openmc_data/convert_jeff32.py file has been modified."
-          convert_jeff32
+          convert_jeff32 -r 3.2 -t 293
 
       - name: test default convert_jeff33
         if: contains(steps.changed-files-specific.outputs.modified_files, 'openmc_data/convert_jeff33.py')
