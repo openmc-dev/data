@@ -57,3 +57,4 @@ jobs:
           # make_compton --help commented out as the script needs adapting
           # make_stopping_powers --help commented out as the script needs adapting
           sample_sandy --help
+          generate_tendl_chain --help

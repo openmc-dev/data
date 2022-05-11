@@ -17,7 +17,7 @@ from zipfile import ZipFile
 import openmc.data
 import openmc.deplete as dep
 
-from utils import download
+from openmc_data.utils import download
 
 # Parse command line arguments
 parser = ArgumentParser()
@@ -28,45 +28,6 @@ parser.add_argument('-r', '--release', choices=['2019', '2021'],
                     "version. The currently supported options are 2019, "
                     "and 2021.")
 args = parser.parse_args()
-
-
-library_name = 'tendl'
-
-cwd = Path.cwd()
-
-endf_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'endf']))
-download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
-
-neutron_dir = endf_files_dir / "neutrons"
-decay_dir = endf_files_dir / "decay"
-nfy_dir = endf_files_dir / "nfy"
-
-# This dictionary contains all the unique information about each release.
-# This can be extended to accommodated new releases
-release_details = {
-    '2019': {
-        'base_url': 'https://tendl.web.psi.ch/tendl_2019/tar_files/',
-        'compressed_files': ['TENDL-n.tgz'],
-        'transport_nuclides': 'depletion/tendl2019_nuclides.json',
-        'neutron_files': endf_files_dir.glob('tendl19c/*'),
-    },
-    '2021': {
-        'base_url': 'https://tendl.web.psi.ch/tendl_2021/tar_files/',
-        'compressed_files': ['TENDL-n.tgz'],
-        'transport_nuclides': 'depletion/tendl2021_nuclides.json',
-        'neutron_files': endf_files_dir.glob('tendl21c/*'),
-    }
-}
-
-DECAY_LIB = {
-    'jeff33': 'https://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/JEFF33-rdd.zip',
-    'endf80': 'https://www.nndc.bnl.gov/endf-b8.0/zips/ENDF-B-VIII.0_decay.zip',
-}
-NFY_LIB = {
-    'jeff33': 'https://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/JEFF33-nfy.asc',
-    'endf80': 'https://www.nndc.bnl.gov/endf-b8.0/zips/ENDF-B-VIII.0_nfy.zip',
-}
-
 
 def extract(filename, path=".", verbose=True):
     # Determine function to open archive
@@ -94,49 +55,92 @@ def fix_jeff33_nfy(path):
             f.write(data)
     return new_path
 
+def main():
 
-# ==========================================================================
-# Incident neutron data
-for f in release_details[args.release]['compressed_files']:
-    downloaded_file = download(
-        url=urljoin(release_details[args.release]['base_url'], f),
-        output_path=download_path
+    library_name = 'tendl'
+
+    cwd = Path.cwd()
+
+    endf_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'endf']))
+    download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
+
+    neutron_dir = endf_files_dir / "neutrons"
+    decay_dir = endf_files_dir / "decay"
+    nfy_dir = endf_files_dir / "nfy"
+
+    # This dictionary contains all the unique information about each release.
+    # This can be extended to accommodated new releases
+    release_details = {
+        '2019': {
+            'base_url': 'https://tendl.web.psi.ch/tendl_2019/tar_files/',
+            'compressed_files': ['TENDL-n.tgz'],
+            'transport_nuclides': 'depletion/tendl2019_nuclides.json',
+            'neutron_files': endf_files_dir.glob('tendl19c/*'),
+        },
+        '2021': {
+            'base_url': 'https://tendl.web.psi.ch/tendl_2021/tar_files/',
+            'compressed_files': ['TENDL-n.tgz'],
+            'transport_nuclides': 'depletion/tendl2021_nuclides.json',
+            'neutron_files': endf_files_dir.glob('tendl21c/*'),
+        }
+    }
+
+    DECAY_LIB = {
+        'jeff33': 'https://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/JEFF33-rdd.zip',
+        'endf80': 'https://www.nndc.bnl.gov/endf-b8.0/zips/ENDF-B-VIII.0_decay.zip',
+    }
+    NFY_LIB = {
+        'jeff33': 'https://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/JEFF33-nfy.asc',
+        'endf80': 'https://www.nndc.bnl.gov/endf-b8.0/zips/ENDF-B-VIII.0_nfy.zip',
+    }
+
+
+    # ==========================================================================
+    # Incident neutron data
+    for f in release_details[args.release]['compressed_files']:
+        downloaded_file = download(
+            url=urljoin(release_details[args.release]['base_url'], f),
+            output_path=download_path
+        )
+
+    for f in release_details[args.release]['compressed_files']:
+        extract(downloaded_file, neutron_dir)
+
+    # Get list of transport nuclides in TENDL-2019
+    with open(release_details[args.release]['transport_nuclides'], 'r') as fh:
+        transport_nuclides = set(json.load(fh))
+
+    neutron_files = [
+        p
+        for p in release_details[args.release]['neutron_files']
+        if p.name[2:-6] in transport_nuclides  # filename is n-XXNNN.tendl
+    ]
+
+    # ==========================================================================
+    # Decay and fission product yield data
+
+    decay_zip = download(DECAY_LIB[args.lib], output_path=download_path)
+    nfy_file = download(NFY_LIB[args.lib], output_path=download_path)
+
+    extract(decay_zip, decay_dir)
+    if args.lib == 'jeff33':
+        decay_files = list(decay_dir.glob('*.ASC'))
+
+        nfy_file_fixed = fix_jeff33_nfy(nfy_file)
+        nfy_files = openmc.data.endf.get_evaluations(nfy_file_fixed)
+
+    elif args.lib == 'endf80':
+        decay_files = list(decay_dir.rglob('*.endf'))
+
+        extract(nfy_file, nfy_dir)
+        nfy_files = list(nfy_dir.rglob('*.endf'))
+
+    chain = dep.Chain.from_endf(
+        decay_files, nfy_files, neutron_files,
+        reactions=dep.chain.REACTIONS.keys()
     )
+    chain.export_to_xml(f'chain_{library_name}_{args.release}_{args.lib}.xml')
 
-for f in release_details[args.release]['compressed_files']:
-    extract(downloaded_file, neutron_dir)
 
-# Get list of transport nuclides in TENDL-2019
-with open(release_details[args.release]['transport_nuclides'], 'r') as fh:
-    transport_nuclides = set(json.load(fh))
-
-neutron_files = [
-    p
-    for p in release_details[args.release]['neutron_files']
-    if p.name[2:-6] in transport_nuclides  # filename is n-XXNNN.tendl
-]
-
-# ==========================================================================
-# Decay and fission product yield data
-
-decay_zip = download(DECAY_LIB[args.lib], output_path=download_path)
-nfy_file = download(NFY_LIB[args.lib], output_path=download_path)
-
-extract(decay_zip, decay_dir)
-if args.lib == 'jeff33':
-    decay_files = list(decay_dir.glob('*.ASC'))
-
-    nfy_file_fixed = fix_jeff33_nfy(nfy_file)
-    nfy_files = openmc.data.endf.get_evaluations(nfy_file_fixed)
-
-elif args.lib == 'endf80':
-    decay_files = list(decay_dir.rglob('*.endf'))
-
-    extract(nfy_file, nfy_dir)
-    nfy_files = list(nfy_dir.rglob('*.endf'))
-
-chain = dep.Chain.from_endf(
-    decay_files, nfy_files, neutron_files,
-    reactions=dep.chain.REACTIONS.keys()
-)
-chain.export_to_xml(f'chain_{library_name}_{args.release}_{args.lib}.xml')
+if __name__ == "__main__":
+    main()
