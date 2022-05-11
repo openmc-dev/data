@@ -50,101 +50,107 @@ parser.set_defaults(download=True, extract=True, cleanup=False)
 args = parser.parse_args()
 
 
-library_name = 'cendl'
+def main():
 
-cwd = Path.cwd()
+    library_name = 'cendl'
 
-endf_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'endf']))
-download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
-# the destination is decided after the release is known
-# to avoid putting the release in a folder with a misleading name
-if args.destination is None:
-    args.destination = Path('-'.join([library_name, args.release, 'hdf5']))
+    cwd = Path.cwd()
 
-# This dictionary contains all the unique information about each release.
-# This can be extended to accommodate new releases
-release_details = {
-    '3.1': {
-        'base_url': 'https://www.oecd-nea.org/dbforms/data/eva/evatapes/cendl_31/',
-        'compressed_files': ['CENDL-31.zip'],
-        'neutron_files': endf_files_dir.glob('*.C31'),
-        'metastables': endf_files_dir.glob('*m.C31'),
-        'compressed_file_size': '0.03 GB',
-        'uncompressed_file_size': '0.4 GB'
-    },
-    '3.2': {
-       'base_url': 'http://www.nuclear.csdb.cn/endf/CENDL/',
-       'compressed_files': ['n-CENDL-3.2.zip'],
-       'neutron_files': endf_files_dir.glob('n-CENDL-3.2/CENDL-3.2/*.C32'),
-       'metastables': endf_files_dir.glob('n-CENDL-3.2/CENDL-3.2/*m.C32'),
-       'compressed_file_size': '0.11 GB',
-       'uncompressed_file_size': '0.41 GB'
-       }
-}
+    endf_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'endf']))
+    download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
+    # the destination is decided after the release is known
+    # to avoid putting the release in a folder with a misleading name
+    if args.destination is None:
+        args.destination = Path('-'.join([library_name, args.release, 'hdf5']))
 
-download_warning = """
-WARNING: This script will download {} of data.
-Extracting and processing the data requires {} of additional free disk space.
-""".format(release_details[args.release]['compressed_file_size'],
-           release_details[args.release]['uncompressed_file_size'])
+    # This dictionary contains all the unique information about each release.
+    # This can be extended to accommodate new releases
+    release_details = {
+        '3.1': {
+            'base_url': 'https://www.oecd-nea.org/dbforms/data/eva/evatapes/cendl_31/',
+            'compressed_files': ['CENDL-31.zip'],
+            'neutron_files': endf_files_dir.glob('*.C31'),
+            'metastables': endf_files_dir.glob('*m.C31'),
+            'compressed_file_size': '0.03 GB',
+            'uncompressed_file_size': '0.4 GB'
+        },
+        '3.2': {
+        'base_url': 'http://www.nuclear.csdb.cn/endf/CENDL/',
+        'compressed_files': ['n-CENDL-3.2.zip'],
+        'neutron_files': endf_files_dir.glob('n-CENDL-3.2/CENDL-3.2/*.C32'),
+        'metastables': endf_files_dir.glob('n-CENDL-3.2/CENDL-3.2/*m.C32'),
+        'compressed_file_size': '0.11 GB',
+        'uncompressed_file_size': '0.41 GB'
+        }
+    }
 
-# ==============================================================================
-# DOWNLOAD FILES FROM WEBSITE
+    download_warning = """
+    WARNING: This script will download {} of data.
+    Extracting and processing the data requires {} of additional free disk space.
+    """.format(release_details[args.release]['compressed_file_size'],
+            release_details[args.release]['uncompressed_file_size'])
 
-if args.download:
-    print(download_warning)
-    for f in release_details[args.release]['compressed_files']:
-        # Establish connection to URL
-        download(urljoin(release_details[args.release]['base_url'], f),
-                 output_path=download_path)
+    # ==============================================================================
+    # DOWNLOAD FILES FROM WEBSITE
 
-
-# ==============================================================================
-# EXTRACT FILES FROM ZIP
-if args.extract:
-    extract(
-            compressed_files=[download_path/ f for f in release_details[args.release]['compressed_files']],
-            extraction_dir=endf_files_dir,
-            del_compressed_file=args.cleanup
-        )
+    if args.download:
+        print(download_warning)
+        for f in release_details[args.release]['compressed_files']:
+            # Establish connection to URL
+            download(urljoin(release_details[args.release]['base_url'], f),
+                    output_path=download_path)
 
 
-# ==============================================================================
-# GENERATE HDF5 LIBRARY -- NEUTRON FILES
+    # ==============================================================================
+    # EXTRACT FILES FROM ZIP
+    if args.extract:
+        extract(
+                compressed_files=[download_path/ f for f in release_details[args.release]['compressed_files']],
+                extraction_dir=endf_files_dir,
+                del_compressed_file=args.cleanup
+            )
 
-# Get a list of all ENDF files
-neutron_files = release_details[args.release]['neutron_files']
 
-# Create output directory if it doesn't exist
-args.destination.mkdir(parents=True, exist_ok=True)
+    # ==============================================================================
+    # GENERATE HDF5 LIBRARY -- NEUTRON FILES
 
-library = openmc.data.DataLibrary()
+    # Get a list of all ENDF files
+    neutron_files = release_details[args.release]['neutron_files']
 
-with Pool() as pool:
-    results = []
-    for filename in sorted(neutron_files):
+    # Create output directory if it doesn't exist
+    args.destination.mkdir(parents=True, exist_ok=True)
 
-        # this is a fix for the CENDL 3.1 release where the
-        # 22-Ti-047.C31 and 5-B-010.C31 files contain non-ASCII characters
-        if library_name == 'cendl' and args.release == '3.1' and filename.name in ['22-Ti-047.C31', '5-B-010.C31']:
-            print('Manual fix for incorrect value in ENDF file')
-            text = open(filename, 'rb').read().decode('utf-8', 'ignore').split('\r\n')
-            if filename.name == '22-Ti-047.C31':
-                text[205] = ' 8) YUAN Junqian,WANG Yongchang,etc.               ,16,(1),57,92012228 1451  205'
-            if filename.name == '5-B-010.C31':
-                text[203] = '21)   Day R.B. and Walt M.  Phys.rev.117,1330 (1960)               525 1451  203'
-            open(filename, 'w').write('\r\n'.join(text))
+    library = openmc.data.DataLibrary()
 
-        func_args = (filename, args.destination, args.libver)
-        r = pool.apply_async(process_neutron, func_args)
-        results.append(r)
+    with Pool() as pool:
+        results = []
+        for filename in sorted(neutron_files):
 
-    for r in results:
-        r.wait()
+            # this is a fix for the CENDL 3.1 release where the
+            # 22-Ti-047.C31 and 5-B-010.C31 files contain non-ASCII characters
+            if library_name == 'cendl' and args.release == '3.1' and filename.name in ['22-Ti-047.C31', '5-B-010.C31']:
+                print('Manual fix for incorrect value in ENDF file')
+                text = open(filename, 'rb').read().decode('utf-8', 'ignore').split('\r\n')
+                if filename.name == '22-Ti-047.C31':
+                    text[205] = ' 8) YUAN Junqian,WANG Yongchang,etc.               ,16,(1),57,92012228 1451  205'
+                if filename.name == '5-B-010.C31':
+                    text[203] = '21)   Day R.B. and Walt M.  Phys.rev.117,1330 (1960)               525 1451  203'
+                open(filename, 'w').write('\r\n'.join(text))
 
-# Register with library
-for p in sorted((args.destination).glob('*.h5')):
-    library.register_file(p)
+            func_args = (filename, args.destination, args.libver)
+            r = pool.apply_async(process_neutron, func_args)
+            results.append(r)
 
-# Write cross_sections.xml
-library.export_to_xml(args.destination / 'cross_sections.xml')
+        for r in results:
+            r.wait()
+
+    # Register with library
+    for p in sorted((args.destination).glob('*.h5')):
+        library.register_file(p)
+
+    # Write cross_sections.xml
+    library.export_to_xml(args.destination / 'cross_sections.xml')
+
+
+if __name__ == '__main__':
+    main()

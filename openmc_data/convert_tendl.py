@@ -70,23 +70,23 @@ def main():
         args.destination = Path('-'.join([library_name, args.release, 'hdf5']))
 
     # This dictionary contains all the unique information about each release.
-    # This can be exstened to accommodated new releases
-    release_details = all_release_details[library_name]
+    # This can be extended to accommodated new releases
+    release_details = all_release_details[library_name][args.release]['neutron']
 
     download_warning = """
     WARNING: This script will download {} of data.
     Extracting and processing the data requires {} of additional free disk space.
-    """.format(release_details[args.release]['compressed_file_size'],
-            release_details[args.release]['uncompressed_file_size'])
+    """.format(release_details['compressed_file_size'],
+            release_details['uncompressed_file_size'])
 
     # ==============================================================================
     # DOWNLOAD FILES FROM WEBSITE
 
     if args.download:
         print(download_warning)
-        for f in release_details[args.release]['compressed_files']:
+        for f in release_details['compressed_files']:
             # Establish connection to URL
-            download(urljoin(release_details[args.release]['base_url'], f),
+            download(urljoin(release_details['base_url'], f),
                     output_path=download_path)
 
     # ==============================================================================
@@ -94,7 +94,7 @@ def main():
 
     if args.extract:
         extract(
-            compressed_files=[download_path/ f for f in release_details[args.release]['compressed_files']],
+            compressed_files=[download_path/ f for f in release_details['compressed_files']],
             extraction_dir=ace_files_dir,
             del_compressed_file=args.cleanup
         )
@@ -103,7 +103,7 @@ def main():
     # ==============================================================================
     # CHANGE ZAID FOR METASTABLES
 
-    metastables = ace_files_dir.glob(release_details[args.release]['metastables'])
+    metastables = ace_files_dir.glob(release_details['metastables'])
     for path in metastables:
         print('    Fixing {} (ensure metastable)...'.format(path))
         text = open(path, 'r').read()
@@ -116,7 +116,7 @@ def main():
     # GENERATE HDF5 LIBRARY -- NEUTRON FILES
 
     # Get a list of all ACE files
-    neutron_files = ace_files_dir.glob(release_details[args.release]['neutron_files'])
+    neutron_files = ace_files_dir.glob(release_details['neutron_files'])
 
     # Create output directory if it doesn't exist
     args.destination.mkdir(parents=True, exist_ok=True)
@@ -126,7 +126,7 @@ def main():
     for filename in sorted(neutron_files):
 
         # this is a fix for the TENDL-2017 release where the B10 ACE file which has an error on one of the values
-        if library_name == 'tendl' and args.release == '2017' and filename.name == 'B010':
+        if args.release == '2017' and filename.name == 'B010':
             text = open(filename, 'r').read()
             if text[423:428] == '86843':
                 print('Manual fix for incorrect value in ACE file')
@@ -147,3 +147,7 @@ def main():
 
     # Write cross_sections.xml
     library.export_to_xml(args.destination / 'cross_sections.xml')
+
+
+if __name__ == '__main__':
+    main()

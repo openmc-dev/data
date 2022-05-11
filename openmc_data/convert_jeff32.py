@@ -222,3 +222,7 @@ def main():
 
     # Write cross_sections.xml
     library.export_to_xml(args.destination / 'cross_sections.xml')
+
+
+if __name__ == '__main__':
+    main()

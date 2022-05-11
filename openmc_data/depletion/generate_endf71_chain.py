@@ -15,6 +15,7 @@ URLS = [
     'https://www.nndc.bnl.gov/endf-b7.1/zips/ENDF-B-VII.1-nfy.zip'
 ]
 
+
 def main():
     endf_dir = os.environ.get("OPENMC_ENDF_DATA")
     if endf_dir is not None:

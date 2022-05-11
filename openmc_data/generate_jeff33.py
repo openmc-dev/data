@@ -20,7 +20,7 @@ from urllib.parse import urljoin
 
 import openmc.data
 
-from utils import download, process_neutron, process_thermal
+from .utils import download, process_neutron, process_thermal
 
 # Make sure Python version is sufficient
 assert sys.version_info >= (3, 6), "Python 3.6+ is required"
@@ -59,6 +59,7 @@ parser.add_argument('--temperatures', type=float,
 parser.set_defaults(download=True, extract=True, tmpdir=True)
 args = parser.parse_args()
 
+
 def sort_key(path):
     if path.name.startswith('c_'):
         # Ensure that thermal scattering gets sorted after neutron data
@@ -67,131 +68,137 @@ def sort_key(path):
         return openmc.data.zam(path.stem)
 
 
-base_endf = 'https://www.nndc.bnl.gov/endf-b8.0/zips/'
-base_jeff = 'http://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/'
-files = [
-    (base_jeff, 'JEFF33-n.tgz', 'e540bbf95179257280c61acfa75c83de'),
-    (base_jeff, 'JEFF33-tsl.tgz', '82a6df4cb802aa4a09b95309f7861c54'),
-    (base_endf, 'ENDF-B-VIII.0_photoat.zip', 'd49f5b54be278862e1ce742ccd94f5c0'),
-    (base_endf, 'ENDF-B-VIII.0_atomic_relax.zip', 'e04d50098cb2a7e4fe404ec4071611cc'),
-]
+def main():
 
-tendl_files = [
-    'https://tendl.web.psi.ch/tendl_2019/neutron_file/C/C013/lib/endf/n-C013.tendl',
-    'https://tendl.web.psi.ch/tendl_2019/neutron_file/O/O017/lib/endf/n-O017.tendl',
-]
+    base_endf = 'https://www.nndc.bnl.gov/endf-b8.0/zips/'
+    base_jeff = 'http://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/'
+    files = [
+        (base_jeff, 'JEFF33-n.tgz', 'e540bbf95179257280c61acfa75c83de'),
+        (base_jeff, 'JEFF33-tsl.tgz', '82a6df4cb802aa4a09b95309f7861c54'),
+        (base_endf, 'ENDF-B-VIII.0_photoat.zip', 'd49f5b54be278862e1ce742ccd94f5c0'),
+        (base_endf, 'ENDF-B-VIII.0_atomic_relax.zip', 'e04d50098cb2a7e4fe404ec4071611cc'),
+    ]
 
-neutron_dir = Path('endf6')
-thermal_dir = Path('JEFF33-tsl')
-photoat_dir = Path('ENDF-B-VIII.0_photoat')
-atomic_dir = Path('ENDF-B-VIII.0_atomic_relax')
-thermal_paths = [
-    (neutron_dir / '1-H-1g.jeff33', thermal_dir / 'tsl-HinCaH2.jeff33'),
-    (neutron_dir / '1-H-1g.jeff33', thermal_dir / 'tsl-HinCH2.jeff33'),
-    (neutron_dir / '1-H-1g.jeff33', thermal_dir / 'tsl-HinH2O.jeff33'),
-    (neutron_dir / '1-H-1g.jeff33', thermal_dir / 'tsl-HinIce.jeff33'),
-    (neutron_dir / '1-H-1g.jeff33', thermal_dir / 'tsl-HinMesitylene-PhaseII.jeff33'),
-    (neutron_dir / '1-H-1g.jeff33', thermal_dir / 'tsl-HinOrthoH.jeff33'),
-    (neutron_dir / '1-H-1g.jeff33', thermal_dir / 'tsl-HinParaH.jeff33'),
-    (neutron_dir / '1-H-1g.jeff33', thermal_dir / 'tsl-HinToluene.jeff33'),
-    (neutron_dir / '1-H-1g.jeff33', thermal_dir / 'tsl-HinZrH.jeff33'),
-    (neutron_dir / '1-H-2g.jeff33', thermal_dir / 'tsl-DinD2O.jeff33'),
-    (neutron_dir / '1-H-2g.jeff33', thermal_dir / 'tsl-DinOrthoD.jeff33'),
-    (neutron_dir / '1-H-2g.jeff33', thermal_dir / 'tsl-DinParaD.jeff33'),
-    (neutron_dir / '4-Be-9g.jeff33', thermal_dir / 'tsl-Be.jeff33'),
-    (neutron_dir / '6-C-0g.jeff33', thermal_dir / 'tsl-Graphite.jeff33'),
-    (neutron_dir / '8-O-16g.jeff33', thermal_dir / 'tsl-O16inAl2O3.jeff33'),
-    (neutron_dir / '8-O-16g.jeff33', thermal_dir / 'tsl-OinD2O.jeff33'),
-    (neutron_dir / '12-Mg-24g.jeff33', thermal_dir / 'tsl-Mg.jeff33'),
-    (neutron_dir / '13-Al-27g.jeff33', thermal_dir / 'tsl-Al27inAl2O3.jeff33'),
-    (neutron_dir / '14-Si-28g.jeff33', thermal_dir / 'tsl-Silicon.jeff33'),
-    (neutron_dir / '20-Ca-40g.jeff33', thermal_dir / 'tsl-CainCaH2.jeff33'),
-]
+    tendl_files = [
+        'https://tendl.web.psi.ch/tendl_2019/neutron_file/C/C013/lib/endf/n-C013.tendl',
+        'https://tendl.web.psi.ch/tendl_2019/neutron_file/O/O017/lib/endf/n-O017.tendl',
+    ]
 
-pwd = Path.cwd()
+    neutron_dir = Path('endf6')
+    thermal_dir = Path('JEFF33-tsl')
+    photoat_dir = Path('ENDF-B-VIII.0_photoat')
+    atomic_dir = Path('ENDF-B-VIII.0_atomic_relax')
+    thermal_paths = [
+        (neutron_dir / '1-H-1g.jeff33', thermal_dir / 'tsl-HinCaH2.jeff33'),
+        (neutron_dir / '1-H-1g.jeff33', thermal_dir / 'tsl-HinCH2.jeff33'),
+        (neutron_dir / '1-H-1g.jeff33', thermal_dir / 'tsl-HinH2O.jeff33'),
+        (neutron_dir / '1-H-1g.jeff33', thermal_dir / 'tsl-HinIce.jeff33'),
+        (neutron_dir / '1-H-1g.jeff33', thermal_dir / 'tsl-HinMesitylene-PhaseII.jeff33'),
+        (neutron_dir / '1-H-1g.jeff33', thermal_dir / 'tsl-HinOrthoH.jeff33'),
+        (neutron_dir / '1-H-1g.jeff33', thermal_dir / 'tsl-HinParaH.jeff33'),
+        (neutron_dir / '1-H-1g.jeff33', thermal_dir / 'tsl-HinToluene.jeff33'),
+        (neutron_dir / '1-H-1g.jeff33', thermal_dir / 'tsl-HinZrH.jeff33'),
+        (neutron_dir / '1-H-2g.jeff33', thermal_dir / 'tsl-DinD2O.jeff33'),
+        (neutron_dir / '1-H-2g.jeff33', thermal_dir / 'tsl-DinOrthoD.jeff33'),
+        (neutron_dir / '1-H-2g.jeff33', thermal_dir / 'tsl-DinParaD.jeff33'),
+        (neutron_dir / '4-Be-9g.jeff33', thermal_dir / 'tsl-Be.jeff33'),
+        (neutron_dir / '6-C-0g.jeff33', thermal_dir / 'tsl-Graphite.jeff33'),
+        (neutron_dir / '8-O-16g.jeff33', thermal_dir / 'tsl-O16inAl2O3.jeff33'),
+        (neutron_dir / '8-O-16g.jeff33', thermal_dir / 'tsl-OinD2O.jeff33'),
+        (neutron_dir / '12-Mg-24g.jeff33', thermal_dir / 'tsl-Mg.jeff33'),
+        (neutron_dir / '13-Al-27g.jeff33', thermal_dir / 'tsl-Al27inAl2O3.jeff33'),
+        (neutron_dir / '14-Si-28g.jeff33', thermal_dir / 'tsl-Silicon.jeff33'),
+        (neutron_dir / '20-Ca-40g.jeff33', thermal_dir / 'tsl-CainCaH2.jeff33'),
+    ]
 
-destination = args.destination.resolve()
-(destination / 'photon').mkdir(parents=True, exist_ok=True)
+    pwd = Path.cwd()
 
-with tempfile.TemporaryDirectory() as tmpdir:
-    # Save current working directory and temporarily change dir
-    if args.tmpdir:
-        os.chdir(tmpdir)
-    library = openmc.data.DataLibrary()
+    destination = args.destination.resolve()
+    (destination / 'photon').mkdir(parents=True, exist_ok=True)
 
-    # =========================================================================
-    # DOWNLOAD FILES
-    if args.download:
-        for base, fname, checksum in files:
-            download(urljoin(base, fname), checksum)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Save current working directory and temporarily change dir
+        if args.tmpdir:
+            os.chdir(tmpdir)
+        library = openmc.data.DataLibrary()
 
-    # =========================================================================
-    # EXTRACT ARCHIVES
+        # =========================================================================
+        # DOWNLOAD FILES
+        if args.download:
+            for base, fname, checksum in files:
+                download(urljoin(base, fname), checksum)
 
-    if args.extract:
-        for _, f, _ in files:
-            if f.endswith('.zip'):
-                print(f'Extracting {f}...')
-                with zipfile.ZipFile(f) as zipf:
-                    zipf.extractall()
-            elif f.endswith('.tar.gz') or f.endswith('.tgz'):
-                print(f'Extracting {f}...')
-                with tarfile.open(f) as tgz:
-                    tgz.extractall()
+        # =========================================================================
+        # EXTRACT ARCHIVES
 
-    # =========================================================================
-    # REPLACE C13 AND O17 WITH FILES FROM TENDL 2019
+        if args.extract:
+            for _, f, _ in files:
+                if f.endswith('.zip'):
+                    print(f'Extracting {f}...')
+                    with zipfile.ZipFile(f) as zipf:
+                        zipf.extractall()
+                elif f.endswith('.tar.gz') or f.endswith('.tgz'):
+                    print(f'Extracting {f}...')
+                    with tarfile.open(f) as tgz:
+                        tgz.extractall()
 
-    # The evaluations for C13 and O17 can't be processed by recent versions of
-    # NJOY 2016 because of a bug in MF=6 in the evaluations. Instead of trying
-    # to patch the evaluation, we just replace it with more recent evaluations
-    # from TENDL 2019
+        # =========================================================================
+        # REPLACE C13 AND O17 WITH FILES FROM TENDL 2019
 
-    for url in tendl_files:
-        download(url, output_path=neutron_dir)
+        # The evaluations for C13 and O17 can't be processed by recent versions of
+        # NJOY 2016 because of a bug in MF=6 in the evaluations. Instead of trying
+        # to patch the evaluation, we just replace it with more recent evaluations
+        # from TENDL 2019
 
-    (neutron_dir / 'n-C013.tendl').rename(neutron_dir / '6-C-13g.jeff33')
-    (neutron_dir / 'n-O017.tendl').rename(neutron_dir / '8-O-17g.jeff33')
+        for url in tendl_files:
+            download(url, output_path=neutron_dir)
 
-    # =========================================================================
-    # PROCESS INCIDENT NEUTRON AND THERMAL SCATTERING DATA IN PARALLEL
+        (neutron_dir / 'n-C013.tendl').rename(neutron_dir / '6-C-13g.jeff33')
+        (neutron_dir / 'n-O017.tendl').rename(neutron_dir / '8-O-17g.jeff33')
 
-    with Pool() as pool:
-        neutron_paths = neutron_dir.glob('*.jeff33')
-        results = []
-        for p in neutron_paths:
-            func_args = (p, destination, args.libver, args.temperatures)
-            r = pool.apply_async(process_neutron, func_args)
-            results.append(r)
-        for p_neut, p_therm in thermal_paths:
-            func_args = (p_neut, p_therm, destination, args.libver)
-            r = pool.apply_async(process_thermal, func_args)
-            results.append(r)
-        for r in results:
-            r.wait()
+        # =========================================================================
+        # PROCESS INCIDENT NEUTRON AND THERMAL SCATTERING DATA IN PARALLEL
 
-    for p in sorted(destination.glob('*.h5'), key=sort_key):
-        library.register_file(p)
+        with Pool() as pool:
+            neutron_paths = neutron_dir.glob('*.jeff33')
+            results = []
+            for p in neutron_paths:
+                func_args = (p, destination, args.libver, args.temperatures)
+                r = pool.apply_async(process_neutron, func_args)
+                results.append(r)
+            for p_neut, p_therm in thermal_paths:
+                func_args = (p_neut, p_therm, destination, args.libver)
+                r = pool.apply_async(process_thermal, func_args)
+                results.append(r)
+            for r in results:
+                r.wait()
 
-    # =========================================================================
-    # INCIDENT PHOTON DATA
+        for p in sorted(destination.glob('*.h5'), key=sort_key):
+            library.register_file(p)
 
-    for z in range(1, 101):
-        element = openmc.data.ATOMIC_SYMBOL[z]
-        print('Generating HDF5 file for Z={} ({})...'.format(z, element))
+        # =========================================================================
+        # INCIDENT PHOTON DATA
 
-        # Generate instance of IncidentPhoton
-        photo_file = photoat_dir / f'photoat-{z:03}_{element}_000.endf'
-        atom_file = atomic_dir / f'atom-{z:03}_{element}_000.endf'
-        data = openmc.data.IncidentPhoton.from_endf(photo_file, atom_file)
+        for z in range(1, 101):
+            element = openmc.data.ATOMIC_SYMBOL[z]
+            print('Generating HDF5 file for Z={} ({})...'.format(z, element))
 
-        # Write HDF5 file and register it
-        outfile = destination / 'photon' / f'{element}.h5'
-        data.export_to_hdf5(outfile, 'w', libver=args.libver)
-        library.register_file(outfile)
+            # Generate instance of IncidentPhoton
+            photo_file = photoat_dir / f'photoat-{z:03}_{element}_000.endf'
+            atom_file = atomic_dir / f'atom-{z:03}_{element}_000.endf'
+            data = openmc.data.IncidentPhoton.from_endf(photo_file, atom_file)
 
-    library.export_to_xml(destination / 'cross_sections.xml')
+            # Write HDF5 file and register it
+            outfile = destination / 'photon' / f'{element}.h5'
+            data.export_to_hdf5(outfile, 'w', libver=args.libver)
+            library.register_file(outfile)
 
-    # Change back to original directory
-    if args.tmpdir:
-        os.chdir(pwd)
+        library.export_to_xml(destination / 'cross_sections.xml')
+
+        # Change back to original directory
+        if args.tmpdir:
+            os.chdir(pwd)
+
+
+if __name__ == '__main__':
+    main()

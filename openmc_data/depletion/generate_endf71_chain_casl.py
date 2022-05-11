@@ -3,9 +3,8 @@
 import glob
 import os
 from zipfile import ZipFile
-from collections import OrderedDict, defaultdict
+from collections import defaultdict
 from io import StringIO
-from itertools import chain
 
 try:
     import lxml.etree as ET
@@ -16,12 +15,10 @@ except ImportError:
 
 import openmc.data
 import openmc.deplete
-from openmc._xml import clean_indentation
 from openmc.deplete.chain import REACTIONS, replace_missing_fpy
-from openmc.deplete.nuclide import Nuclide, DecayTuple, ReactionTuple, \
-    FissionYieldDistribution
+from openmc.deplete.nuclide import Nuclide, FissionYieldDistribution
 
-from casl_chain import CASL_CHAIN, UNMODIFIED_DECAY_BR
+from .casl_chain import CASL_CHAIN, UNMODIFIED_DECAY_BR
 from utils import download
 
 URLS = [

@@ -42,89 +42,96 @@ parser.add_argument('mcnpdata', type=Path,
                     help='Directory containing endf71x and ENDF71SaB')
 args = parser.parse_args()
 
-# Check arguments to make sure they're valid
-assert args.mcnpdata.is_dir(), 'mcnpdata argument must be a directory'
-if args.photon is not None:
-    assert args.photon.is_file(), 'photon argument must be an existing file'
 
-# Get a list of all ACE files
-endf71x = list(args.mcnpdata.glob('endf71x/*/*.7??nc'))
-endf71sab = list(args.mcnpdata.glob('ENDF71SaB/*.??t'))
+def main():
 
-# Check for fixed H1 files and remove old ones if present
-hydrogen = args.mcnpdata / 'endf71x' / 'H'
-if (hydrogen / '1001.720nc').is_file():
-    for i in range(10, 17):
-        endf71x.remove(hydrogen / f'1001.7{i}nc')
+    # Check arguments to make sure they're valid
+    assert args.mcnpdata.is_dir(), 'mcnpdata argument must be a directory'
+    if args.photon is not None:
+        assert args.photon.is_file(), 'photon argument must be an existing file'
 
-# There's a bug in H-Zr at 1200 K
-thermal = args.mcnpdata / 'ENDF71SaB'
-endf71sab.remove(thermal / 'h-zr.27t')
+    # Get a list of all ACE files
+    endf71x = list(args.mcnpdata.glob('endf71x/*/*.7??nc'))
+    endf71sab = list(args.mcnpdata.glob('ENDF71SaB/*.??t'))
 
-# Check for updated TSL files and remove old ones if present
-checks = [
-    ('sio2', 10, range(20, 37)),
-    ('u-o2', 30, range(20, 28)),
-    ('zr-h', 30, range(20, 28))
-]
-for material, good, bad in checks:
-    if (thermal / f'{material}.{good}t').is_file():
-        for suffix in bad:
-            f = thermal / f'{material}.{suffix}t'
-            if f.is_file():
-                endf71sab.remove(f)
+    # Check for fixed H1 files and remove old ones if present
+    hydrogen = args.mcnpdata / 'endf71x' / 'H'
+    if (hydrogen / '1001.720nc').is_file():
+        for i in range(10, 17):
+            endf71x.remove(hydrogen / f'1001.7{i}nc')
 
-# Group together tables for the same nuclide
-tables = defaultdict(list)
-for p in sorted(endf71x + endf71sab):
-    tables[p.stem].append(p)
+    # There's a bug in H-Zr at 1200 K
+    thermal = args.mcnpdata / 'ENDF71SaB'
+    endf71sab.remove(thermal / 'h-zr.27t')
 
-# Create output directory if it doesn't exist
-(args.destination / 'photon').mkdir(parents=True, exist_ok=True)
+    # Check for updated TSL files and remove old ones if present
+    checks = [
+        ('sio2', 10, range(20, 37)),
+        ('u-o2', 30, range(20, 28)),
+        ('zr-h', 30, range(20, 28))
+    ]
+    for material, good, bad in checks:
+        if (thermal / f'{material}.{good}t').is_file():
+            for suffix in bad:
+                f = thermal / f'{material}.{suffix}t'
+                if f.is_file():
+                    endf71sab.remove(f)
 
-library = openmc.data.DataLibrary()
+    # Group together tables for the same nuclide
+    tables = defaultdict(list)
+    for p in sorted(endf71x + endf71sab):
+        tables[p.stem].append(p)
 
-for name, paths in sorted(tables.items()):
-    # Convert first temperature for the table
-    p = paths[0]
-    print(f'Converting: {p}')
-    if p.name.endswith('t'):
-        data = openmc.data.ThermalScattering.from_ace(p)
-    else:
-        data = openmc.data.IncidentNeutron.from_ace(p, 'mcnp')
+    # Create output directory if it doesn't exist
+    (args.destination / 'photon').mkdir(parents=True, exist_ok=True)
 
-    # For each higher temperature, add cross sections to the existing table
-    for p in paths[1:]:
-        print(f'Adding: {p}')
-        if p.name.endswith('t'):
-            data.add_temperature_from_ace(p)
-        else:
-            data.add_temperature_from_ace(p, 'mcnp')
+    library = openmc.data.DataLibrary()
 
-    # Export HDF5 file
-    h5_file = args.destination / f'{data.name}.h5'
-    print(f'Writing {h5_file}...')
-    data.export_to_hdf5(h5_file, 'w', libver=args.libver)
-
-    # Register with library
-    library.register_file(h5_file)
-
-# Handle photoatomic data
-if args.photon is not None:
-    lib = openmc.data.ace.Library(args.photon)
-
-    for table in lib.tables:
+    for name, paths in sorted(tables.items()):
         # Convert first temperature for the table
-        print(f'Converting: {table.name}')
-        data = openmc.data.IncidentPhoton.from_ace(table)
+        p = paths[0]
+        print(f'Converting: {p}')
+        if p.name.endswith('t'):
+            data = openmc.data.ThermalScattering.from_ace(p)
+        else:
+            data = openmc.data.IncidentNeutron.from_ace(p, 'mcnp')
+
+        # For each higher temperature, add cross sections to the existing table
+        for p in paths[1:]:
+            print(f'Adding: {p}')
+            if p.name.endswith('t'):
+                data.add_temperature_from_ace(p)
+            else:
+                data.add_temperature_from_ace(p, 'mcnp')
 
         # Export HDF5 file
-        h5_file = args.destination / 'photon' / f'{data.name}.h5'
+        h5_file = args.destination / f'{data.name}.h5'
         print(f'Writing {h5_file}...')
         data.export_to_hdf5(h5_file, 'w', libver=args.libver)
 
         # Register with library
         library.register_file(h5_file)
 
-# Write cross_sections.xml
-library.export_to_xml(args.destination / 'cross_sections.xml')
+    # Handle photoatomic data
+    if args.photon is not None:
+        lib = openmc.data.ace.Library(args.photon)
+
+        for table in lib.tables:
+            # Convert first temperature for the table
+            print(f'Converting: {table.name}')
+            data = openmc.data.IncidentPhoton.from_ace(table)
+
+            # Export HDF5 file
+            h5_file = args.destination / 'photon' / f'{data.name}.h5'
+            print(f'Writing {h5_file}...')
+            data.export_to_hdf5(h5_file, 'w', libver=args.libver)
+
+            # Register with library
+            library.register_file(h5_file)
+
+    # Write cross_sections.xml
+    library.export_to_xml(args.destination / 'cross_sections.xml')
+
+
+if __name__ == '__main__':
+    main()
