@@ -47,8 +47,42 @@ jobs:
           cd ..
           pip install .
 
+      # convert scripts that require mcnp nuclear data are not tested when the
+      # contents change as the CI doesn't contain that nuclear data.
+      # convert_lib80x.py convert_mcnp70.py convert_mcnp71.py files are not tested here
+
       - name: test default convert_fendl
         if: contains(steps.changed-files-specific.outputs.modified_files, 'openmc_data/convert_fendl.py')
         run: |
           echo "openmc_data/convert_fendl.py file has been modified."
           convert_fendl
+
+      - name: test default convert_jeff32
+        if: contains(steps.changed-files-specific.outputs.modified_files, 'openmc_data/convert_jeff32.py')
+        run: |
+          echo "openmc_data/convert_jeff32.py file has been modified."
+          convert_jeff32
+
+      - name: test default convert_jeff33
+        if: contains(steps.changed-files-specific.outputs.modified_files, 'openmc_data/convert_jeff33.py')
+        run: |
+          echo "openmc_data/convert_jeff33.py file has been modified."
+          convert_jeff33
+
+      - name: test default convert_nndc71
+        if: contains(steps.changed-files-specific.outputs.modified_files, 'openmc_data/convert_nndc71.py')
+        run: |
+          echo "openmc_data/convert_nndc71.py file has been modified."
+          convert_nndc71
+
+      - name: test default convert_tendl
+        if: contains(steps.changed-files-specific.outputs.modified_files, 'openmc_data/convert_tendl.py')
+        run: |
+          echo "openmc_data/convert_tendl.py file has been modified."
+          convert_tendl
+
+      - name: test default convert_tendl_rand
+        if: contains(steps.changed-files-specific.outputs.modified_files, 'openmc_data/convert_tendl_rand.py')
+        run: |
+          echo "openmc_data/convert_tendl_rand.py file has been modified."
+          convert_tendl_rand
