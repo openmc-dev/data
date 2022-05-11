@@ -47,8 +47,8 @@ jobs:
           cd ..
           pip install .
 
-      - name: test convert_fendl
-        if: contains(steps.changed-files.outputs.modified_files, 'openmc_data/convert_fendl.py')
+      - name: test default convert_fendl
+        if: contains(steps.changed-files-specific.outputs.modified_files, 'openmc_data/convert_fendl.py')
         run: |
           echo "openmc_data/convert_fendl.py file has been modified."
           convert_fendl
