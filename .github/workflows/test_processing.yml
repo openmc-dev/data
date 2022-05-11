@@ -15,22 +15,24 @@ jobs:
       runs-on: ubuntu-latest
       steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # OR "2" -> To retrieve the preceding commit.
 
-      - name: Verify Changed files
-        uses: tj-actions/verify-changed-files@v9
-        id: verify-changed-files
+      - name: Get specific changed files
+        id: changed-files-specific
+        uses: tj-actions/changed-files@v19
         with:
           files: |
-             openmc_data/convert_*.py
+            openmc_data/convert_*.py
 
       - name: Set up Python
-        if: steps.verify-changed-files.outputs.files_changed == 'true'
+        if: steps.changed-files-specific.outputs.any_changed == 'true'
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
 
       - name: Install testing dependencies
-        if: steps.verify-changed-files.outputs.files_changed == 'true'
+        if: steps.changed-files-specific.outputs.any_changed == 'true'
         run: |
           sudo apt-get install libhdf5-serial-dev
           git clone --single-branch --branch develop --depth 1 https://github.com/openmc-dev/openmc.git
@@ -45,7 +47,8 @@ jobs:
           cd ..
           pip install .
 
-      - name: Perform action when test_directory changes
-        if: contains(steps.verify-changed-files.outputs.changed_files, 'convert_fendl.py')
+      - name: test convert_fendl
+        if: contains(steps.changed-files.outputs.modified_files, 'openmc_data/convert_fendl.py')
         run: |
+          echo "openmc_data/convert_fendl.py file has been modified."
           convert_fendl
