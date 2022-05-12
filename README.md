@@ -53,16 +53,16 @@ depletion simulations.
 | Script name | Library | Release | Processed by | Download available | Downloads ACE files and convert to HDF5 | Downloads ENDF files and convert to HDF5 | Convert local ACE files |
 |-|-|-|-|-|-|-|-|
 |generate_cendl| CENDL | 3.1<br>3.2 |  |  |  | :heavy_check_mark: |  |
-|convert_mcnp70| ENDF/B | VII.0 | LANL | [https://openmc.org](https://openmc.org) |  |  | :heavy_check_mark: |
-|convert_mcnp71| ENDF/B | VII.1 | LANL | [https://openmc.org](https://openmc.org) |  |  | :heavy_check_mark: |
-|generate_endf| ENDF/B | VII.1 | NNDC | [https://openmc.org](https://openmc.org) |  | :heavy_check_mark: |  |
-|convert_nndc71| ENDF/B | VII.1 | NNDC | [https://openmc.org](https://openmc.org) | :heavy_check_mark: | :heavy_check_mark: |  |
-|convert_lib80x| ENDF/B | VIII.0 | LANL | [https://openmc.org](https://openmc.org) |  |  | :heavy_check_mark: |
-|generate_endf| ENDF/B | VIII.0 | NNDC | [https://openmc.org](https://openmc.org) |  | :heavy_check_mark: |  |
+|convert_mcnp70| ENDF/B | VII.0 | LANL | [openmc.org](https://openmc.org) |  |  | :heavy_check_mark: |
+|convert_mcnp71| ENDF/B | VII.1 | LANL | [openmc.org](https://openmc.org) |  |  | :heavy_check_mark: |
+|generate_endf| ENDF/B | VII.1 | NNDC | [openmc.org](https://openmc.org) |  | :heavy_check_mark: |  |
+|convert_nndc71| ENDF/B | VII.1 | NNDC | [openmc.org](https://openmc.org) | :heavy_check_mark: | :heavy_check_mark: |  |
+|convert_lib80x| ENDF/B | VIII.0 | LANL | [openmc.org](https://openmc.org) |  |  | :heavy_check_mark: |
+|generate_endf| ENDF/B | VIII.0 | NNDC | [openmc.org](https://openmc.org) |  | :heavy_check_mark: |  |
 |convert_fendl| FENDL | 2.1<br>3.0<br>3.1a<br>3.1d<br>3.2 |  |  | :heavy_check_mark: |  |  |
 |generate_jendl| JENDL | 4.0 |  |  |  | :heavy_check_mark: |  |
-|convert_jeff32| JEFF | 3.2 |  | [https://openmc.org](https://openmc.org) | :heavy_check_mark: |  |  |
-|convert_jeff33| JEFF | 3.3 |  | [https://openmc.org](https://openmc.org) | :heavy_check_mark: |  |  |
+|convert_jeff32| JEFF | 3.2 |  | [openmc.org](https://openmc.org) | :heavy_check_mark: |  |  |
+|convert_jeff33| JEFF | 3.3 |  | [openmc.org](https://openmc.org) | :heavy_check_mark: |  |  |
 |convert_tendl| TENDL | 2015<br>2017<br>2019<br>2021|  |  | :heavy_check_mark: |  |  |
 
 ## Depletion Chains
