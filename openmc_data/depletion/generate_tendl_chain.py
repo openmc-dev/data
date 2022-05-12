@@ -29,6 +29,7 @@ parser.add_argument('-r', '--release', choices=['2019', '2021'],
                     "and 2021.")
 args = parser.parse_args()
 
+
 def extract(filename, path=".", verbose=True):
     # Determine function to open archive
     if Path(filename).suffix == '.zip':
@@ -54,6 +55,7 @@ def fix_jeff33_nfy(path):
             f.write(" "*66 + "   1 0  0    0\n")
             f.write(data)
     return new_path
+
 
 def main():
 

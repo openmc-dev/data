@@ -38,7 +38,7 @@ jobs:
 
         # this just check the scripts are accessible after the install
         # the scripts are not run or checked for correct behaviour
-      - name: Test scripts exist
+      - name: Test convert scripts exist
         run: |
           combine_libraries --help
           convert_fendl --help
@@ -50,11 +50,26 @@ jobs:
           convert_nndc71 --help
           convert_tendl --help
           convert_tendl_rand --help
+
+      - name: Test generate scripts exist
+        run: |
           generate_cendl --help
           generate_endf --help
           generate_jeff33 --help
           generate_jendl --help
+      
+
+      - name: Test other scripts exist
+        run: |
           # make_compton --help commented out as the script needs adapting
           # make_stopping_powers --help commented out as the script needs adapting
           sample_sandy --help
+
+      - name: Test depletion scripts exist
+        run: |
+          add_branching_ratios --help
+          generate_endf71_chain_casl --help
+          generate_endf71_chain --help
+          generate_serpent_fissq --help
           generate_tendl_chain --help
+          reduce_chain --help

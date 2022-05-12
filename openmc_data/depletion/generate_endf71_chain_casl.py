@@ -19,7 +19,7 @@ from openmc.deplete.chain import REACTIONS, replace_missing_fpy
 from openmc.deplete.nuclide import Nuclide, FissionYieldDistribution
 
 from .casl_chain import CASL_CHAIN, UNMODIFIED_DECAY_BR
-from utils import download
+from openmc_data.utils import download
 
 URLS = [
     'https://www.nndc.bnl.gov/endf-b7.1/zips/ENDF-B-VII.1-neutrons.zip',
