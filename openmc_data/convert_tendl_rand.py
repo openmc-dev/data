@@ -42,19 +42,48 @@ n_choices = [
 parser = argparse.ArgumentParser(
     description=description, formatter_class=CustomFormatter
 )
-parser.add_argument("-n", "--nuclides", choices=n_choices, nargs="+",
-                    default=["Fe56"], help="The nuclides to be downloaded. Available are: "
-                    "'O16','Si28', 'Si29','Si30', 'Fe54', 'Fe56', 'Fe57', 'Fe58', 'Na23', 'Pu240'. Use 'all' for all availiable")
-parser.add_argument("-d", "--destination", default=None, 
-                    help="Directory to create new library in")
-parser.add_argument("-x", "--xlib", default=None, 
-                    help="cross_section.xml library to add random evaluations to")
-parser.add_argument("-b", "--batch", action="store_true", 
-                    help="supresses standard in")
-parser.add_argument("-f", "--format_only", default=False,
-                    help="Only format previously sampled files to HDF5")
+parser.add_argument(
+    "-n",
+    "--nuclides",
+    choices=n_choices,
+    nargs="+",
+    default=["Fe56"],
+    help="The nuclides to be downloaded. Available are: "
+    "'O16','Si28', 'Si29','Si30', 'Fe54', 'Fe56', 'Fe57', 'Fe58', 'Na23', 'Pu240'. Use 'all' for all availiable",
+)
+parser.add_argument(
+    "-d", "--destination", default=None, help="Directory to create new library in"
+)
+parser.add_argument(
+    "-x",
+    "--xlib",
+    default=None,
+    help="cross_section.xml library to add random evaluations to",
+)
+parser.add_argument("-b", "--batch", action="store_true", help="supresses standard in")
+parser.add_argument(
+    "-f",
+    "--format_only",
+    default=False,
+    help="Only format previously sampled files to HDF5",
+)
 
 args = parser.parse_args()
+
+
+def process_neutron_random(nuc, i, out_dir, in_dir, file_num):
+    """Process ENDF neutron sublibrary file into HDF5 and write into a
+    specified output directory."""
+
+    fileIn = in_dir / f"{nuc}-{i}"
+    fileOut = out_dir / f"{nuc}-{i}.h5"
+
+    data = openmc.data.IncidentNeutron.from_njoy(fileIn)
+    data.name = f"{nuc}-{i}"
+    data.export_to_hdf5(fileOut, "w")
+    if i % 40 == 0:
+        print(f"Nuclide {nuc} {i}/{file_num} finished")
+
 
 def main():
 
@@ -231,7 +260,6 @@ def main():
         if uncompressed_file_size > 1000:
             uncom_file_size = f"{uncompressed_file_size / 1000} GB"
 
-
         download_warning = """
         WARNING: This script will download {} of 
         data, which is {} of data when processed. 
@@ -245,10 +273,7 @@ def main():
             download_size, uncom_file_size, num_of_files, nuclides
         )
 
-
-        response = input(download_warning) if not args.batch else "y"
-        if response.lower().startswith("n"):
-            sys.exit()
+        print(download_warning)
 
         # ==============================================================================
         # DOWNLOAD FILES FROM WEBSITE
@@ -292,9 +317,11 @@ def main():
 
                 for i in range(numFiles):
                     OldNumber = f"{i:04}"
-                    OldFile = prefix + nuclide_details[nucs]["filename"] + suffix + OldNumber
+                    OldFile = (
+                        prefix + nuclide_details[nucs]["filename"] + suffix + OldNumber
+                    )
                     newFile = f"{nucs}-{i+1}"
-                    
+
                     if nuclide_details[nucs]["gunzip"]:
                         os.system(f"gunzip {out_dir}/{OldFile}.gz")
                     (out_dir / OldFile).rename(out_dir / newFile)
@@ -302,20 +329,6 @@ def main():
 
     # ==============================================================================
     # Convert ENDF files to HDF5 with njoy
-
-    def process_neutron_random(nuc, i, out_dir, in_dir, file_num):
-        """Process ENDF neutron sublibrary file into HDF5 and write into a
-        specified output directory."""
-
-        fileIn = in_dir / f"{nuc}-{i}"
-        fileOut = out_dir / f"{nuc}-{i}.h5"
-
-        data = openmc.data.IncidentNeutron.from_njoy(fileIn)
-        data.name = f"{nuc}-{i}"
-        data.export_to_hdf5(fileOut, "w")
-        if i % 40 == 0:
-            print(f"Nuclide {nuc} {i}/{file_num} finished")
-
 
     print("Beginning NJOY processing")
     with Pool() as pool:
@@ -351,7 +364,6 @@ def main():
             fileOut = out_dir / f"{nuc}-{i}.h5"
             lib.register_file(fileOut)
 
-
     pre = output_dir / "cross_sections_pre.xml"
     post = output_dir / "cross_sections_tendl.xml"
 
@@ -365,5 +377,5 @@ def main():
     pre.unlink()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

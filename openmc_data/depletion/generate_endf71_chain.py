@@ -6,7 +6,7 @@ from zipfile import ZipFile
 
 import openmc.deplete
 
-from utils import download
+from openmc_data.utils import download
 
 
 URLS = [

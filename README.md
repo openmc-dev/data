@@ -1,5 +1,11 @@
 [![test_urls](https://github.com/shimwell/data/actions/workflows/test_urls.yml/badge.svg)](https://github.com/shimwell/data/actions/workflows/test_urls.yml)
 
+[![test_package](https://github.com/openmc-data-storage/openmc_data/actions/workflows/test_package.yml/badge.svg)](https://github.com/openmc-data-storage/openmc_data/actions/workflows/test_package.yml)
+
+[![test_convert_scripts](https://github.com/openmc-data-storage/openmc_data/actions/workflows/test_processing.yml/badge.svg)](https://github.com/openmc-data-storage/openmc_data/actions/workflows/test_processing.yml)
+
+
+
 # OpenMC Data Scripts
 
 This repository contains a collection of scripts for generating HDF5 data

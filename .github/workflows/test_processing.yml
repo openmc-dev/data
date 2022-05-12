@@ -1,0 +1,90 @@
+
+name: test_convert_scripts
+on:  
+  workflow_dispatch:
+  pull_request:    
+    branches:
+    - main  
+  push:
+    branches:
+    - main
+
+
+jobs:
+    run_scripts:
+      runs-on: ubuntu-latest
+      steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # OR "2" -> To retrieve the preceding commit.
+
+      - name: Get specific changed files
+        id: changed-files-specific
+        uses: tj-actions/changed-files@v19
+        with:
+          files: |
+            openmc_data/convert_*.py
+
+      - name: Set up Python
+        if: steps.changed-files-specific.outputs.any_changed == 'true'
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Install testing dependencies
+        if: steps.changed-files-specific.outputs.any_changed == 'true'
+        run: |
+          sudo apt-get install libhdf5-serial-dev
+          git clone --single-branch --branch develop --depth 1 https://github.com/openmc-dev/openmc.git
+          cd openmc
+          mkdir build
+          cd build
+          cmake ..
+          make -j2
+          sudo make -j2 install
+          cd ..
+          pip install .
+          cd ..
+          pip install .
+
+      # convert scripts that require mcnp nuclear data are not tested when the
+      # contents change as the CI doesn't contain that nuclear data.
+      # convert_lib80x.py convert_mcnp70.py convert_mcnp71.py files are not tested here
+
+      - name: test default convert_fendl
+        if: contains(steps.changed-files-specific.outputs.modified_files, 'openmc_data/convert_fendl.py')
+        run: |
+          echo "openmc_data/convert_fendl.py file has been modified."
+          convert_fendl --cleanup
+
+      # this running convert_jeff32 in with default arguments produces 49GB of
+      # data. Hence the use of arguments to process just one temperature
+      - name: test default convert_jeff32
+        if: contains(steps.changed-files-specific.outputs.modified_files, 'openmc_data/convert_jeff32.py')
+        run: |
+          echo "openmc_data/convert_jeff32.py file has been modified."
+          convert_jeff32 -r 3.2 -t 293 --cleanup
+
+      - name: test default convert_jeff33
+        if: contains(steps.changed-files-specific.outputs.modified_files, 'openmc_data/convert_jeff33.py')
+        run: |
+          echo "openmc_data/convert_jeff33.py file has been modified."
+          convert_jeff33 -r 3.3 -t 293 --cleanup
+
+      - name: test default convert_nndc71
+        if: contains(steps.changed-files-specific.outputs.modified_files, 'openmc_data/convert_nndc71.py')
+        run: |
+          echo "openmc_data/convert_nndc71.py file has been modified."
+          convert_nndc71 --cleanup
+
+      - name: test default convert_tendl
+        if: contains(steps.changed-files-specific.outputs.modified_files, 'openmc_data/convert_tendl.py')
+        run: |
+          echo "openmc_data/convert_tendl.py file has been modified."
+          convert_tendl --cleanup
+
+      - name: test default convert_tendl_rand
+        if: contains(steps.changed-files-specific.outputs.modified_files, 'openmc_data/convert_tendl_rand.py')
+        run: |
+          echo "openmc_data/convert_tendl_rand.py file has been modified."
+          convert_tendl_rand --nuclides O16 --cleanup

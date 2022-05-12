@@ -19,42 +19,72 @@ from .utils import download
 from .urls import all_release_details
 
 
-class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
-                      argparse.RawDescriptionHelpFormatter):
+class CustomFormatter(
+    argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter
+):
     pass
 
 
-parser = argparse.ArgumentParser(
-    description=__doc__,
-    formatter_class=CustomFormatter
+parser = argparse.ArgumentParser(description=__doc__, formatter_class=CustomFormatter)
+parser.add_argument(
+    "-d",
+    "--destination",
+    type=Path,
+    default=None,
+    help="Directory to create new library in",
 )
-parser.add_argument('-d', '--destination', type=Path, default=None,
-                    help='Directory to create new library in')
-parser.add_argument('--download', action='store_true',
-                    help='Download files from IAEA-NDS')
-parser.add_argument('--no-download', dest='download', action='store_false',
-                    help='Do not download files from IAEA-NDS')
-parser.add_argument('--extract', action='store_true',
-                    help='Extract tar/zip files')
-parser.add_argument('--no-extract', dest='extract', action='store_false',
-                    help='Do not extract tar/zip files')
-parser.add_argument('--libver', choices=['earliest', 'latest'],
-                    default='earliest', help="Output HDF5 versioning. Use "
-                    "'earliest' for backwards compatibility or 'latest' for "
-                    "performance")
-parser.add_argument('-r', '--release', choices=['3.2','3.1d', '3.1a', '3.0',
-                    '2.1'],  default='3.2', help="The nuclear data library "
-                    "release version. The currently supported options are "
-                    "3.2, 3.1d, 3.1a, 3.0 and 2.1")
-parser.add_argument('-p', '--particles', choices=['neutron', 'photon'],
-                    nargs='+', default=['neutron', 'photon'],
-                    help="Incident particles to include")
-parser.add_argument('--cleanup', action='store_true',
-                    help="Remove download directories when data has "
-                    "been processed")
-parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
-                    help="Do not remove download directories when data has "
-                    "been processed")
+parser.add_argument(
+    "--download", action="store_true", help="Download files from IAEA-NDS"
+)
+parser.add_argument(
+    "--no-download",
+    dest="download",
+    action="store_false",
+    help="Do not download files from IAEA-NDS",
+)
+parser.add_argument("--extract", action="store_true", help="Extract tar/zip files")
+parser.add_argument(
+    "--no-extract",
+    dest="extract",
+    action="store_false",
+    help="Do not extract tar/zip files",
+)
+parser.add_argument(
+    "--libver",
+    choices=["earliest", "latest"],
+    default="earliest",
+    help="Output HDF5 versioning. Use "
+    "'earliest' for backwards compatibility or 'latest' for "
+    "performance",
+)
+parser.add_argument(
+    "-r",
+    "--release",
+    choices=["3.2", "3.1d", "3.1a", "3.0", "2.1"],
+    default="3.2",
+    help="The nuclear data library "
+    "release version. The currently supported options are "
+    "3.2, 3.1d, 3.1a, 3.0 and 2.1",
+)
+parser.add_argument(
+    "-p",
+    "--particles",
+    choices=["neutron", "photon"],
+    nargs="+",
+    default=["neutron", "photon"],
+    help="Incident particles to include",
+)
+parser.add_argument(
+    "--cleanup",
+    action="store_true",
+    help="Remove download directories when data has " "been processed",
+)
+parser.add_argument(
+    "--no-cleanup",
+    dest="cleanup",
+    action="store_false",
+    help="Do not remove download directories when data has " "been processed",
+)
 parser.set_defaults(download=True, extract=True, cleanup=False)
 args = parser.parse_args()
 
@@ -68,17 +98,19 @@ args = parser.parse_args()
 
 
 def fendl30_k39(file_path):
-    """ Function to check for k-39 error in FENDL-3.0"""
-    if 'Inf' in open(file_path, 'r').read():
+    """Function to check for k-39 error in FENDL-3.0"""
+    if "Inf" in open(file_path, "r").read():
         ace_error_warning = """
         {} contains 'Inf' values within the XSS array
         which prevent conversion to a HDF5 file format. This is a known issue
         in FENDL-3.0. {} has not been added to the cross section library.
-        """.format(file_path, file_path.name)
+        """.format(
+            file_path, file_path.name
+        )
         err_msg = dedent(ace_error_warning)
-        return {'skip_file': True, 'err_msg': err_msg}
+        return {"skip_file": True, "err_msg": err_msg}
     else:
-        return {'skip_file': False}
+        return {"skip_file": False}
 
 
 def check_special_case(particle_details, script_step):
@@ -87,44 +119,52 @@ def check_special_case(particle_details, script_step):
     Returns the special Cases relevant to a specific part of the script.
     If there are no special cases, return an empty dict
     """
-    if 'special_cases' in particle_details:
-        if script_step in particle_details['special_cases']:
-            return particle_details['special_cases'][script_step]
+    if "special_cases" in particle_details:
+        if script_step in particle_details["special_cases"]:
+            return particle_details["special_cases"][script_step]
     return {}
 
 
 def main():
 
-    library_name = 'fendl'
+    library_name = "fendl"
     cwd = Path.cwd()
 
-    ace_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'ace']))
-    endf_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'endf']))
+    ace_files_dir = cwd.joinpath("-".join([library_name, args.release, "ace"]))
+    endf_files_dir = cwd.joinpath("-".join([library_name, args.release, "endf"]))
 
-    download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
+    download_path = cwd.joinpath("-".join([library_name, args.release, "download"]))
     # the destination is decided after the release is know to avoid putting
     # the release in a folder with a misleading name
     if args.destination is None:
-        args.destination = Path('-'.join([library_name, args.release, 'hdf5']))
+        args.destination = Path("-".join([library_name, args.release, "hdf5"]))
 
     # This dictionary contains all the unique information about each release.
     # This can be extended to accommodate new releases
     release_details = all_release_details[library_name]
 
     # todo refactor this into the release dictionary
-    if args.release == '3.0':
-        release_details[args.release]['neutron']['special_cases'] = {'process': {'19K_039.ace': fendl30_k39}}
+    if args.release == "3.0":
+        release_details[args.release]["neutron"]["special_cases"] = {
+            "process": {"19K_039.ace": fendl30_k39}
+        }
 
     compressed_file_size = uncompressed_file_size = 0
-    for p in ('neutron', 'photon'):
+    for p in ("neutron", "photon"):
         if p in args.particles:
-            compressed_file_size += release_details[args.release][p]['compressed_file_size']
-            uncompressed_file_size += release_details[args.release][p]['uncompressed_file_size']
+            compressed_file_size += release_details[args.release][p][
+                "compressed_file_size"
+            ]
+            uncompressed_file_size += release_details[args.release][p][
+                "uncompressed_file_size"
+            ]
 
     download_warning = """
     WARNING: This script will download {} MB of data.
     Extracting and processing the data requires {} MB of additional free disk space.
-    """.format(compressed_file_size, uncompressed_file_size)
+    """.format(
+        compressed_file_size, uncompressed_file_size
+    )
 
     # Warnings to be printed at the end of the script.
     output_warnings = []
@@ -140,11 +180,13 @@ def main():
             particle_download_path = download_path / particle
 
             particle_details = release_details[args.release][particle]
-            for f in particle_details['compressed_files']:
-                download(urljoin(particle_details['base_url'], f),
-                        as_browser=True, context=ssl._create_unverified_context(),
-                        output_path=particle_download_path)
-
+            for f in particle_details["compressed_files"]:
+                download(
+                    urljoin(particle_details["base_url"], f),
+                    as_browser=True,
+                    context=ssl._create_unverified_context(),
+                    output_path=particle_download_path,
+                )
 
     # ==============================================================================
     # EXTRACT FILES FROM ZIP
@@ -153,30 +195,31 @@ def main():
 
             particle_details = release_details[args.release][particle]
 
-            special_cases = check_special_case(particle_details, 'extract')
+            special_cases = check_special_case(particle_details, "extract")
 
-            if particle_details['file_type'] == "ace":
+            if particle_details["file_type"] == "ace":
                 extraction_dir = ace_files_dir
-            elif particle_details['file_type'] == "endf":
+            elif particle_details["file_type"] == "endf":
                 extraction_dir = endf_files_dir
 
-            for f in particle_details['compressed_files']:
+            for f in particle_details["compressed_files"]:
                 # Check if file requires special handling
                 if f in special_cases:
                     ret = special_cases[f](Path(f))
-                    if 'err_msg' in ret:
-                        output_warnings.append(ret['err_msg'])
-                    if ret['skip_file']:
+                    if "err_msg" in ret:
+                        output_warnings.append(ret["err_msg"])
+                    if ret["skip_file"]:
                         continue
 
                 # Extract files, the fendl release was compressed using type 9 zip format
                 # unfortunatly which is incompatible with the standard python zipfile library
                 # therefore the following system command is used
-                subprocess.call(['unzip', '-o', download_path / particle / f, '-d', extraction_dir])
+                subprocess.call(
+                    ["unzip", "-o", download_path / particle / f, "-d", extraction_dir]
+                )
 
         if args.cleanup and download_path.exists():
             rmtree(download_path)
-
 
     # ==============================================================================
     # GENERATE HDF5 LIBRARY
@@ -191,36 +234,38 @@ def main():
         particle_details = release_details[args.release][particle]
 
         # Get dictionary of special cases for particle
-        special_cases = check_special_case(particle_details, 'process')
+        special_cases = check_special_case(particle_details, "process")
 
-        if particle == 'neutron':
+        if particle == "neutron":
             # Get a list of all ACE files
-            neutron_files = ace_files_dir.glob(release_details[args.release]['neutron']['ace_files'])
+            neutron_files = ace_files_dir.glob(
+                release_details[args.release]["neutron"]["ace_files"]
+            )
 
             # excluding files ending with _ that are
             # old incorrect files kept in the release for backwards compatability
             neutron_files = [
                 f
                 for f in neutron_files
-                if not f.name.endswith('_') and not f.name.endswith('.xsd')
+                if not f.name.endswith("_") and not f.name.endswith(".xsd")
             ]
 
             for filename in sorted(neutron_files):
                 # Handling for special cases
                 if filename.name in special_cases:
                     ret = special_cases[filename.name](filename)
-                    if 'err_msg' in ret:
-                        output_warnings.append(ret['err_msg'])
-                    if ret['skip_file']:
+                    if "err_msg" in ret:
+                        output_warnings.append(ret["err_msg"])
+                    if ret["skip_file"]:
                         continue
 
-                print(f'Converting: {filename}')
+                print(f"Converting: {filename}")
                 data = openmc.data.IncidentNeutron.from_ace(filename)
 
                 # Export HDF5 file
-                h5_file = particle_destination / f'{data.name}.h5'
-                print(f'Writing {h5_file}...')
-                data.export_to_hdf5(h5_file, 'w', libver=args.libver)
+                h5_file = particle_destination / f"{data.name}.h5"
+                print(f"Writing {h5_file}...")
+                data.export_to_hdf5(h5_file, "w", libver=args.libver)
 
                 # Register with library
                 library.register_file(h5_file)
@@ -229,28 +274,30 @@ def main():
             if args.cleanup and ace_files_dir.exists():
                 rmtree(ace_files_dir)
 
-        elif particle == 'photon':
-    
-            photon_files = endf_files_dir.glob(release_details[args.release]['photon']['endf_files'])
+        elif particle == "photon":
+
+            photon_files = endf_files_dir.glob(
+                release_details[args.release]["photon"]["endf_files"]
+            )
 
             for photo_path in sorted(photon_files):
 
                 # Check if file requires special handling
                 if photo_path.name in special_cases:
                     ret = special_cases[photo_path.name](photo_path)
-                    if 'err_msg' in ret:
-                        output_warnings.append(ret['err_msg'])
-                    if ret['skip_file']:
+                    if "err_msg" in ret:
+                        output_warnings.append(ret["err_msg"])
+                    if ret["skip_file"]:
                         continue
 
-                print(f'Converting: {photo_path}')
+                print(f"Converting: {photo_path}")
                 evaluations = openmc.data.endf.get_evaluations(photo_path)
                 for ev in evaluations:
                     # Export HDF5 file
                     data = openmc.data.IncidentPhoton.from_endf(ev)
-                    h5_file = particle_destination / f'{data.name}.h5'
-                    print(f'Writing {h5_file}...')
-                    data.export_to_hdf5(h5_file, 'w', libver=args.libver)
+                    h5_file = particle_destination / f"{data.name}.h5"
+                    print(f"Writing {h5_file}...")
+                    data.export_to_hdf5(h5_file, "w", libver=args.libver)
 
                 # Register with library
                 library.register_file(h5_file)
@@ -260,13 +307,13 @@ def main():
                 rmtree(endf_files_dir)
 
     # Write cross_sections.xml
-    print('Writing ', args.destination / 'cross_sections.xml')
-    library.export_to_xml(args.destination / 'cross_sections.xml')
+    print("Writing ", args.destination / "cross_sections.xml")
+    library.export_to_xml(args.destination / "cross_sections.xml")
 
     # Print any warnings
     for warning in output_warnings:
         warnings.warn(warning)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
