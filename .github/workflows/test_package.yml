@@ -1,5 +1,5 @@
 
-name: test_package
+name: test_existence
 on:  
   workflow_dispatch:
   pull_request:    
