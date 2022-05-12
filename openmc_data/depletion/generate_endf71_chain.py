@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+from argparse import ArgumentParser
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -14,6 +15,17 @@ URLS = [
     'https://www.nndc.bnl.gov/endf-b7.1/zips/ENDF-B-VII.1-decay.zip',
     'https://www.nndc.bnl.gov/endf-b7.1/zips/ENDF-B-VII.1-nfy.zip'
 ]
+
+# Parse command line arguments
+parser = ArgumentParser()
+parser.add_argument(
+    "-d",
+    "--destination",
+    type=Path,
+    default='chain_endfb71.xml',
+    help="filename of the chain file xml file produced.",
+)
+args = parser.parse_args()
 
 
 def main():
@@ -45,7 +57,8 @@ def main():
             raise IOError("No {} endf files found in {}".format(ftype, endf_dir))
 
     chain = openmc.deplete.Chain.from_endf(decay_files, nfy_files, neutron_files)
-    chain.export_to_xml('chain_endfb71.xml')
+
+    chain.export_to_xml(args.destination)
 
 
 if __name__ == '__main__':

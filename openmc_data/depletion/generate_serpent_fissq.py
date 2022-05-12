@@ -13,6 +13,13 @@ import openmc.data
 # Get command line argument
 parser = ArgumentParser()
 parser.add_argument('dir', type=Path, help='Directory containing ENDF neutron sublibrary files')
+parser.add_argument(
+    "-d",
+    "--destination",
+    type=Path,
+    default='serpent_fissq.json',
+    help="filename of the heating values file produced",
+)
 args = parser.parse_args()
 
 
@@ -37,5 +44,5 @@ def main():
         serpent_fission_q[nuc.name] = heat_u235 * q / q_u235
 
     # Write heating values to JSON file
-    with open('serpent_fissq.json', 'w') as f:
+    with open(args.destination, 'w') as f:
         json.dump(serpent_fission_q, f, indent=2)
