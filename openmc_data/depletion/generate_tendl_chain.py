@@ -27,6 +27,14 @@ parser.add_argument('-r', '--release', choices=['2019', '2021'],
                     default='2021', help="The nuclear data library release "
                     "version. The currently supported options are 2019, "
                     "and 2021.")
+parser.add_argument(
+    "-d",
+    "--destination",
+    type=Path,
+    default=None,
+    help="filename of the chain file xml file produced. If left as None then "
+    "the filename will follow this format 'chain_tendl_{release}_{lib}.xml'",
+)
 args = parser.parse_args()
 
 
@@ -141,7 +149,11 @@ def main():
         decay_files, nfy_files, neutron_files,
         reactions=dep.chain.REACTIONS.keys()
     )
-    chain.export_to_xml(f'chain_{library_name}_{args.release}_{args.lib}.xml')
+
+    if args.destination is None:
+        chain.export_to_xml(f'chain_{library_name}_{args.release}_{args.lib}.xml')
+    else:
+        chain.export_to_xml(args.destination)
 
 
 if __name__ == "__main__":

@@ -2,6 +2,8 @@
 
 import glob
 import os
+from argparse import ArgumentParser
+from pathlib import Path
 from zipfile import ZipFile
 from collections import defaultdict
 from io import StringIO
@@ -26,6 +28,17 @@ URLS = [
     'https://www.nndc.bnl.gov/endf-b7.1/zips/ENDF-B-VII.1-decay.zip',
     'https://www.nndc.bnl.gov/endf-b7.1/zips/ENDF-B-VII.1-nfy.zip'
 ]
+
+# Parse command line arguments
+parser = ArgumentParser()
+parser.add_argument(
+    "-d",
+    "--destination",
+    type=Path,
+    default='chain_casl.xml',
+    help="filename of the chain file xml file produced.",
+)
+args = parser.parse_args()
 
 
 def replace_missing_decay_product(product, decay_data, all_decay_data):
@@ -263,7 +276,7 @@ def main():
             print('  {}, replaced with {}'.format(parent, replacement))
         print('')
 
-    chain.export_to_xml('chain_casl.xml')
+    chain.export_to_xml(args.destination)
 
 
 if __name__ == '__main__':
