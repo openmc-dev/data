@@ -14,8 +14,9 @@ def test_tendl_urls():
             for particle, value in particles.items():
                 for file in value['compressed_files']:
                     url = value['base_url'] + file
+                    print(library, release, particle, url)
                     responce = requests.get(url, stream=True)
+                    print(library, release, particle, url, responce.status_code)
                     # printing output so that in the event of a failure the
                     # failing url can be identified
-                    print(library, release, particle, responce.status_code)
                     assert responce.status_code == 200

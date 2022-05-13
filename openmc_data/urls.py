@@ -240,5 +240,84 @@ all_release_details = {
                 "uncompressed_file_size": 45,
             },
         }
+    },
+    'jeff': {
+        "3.2": {
+            'neutron': {
+                "base_url": "https://www.oecd-nea.org/dbforms/data/eva/evatapes/jeff_32/Processed/",
+                "compressed_files": [
+                    "JEFF32-ACE-293K.tar.gz",
+                    "JEFF32-ACE-400K.tar.gz",
+                    "JEFF32-ACE-500K.tar.gz",
+                    "JEFF32-ACE-600K.tar.gz",
+                    "JEFF32-ACE-700K.tar.gz",
+                    "JEFF32-ACE-800K.zip",  # Note the different suffix
+                    "JEFF32-ACE-900K.tar.gz",
+                    "JEFF32-ACE-1000K.tar.gz",
+                    "JEFF32-ACE-1200K.tar.gz",
+                    "JEFF32-ACE-1500K.tar.gz",
+                    "JEFF32-ACE-1800K.tar.gz",
+                    "TSLs.tar.gz"],
+                "temperatures": [
+                    "293",
+                    "400",
+                    "500",
+                    "600",
+                    "700",
+                    "800",
+                    "900",
+                    "1000",
+                    "1200",
+                    "1500",
+                    "1800",
+                    None
+                ],
+                "neutron_files": "*.ACE",
+                "metastables": "*M.ACE",
+                "sab_files": "ANNEX_6_3_STLs/*/*.ace",
+                "redundant": "ACEs_293K/*-293.ACE",
+                "compressed_file_size": 9,
+                "uncompressed_file_size": 40,
+            }
+        },
+        "3.3": {
+            'neutron': {
+                "base_url": "http://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/temperatures/",
+                "compressed_files": [
+                    "ace_293.tar.gz",
+                    "ace_600.tar.gz",
+                    "ace_900.tar.gz",
+                    "ace_1200.tar.gz",
+                    "ace_1500.tar.gz",
+                    "ace_1800.tar.gz",
+                    "ace_tsl.tar.gz",
+                ],
+                "temperatures": [
+                    "293",
+                    "600",
+                    "900",
+                    "1200",
+                    "1500",
+                    "1800",
+                    None
+                ],
+                "neutron_files": "ace_293/*.ace",
+                "thermal_files": "ace_tsl",
+                "compressed_file_size": "7.7 GB",
+                "uncompressed_file_size": "37 GB",
+            }
+        }
+    },
+    'jendl': {
+        '4.0': {
+            'neutron': {
+                'base_url': 'https://wwwndc.jaea.go.jp/ftpnd/ftp/JENDL/',
+                'compressed_files': ['jendl40-or-up_20160106.tar.gz'],
+                'endf_files': 'jendl40-or-up_20160106/*.dat',
+                'metastables': 'jendl40-or-up_20160106/*m.dat',
+                'compressed_file_size': '0.2 GB',
+                'uncompressed_file_size': '2 GB'
+            }
+        }
     }
 }
