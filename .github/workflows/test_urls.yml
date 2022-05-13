@@ -38,6 +38,8 @@ jobs:
           cd ..
           pip install .[tests]
 
+      # the -s allows normal print statements in the url testing to be seen in
+      # the pytest output 
       - name: test urls
         run: |
-          pytest -v tests/test_urls.py
+          pytest -v -s tests/test_urls.py

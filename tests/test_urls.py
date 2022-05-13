@@ -8,6 +8,7 @@ def test_tendl_urls():
     """Cycles through all the urls in each nuclear data library and checks
     that they return a status 200 code (success)"""
 
+    print("library, release, particle, responce.status_code")
     for library, releases in all_release_details.items():
         for release, particles in releases.items():
             for particle, value in particles.items():
