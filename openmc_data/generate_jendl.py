@@ -13,6 +13,7 @@ from urllib.parse import urljoin
 
 import openmc.data
 from .utils import download, extract, process_neutron
+from .urls import all_release_details
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
@@ -66,31 +67,22 @@ def main():
 
     # This dictionary contains all the unique information about each release.
     # This can be exstened to accommodated new releases
-    release_details = {
-        '4.0': {
-            'base_url': 'https://wwwndc.jaea.go.jp/ftpnd/ftp/JENDL/',
-            'compressed_files': ['jendl40-or-up_20160106.tar.gz'],
-            'endf_files': endf_files_dir.joinpath('jendl40-or-up_20160106').glob('*.dat'),
-            'metastables': endf_files_dir.joinpath('jendl40-or-up_20160106').glob('*m.dat'),
-            'compressed_file_size': '0.2 GB',
-            'uncompressed_file_size': '2 GB'
-        }
-    }
+    details = all_release_details[library_name][args.release]
 
     download_warning = """
     WARNING: This script will download {} of data.
     Extracting and processing the data requires {} of additional free disk space.
-    """.format(release_details[args.release]['compressed_file_size'],
-            release_details[args.release]['uncompressed_file_size'])
+    """.format(details['compressed_file_size'],
+            details['uncompressed_file_size'])
 
     # ==============================================================================
     # DOWNLOAD FILES FROM WEBSITE
 
     if args.download:
         print(download_warning)
-        for f in release_details[args.release]['compressed_files']:
+        for f in details['compressed_files']:
             # Establish connection to URL
-            download(urljoin(release_details[args.release]['base_url'], f),
+            download(urljoin(details['base_url'], f),
                     context=ssl._create_unverified_context(),
                     output_path=download_path)
 
@@ -98,7 +90,7 @@ def main():
     # EXTRACT FILES FROM TGZ
     if args.extract:
         extract(
-            compressed_files=[download_path/ f for f in release_details[args.release]['compressed_files']],
+            compressed_files=[download_path/ f for f in details['compressed_files']],
             extraction_dir=endf_files_dir,
             del_compressed_file=args.cleanup
         )
@@ -108,7 +100,7 @@ def main():
     # GENERATE HDF5 LIBRARY -- NEUTRON FILES
 
     # Get a list of all ENDF files
-    neutron_files = release_details[args.release]['endf_files']
+    neutron_files = endf_files_dir.glob(details['endf_files'])
 
     # Create output directory if it doesn't exist
     args.destination.mkdir(parents=True, exist_ok=True)

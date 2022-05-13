@@ -121,7 +121,7 @@ def main():
 
     # This dictionary contains all the unique information about each release.
     # This can be extended to accommodate new releases
-    details = all_release_details[library_name][args.release]
+    details = all_release_details[library_name][args.release]['neutron']
 
     # ==============================================================================
     # DOWNLOAD FILES FROM WEBSITE

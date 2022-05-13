@@ -124,7 +124,7 @@ def main():
         args.destination = Path("-".join([library_name, args.release, "hdf5"]))
 
     # This dictionary contains all the unique information about each release. This can be exstened to accommodated new releases
-    details = all_release_details[library_name][args.release]
+    details = all_release_details[library_name][args.release]['neutron']
 
     download_warning = """
     WARNING: This script will download up to {} GB of data. Extracting and
