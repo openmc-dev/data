@@ -205,4 +205,40 @@ all_release_details = {
             },
         },
     },
+    'nndc': {
+        "b7.1": {
+            "neutron": {
+                "base_url": "http://www.nndc.bnl.gov/endf-b7.1/aceFiles/",
+                "compressed_files": [
+                    "ENDF-B-VII.1-neutron-293.6K.tar.gz",
+                    "ENDF-B-VII.1-tsl.tar.gz",
+                ],
+                "checksums": [
+                    "9729a17eb62b75f285d8a7628ace1449",
+                    "e17d827c92940a30f22f096d910ea186",
+                ],
+                "file_type": "ace",
+                "ace_files": "[aA-zZ]*.ace",
+                "sab_files": "*.acer",
+                "compressed_file_size": 497,
+                "uncompressed_file_size": 1200,
+            },
+            "photon": {
+                "base_url": "http://www.nndc.bnl.gov/endf-b7.1/zips/",
+                "compressed_files": [
+                    "ENDF-B-VII.1-photoat.zip",
+                    "ENDF-B-VII.1-atomic_relax.zip",
+                ],
+                "checksums": [
+                    "5192f94e61f0b385cf536f448ffab4a4",
+                    "fddb6035e7f2b6931e51a58fc754bd10",
+                ],
+                "file_type": "endf",
+                "photo_files": "photoat/*.endf",
+                "atom_files": "atomic_relax/*.endf",
+                "compressed_file_size": 9,
+                "uncompressed_file_size": 45,
+            },
+        }
+    }
 }

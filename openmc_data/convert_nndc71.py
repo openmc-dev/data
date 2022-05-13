@@ -12,6 +12,7 @@ from pathlib import Path
 
 import openmc.data
 from .utils import download, extract
+from .urls import all_release_details
 
 # Make sure Python version is sufficient
 assert sys.version_info >= (3, 6), "Python 3.6+ is required"
@@ -92,47 +93,12 @@ def main():
 
     # This dictionary contains all the unique information about each release. This
     # can be exstened to accommodated new releases
-    release_details = {
-        "b7.1": {
-            "neutron": {
-                "base_url": "http://www.nndc.bnl.gov/endf-b7.1/aceFiles/",
-                "compressed_files": [
-                    "ENDF-B-VII.1-neutron-293.6K.tar.gz",
-                    "ENDF-B-VII.1-tsl.tar.gz",
-                ],
-                "checksums": [
-                    "9729a17eb62b75f285d8a7628ace1449",
-                    "e17d827c92940a30f22f096d910ea186",
-                ],
-                "file_type": "ace",
-                "ace_files": ace_files_dir.rglob("[aA-zZ]*.ace"),
-                "sab_files": ace_files_dir.rglob("*.acer"),
-                "compressed_file_size": 497,
-                "uncompressed_file_size": 1200,
-            },
-            "photon": {
-                "base_url": "http://www.nndc.bnl.gov/endf-b7.1/zips/",
-                "compressed_files": [
-                    "ENDF-B-VII.1-photoat.zip",
-                    "ENDF-B-VII.1-atomic_relax.zip",
-                ],
-                "checksums": [
-                    "5192f94e61f0b385cf536f448ffab4a4",
-                    "fddb6035e7f2b6931e51a58fc754bd10",
-                ],
-                "file_type": "endf",
-                "photo_files": endf_files_dir.joinpath("photoat").rglob("*.endf"),
-                "atom_files": endf_files_dir.joinpath("atomic_relax").rglob("*.endf"),
-                "compressed_file_size": 9,
-                "uncompressed_file_size": 45,
-            },
-        }
-    }
+    release_details = all_release_details[library_name][release]
 
     compressed_file_size, uncompressed_file_size = 0, 0
     for p in ("neutron", "photon"):
-        compressed_file_size += release_details[release][p]["compressed_file_size"]
-        uncompressed_file_size += release_details[release][p]["uncompressed_file_size"]
+        compressed_file_size += release_details[p]["compressed_file_size"]
+        uncompressed_file_size += release_details[p]["uncompressed_file_size"]
 
     download_warning = """
     WARNING: This script will download up to {} MB of data. Extracting and
@@ -152,11 +118,11 @@ def main():
         for particle in args.particles:
             particle_download_path = download_path / particle
             for f, checksum in zip(
-                release_details[release][particle]["compressed_files"],
-                release_details[release][particle]["checksums"],
+                release_details[particle]["compressed_files"],
+                release_details[particle]["checksums"],
             ):
                 # Establish connection to URL
-                url = release_details[release][particle]["base_url"] + f
+                url = release_details[particle]["base_url"] + f
                 downloaded_file = download(
                     url, output_path=particle_download_path, checksum=checksum
                 )
@@ -166,15 +132,15 @@ def main():
 
     if args.extract:
         for particle in args.particles:
-            if release_details[release][particle]["file_type"] == "ace":
+            if release_details[particle]["file_type"] == "ace":
                 extraction_dir = ace_files_dir
-            elif release_details[release][particle]["file_type"] == "endf":
+            elif release_details[particle]["file_type"] == "endf":
                 extraction_dir = endf_files_dir
 
             extract(
                 compressed_files=[
                     download_path / particle / f
-                    for f in release_details[release][particle]["compressed_files"]
+                    for f in release_details[particle]["compressed_files"]
                 ],
                 extraction_dir=extraction_dir,
                 del_compressed_file=args.cleanup,
@@ -205,13 +171,13 @@ def main():
     library = openmc.data.DataLibrary()
 
     for particle in args.particles:
-        details = release_details[release][particle]
+        details = release_details[particle]
         if particle == "neutron":
             for cls, files in [
-                (openmc.data.IncidentNeutron, "ace_files"),
-                (openmc.data.ThermalScattering, "sab_files"),
+                (openmc.data.IncidentNeutron, ace_files_dir.rglob(details["ace_files"])),
+                (openmc.data.ThermalScattering, ace_files_dir.rglob(details["sab_files"])),
             ]:
-                for path in sorted(details[files]):
+                for path in sorted(files):
                     print(f"Converting: {path.name}")
                     data = cls.from_ace(path)
                     # Export HDF5 file
@@ -223,7 +189,7 @@ def main():
 
         elif particle == "photon":
             for photo_path, atom_path in zip(
-                sorted(details["photo_files"]), sorted(details["atom_files"])
+                sorted(endf_files_dir.glob(details["photo_files"])), sorted(endf_files_dir.glob(details["atom_files"]))
             ):
                 # Generate instance of IncidentPhoton
                 print("Converting:", photo_path.name, atom_path.name)
