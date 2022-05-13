@@ -277,6 +277,31 @@ all_release_details = {
             "redundant": "ACEs_293K/*-293.ACE",
             "compressed_file_size": 9,
             "uncompressed_file_size": 40,
+        },
+        "3.3": {
+            "base_url": "http://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/temperatures/",
+            "compressed_files": [
+                "ace_293.tar.gz",
+                "ace_600.tar.gz",
+                "ace_900.tar.gz",
+                "ace_1200.tar.gz",
+                "ace_1500.tar.gz",
+                "ace_1800.tar.gz",
+                "ace_tsl.tar.gz",
+            ],
+            "temperatures": [
+                "293",
+                "600",
+                "900",
+                "1200",
+                "1500",
+                "1800",
+                None
+            ],
+            "neutron_files": "ace_293/*.ace",
+            "thermal_files": "ace_tsl",
+            "compressed_file_size": "7.7 GB",
+            "uncompressed_file_size": "37 GB",
         }
     }
 }

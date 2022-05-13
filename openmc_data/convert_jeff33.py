@@ -14,6 +14,7 @@ from urllib.parse import urljoin
 import openmc.data
 
 from .utils import download, extract
+from .urls import all_release_details
 
 
 # Make sure Python version is sufficient
@@ -102,11 +103,13 @@ parser.add_argument(
 parser.set_defaults(download=True, extract=True, cleanup=False)
 args = parser.parse_args()
 
+
 def key(p):
     """Return (temperature, atomic number, mass number, metastable)"""
     z, x, a, temp = p.stem.split("-")
     return int(temp), int(z), int(a[:-1]), a[-1]
-    
+
+
 def main():
 
     library_name = "jeff"
@@ -116,38 +119,9 @@ def main():
     ace_files_dir = cwd.joinpath("-".join([library_name, args.release, "ace"]))
     download_path = cwd.joinpath("-".join([library_name, args.release, "download"]))
 
-    # This dictionary contains all the unique information about each release. This
-    # can be extended to accommodate new releases
-    release_details = {
-        "3.3": {
-            "base_url": "http://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/temperatures/",
-            "compressed_files": [
-                "ace_293.tar.gz",
-                "ace_600.tar.gz",
-                "ace_900.tar.gz",
-                "ace_1200.tar.gz",
-                "ace_1500.tar.gz",
-                "ace_1800.tar.gz",
-                "ace_tsl.tar.gz",
-            ],
-            "temperatures": [
-                "293",
-                "600",
-                "900",
-                "1200",
-                "1500",
-                "1800",
-                None
-            ],
-            "neutron_files": ace_files_dir.rglob("*-[A-Z]*.ace"),
-            "thermal_files": (ace_files_dir / "ace_tsl").glob("*.ace"),
-            "metastables": ace_files_dir.rglob("*[0-9]m-*.ace"),
-            "compressed_file_size": "7.7 GB",
-            "uncompressed_file_size": "37 GB",
-        }
-    }
-
-    details = release_details[args.release]
+    # This dictionary contains all the unique information about each release.
+    # This can be extended to accommodate new releases
+    details = all_release_details[library_name][args.release]
 
     # ==============================================================================
     # DOWNLOAD FILES FROM WEBSITE
@@ -172,7 +146,7 @@ def main():
         extract(
             compressed_files=[
                 download_path / f
-                for f,t in zip(details["compressed_files"], details["temperatures"])
+                for f, t in zip(details["compressed_files"], details["temperatures"])
                 if t in args.temperatures or t is None
             ],
             extraction_dir=ace_files_dir,
@@ -187,7 +161,7 @@ def main():
 
     lib = openmc.data.DataLibrary()
 
-    for p in sorted((ace_files_dir / "ace_293").glob("*.ace"), key=key):
+    for p in sorted(ace_files_dir.glob(details['neutron_files']), key=key):
         print(f"Converting: {p}")
         temp, z, a, m = key(p)
 
@@ -235,7 +209,7 @@ def main():
     def thermal_temp(p):
         return int(p.stem.split("-")[-1])
 
-    thermal_dir = ace_files_dir / "ace_tsl"
+    thermal_dir = ace_files_dir / details["thermal_files"]
 
     for mat in thermal_mats:
         for i, p in enumerate(
