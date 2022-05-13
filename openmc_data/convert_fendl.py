@@ -15,7 +15,7 @@ from textwrap import dedent
 from urllib.parse import urljoin
 
 import openmc.data
-from .utils import download
+from .utils import download, state_download_size
 from .urls import all_release_details
 
 
@@ -159,12 +159,6 @@ def main():
                 "uncompressed_file_size"
             ]
 
-    download_warning = """
-    WARNING: This script will download {} MB of data.
-    Extracting and processing the data requires {} MB of additional free disk space.
-    """.format(
-        compressed_file_size, uncompressed_file_size
-    )
 
     # Warnings to be printed at the end of the script.
     output_warnings = []
@@ -173,7 +167,7 @@ def main():
     # DOWNLOAD FILES FROM IAEA SITE
 
     if args.download:
-        print(download_warning)
+        state_download_size(compressed_file_size, uncompressed_file_size, 'MB')
 
         for particle in args.particles:
             # Create a directory to hold the downloads

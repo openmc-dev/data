@@ -13,7 +13,7 @@ from urllib.parse import urljoin
 
 import openmc.data
 
-from .utils import download, extract
+from .utils import download, extract, state_download_size
 from .urls import all_release_details
 
 
@@ -126,15 +126,8 @@ def main():
     # ==============================================================================
     # DOWNLOAD FILES FROM WEBSITE
 
-    download_warning = """
-    WARNING: This script will download {} of data.
-    Extracting and processing the data requires {} of additional free disk space.
-    """.format(
-        details["compressed_file_size"], details["uncompressed_file_size"]
-    )
-
     if args.download:
-        print(download_warning)
+        state_download_size(details["compressed_file_size"], details["uncompressed_file_size"], 'GB')
         for f, t in zip(details["compressed_files"], details["temperatures"]):
             if t in args.temperatures or t is None:
                 download(urljoin(details["base_url"], f), output_path=download_path)

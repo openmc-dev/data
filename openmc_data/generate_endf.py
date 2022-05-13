@@ -16,7 +16,7 @@ from pathlib import Path
 from shutil import rmtree, copy, copyfileobj
 
 import openmc.data
-from .utils import download, process_neutron, process_thermal
+from .utils import download, process_neutron, process_thermal, state_download_size
 
 # Make sure Python version is sufficient
 assert sys.version_info >= (3, 6), "Python 3.6+ is required"
@@ -219,20 +219,11 @@ def main():
             compressed_file_size += release_details[args.release][p]['compressed_file_size']
             uncompressed_file_size += release_details[args.release][p]['uncompressed_file_size']
 
-    download_warning = """
-    WARNING: This script will download up to {} MB of data. Extracting and
-    processing the data may require as much as {} MB of additional free disk
-    space. This script downloads ENDF/B incident neutron ACE data and
-    incident photon ENDF data from NNDC and convert it to an HDF5 library
-    for use with OpenMC.
-    """.format(compressed_file_size, uncompressed_file_size)
-
-
     # ==============================================================================
     # DOWNLOAD FILES FROM NNDC SITE
 
     if args.download:
-        print(download_warning)
+        state_download_size(compressed_file_size, uncompressed_file_size, 'MB')
         for particle in args.particles:
             details = release_details[args.release][particle]
             for i, f in enumerate(details['compressed_files']):

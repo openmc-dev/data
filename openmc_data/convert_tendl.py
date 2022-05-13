@@ -11,7 +11,7 @@ from pathlib import Path
 from urllib.parse import urljoin
 
 import openmc.data
-from .utils import download, extract
+from .utils import download, extract, state_download_size
 from .urls import all_release_details
 
 
@@ -96,19 +96,15 @@ def main():
     # This can be extended to accommodated new releases
     release_details = all_release_details[library_name][args.release]["neutron"]
 
-    download_warning = """
-    WARNING: This script will download {} of data.
-    Extracting and processing the data requires {} of additional free disk space.
-    """.format(
-        release_details["compressed_file_size"],
-        release_details["uncompressed_file_size"],
-    )
-
     # ==============================================================================
     # DOWNLOAD FILES FROM WEBSITE
 
     if args.download:
-        print(download_warning)
+        state_download_size(
+            release_details['compressed_file_size'],
+            release_details['uncompressed_file_size'],
+            'GB'
+        )
         for f in release_details["compressed_files"]:
             # Establish connection to URL
             download(urljoin(release_details["base_url"], f), output_path=download_path)

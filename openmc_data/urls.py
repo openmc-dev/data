@@ -6,8 +6,8 @@ all_release_details = {
                 "compressed_files": ["ACE-n.tgz"],
                 "neutron_files": "neutron_file/*/*/lib/endf/*-n.ace",
                 "metastables": "neutron_file/*/*/lib/endf/*m-n.ace",
-                "compressed_file_size": "5.1 GB",
-                "uncompressed_file_size": "40 GB",
+                "compressed_file_size": "5.1",
+                "uncompressed_file_size": "40",
             }
         },
         "2017": {
@@ -16,8 +16,8 @@ all_release_details = {
                 "compressed_files": ["tendl17c.tar.bz2"],
                 "neutron_files": "ace-17/*",
                 "metastables": "ace-17/*m",
-                "compressed_file_size": "2.1 GB",
-                "uncompressed_file_size": "14 GB",
+                "compressed_file_size": "2.1",
+                "uncompressed_file_size": "14",
             }
         },
         "2019": {
@@ -26,8 +26,8 @@ all_release_details = {
                 "compressed_files": ["tendl19c.tar.bz2"],
                 "neutron_files": "tendl19c/*",
                 "metastables": "tendl19c/*m",
-                "compressed_file_size": "2.3 GB",
-                "uncompressed_file_size": "10.1 GB",
+                "compressed_file_size": "2.3",
+                "uncompressed_file_size": "10.1",
             }
         },
         "2021": {
@@ -36,8 +36,8 @@ all_release_details = {
                 "compressed_files": ["tendl21c.tar.bz2"],
                 "neutron_files": "tendl21c/*",
                 "metastables": "tendl21c/*m",
-                "compressed_file_size": "2.2 GB",
-                "uncompressed_file_size": "10.5 GB",
+                "compressed_file_size": "2.2",
+                "uncompressed_file_size": "10.5",
             }
         },
     },
@@ -303,8 +303,8 @@ all_release_details = {
                 ],
                 "neutron_files": "ace_293/*.ace",
                 "thermal_files": "ace_tsl",
-                "compressed_file_size": "7.7 GB",
-                "uncompressed_file_size": "37 GB",
+                "compressed_file_size": "7.7",
+                "uncompressed_file_size": "37",
             }
         }
     },
@@ -315,8 +315,8 @@ all_release_details = {
                 'compressed_files': ['jendl40-or-up_20160106.tar.gz'],
                 'endf_files': 'jendl40-or-up_20160106/*.dat',
                 'metastables': 'jendl40-or-up_20160106/*m.dat',
-                'compressed_file_size': '0.2 GB',
-                'uncompressed_file_size': '2 GB'
+                'compressed_file_size': '0.2',
+                'uncompressed_file_size': '2'
             }
         }
     }

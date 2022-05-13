@@ -14,7 +14,7 @@ from string import digits
 from urllib.parse import urljoin
 
 import openmc.data
-from .utils import download
+from .utils import download, state_download_size
 from .urls import all_release_details
 
 
@@ -126,21 +126,11 @@ def main():
     # This dictionary contains all the unique information about each release. This can be exstened to accommodated new releases
     details = all_release_details[library_name][args.release]['neutron']
 
-    download_warning = """
-    WARNING: This script will download up to {} GB of data. Extracting and
-    processing the data may require as much as {} GB of additional free disk
-    space. Note that if you don't need all 11 temperatures, you can used the
-    --temperature argument to download only the temperatures you want.
-    """.format(
-        details["compressed_file_size"],
-        details["uncompressed_file_size"],
-    )
-
     # ==============================================================================
     # DOWNLOAD FILES FROM OECD SITE
 
     if args.download:
-        print(download_warning)
+        state_download_size(details["compressed_file_size"], details["uncompressed_file_size"], 'GB')
         for f, t in zip(details["compressed_files"], details["temperatures"]):
             if t in args.temperatures or t is None:
                 download(
