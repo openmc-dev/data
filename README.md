@@ -5,18 +5,16 @@
 [![test_convert_scripts](https://github.com/openmc-data-storage/openmc_data/actions/workflows/test_processing.yml/badge.svg)](https://github.com/openmc-data-storage/openmc_data/actions/workflows/test_processing.yml)
 
 
-
 # OpenMC Data Scripts
 
 This repository contains a collection of scripts for generating HDF5 data
 libraries that can be used with OpenMC. Some of these scripts convert existing
 ACE libraries (such as those produced by LANL) whereas generate scripts use
-NJOY to process ENDF files directly. Note that unless you are interested in
-making a customized library, you can find pregenerated HDF5 libraries at
-[https://openmc.org](https://openmc.org). Another source of data libraries for OpenMC is the
-[Windowed Multipole Library](https://github.com/mit-crpg/WMP_Library)
-repository which enables on-the-fly Doppler broadening to an arbitrary
-temperature.
+NJOY to process ENDF files directly
+
+Note that unless you are interested in making a customized library, you can find pregenerated HDF5 libraries at [https://openmc.org](https://openmc.org).
+
+Another source of data libraries for OpenMC is the [Windowed Multipole Library](https://github.com/mit-crpg/WMP_Library) repository which enables on-the-fly Doppler broadening to an arbitrary temperature.
 
 # Prerequisites
 
@@ -27,7 +25,7 @@ You should have already installed OpenMC, see the [docs](https://docs.openmc.org
 Currently the package can be installed from this temporary repository.
 
 ```bash
-sudo pip install -e git+https://github.com/openmc-data-storage/openmc_data.git
+pip install git+https://github.com/openmc-data-storage/openmc_data.git
 ```
 
 In the future pip installing from PyPi or Conda could be provided
@@ -42,11 +40,14 @@ The scripts accept input arguments, to find out the input arguments available
 for a particular script run the script name with ```--help``` after the name.
 For example:
 
-```convert_fendl --help```
+```convert_nndc71 --help```
 
-Two categories of scripts are available, those that generate h5 cross section
-files for using in OpenMC and those that generate chain files for use in
-depletion simulations.
+A few categories of scripts are available:
+<ul>
+<li>Scripts that generate h5 cross section files for using in OpenMC from either ACE or ENDF files.</li>
+<li>Scripts that generate chain files for use in depletion simulations. </li>
+<li>Other scripts that don't fall into either category.</li>
+</ul> 
 
 ## Cross Section
 
