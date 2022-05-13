@@ -240,5 +240,43 @@ all_release_details = {
                 "uncompressed_file_size": 45,
             },
         }
+    },
+    'jeff': {
+        "3.2": {
+            "base_url": "https://www.oecd-nea.org/dbforms/data/eva/evatapes/jeff_32/Processed/",
+            "compressed_files": [
+                "JEFF32-ACE-293K.tar.gz",
+                "JEFF32-ACE-400K.tar.gz",
+                "JEFF32-ACE-500K.tar.gz",
+                "JEFF32-ACE-600K.tar.gz",
+                "JEFF32-ACE-700K.tar.gz",
+                "JEFF32-ACE-800K.zip",  # Note the different suffix
+                "JEFF32-ACE-900K.tar.gz",
+                "JEFF32-ACE-1000K.tar.gz",
+                "JEFF32-ACE-1200K.tar.gz",
+                "JEFF32-ACE-1500K.tar.gz",
+                "JEFF32-ACE-1800K.tar.gz",
+                "TSLs.tar.gz"],
+            "temperatures": [
+                "293",
+                "400",
+                "500",
+                "600",
+                "700",
+                "800",
+                "900",
+                "1000",
+                "1200",
+                "1500",
+                "1800",
+                None
+            ],
+            "neutron_files": "*.ACE",
+            "metastables": "*M.ACE",
+            "sab_files": "ANNEX_6_3_STLs/*/*.ace",
+            "redundant": "ACEs_293K/*-293.ACE",
+            "compressed_file_size": 9,
+            "uncompressed_file_size": 40,
+        }
     }
 }

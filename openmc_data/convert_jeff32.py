@@ -15,6 +15,7 @@ from urllib.parse import urljoin
 
 import openmc.data
 from .utils import download
+from .urls import all_release_details
 
 
 class CustomFormatter(
@@ -123,22 +124,7 @@ def main():
         args.destination = Path("-".join([library_name, args.release, "hdf5"]))
 
     # This dictionary contains all the unique information about each release. This can be exstened to accommodated new releases
-    release_details = {
-        "3.2": {
-            "base_url": "https://www.oecd-nea.org/dbforms/data/eva/evatapes/jeff_32/Processed/",
-            "compressed_files": [
-                f"JEFF32-ACE-{t}K.zip" if t == "800" else f"JEFF32-ACE-{t}K.tar.gz"
-                for t in args.temperatures
-            ]
-            + ["TSLs.tar.gz"],
-            "neutron_files": ace_files_dir.rglob("*.ACE"),
-            "metastables": ace_files_dir.rglob("*M.ACE"),
-            "sab_files": ace_files_dir.glob("ANNEX_6_3_STLs/*/*.ace"),
-            "redundant": ace_files_dir.glob("ACEs_293K/*-293.ACE"),
-            "compressed_file_size": 9,
-            "uncompressed_file_size": 40,
-        }
-    }
+    details = all_release_details[library_name][args.release]
 
     download_warning = """
     WARNING: This script will download up to {} GB of data. Extracting and
@@ -146,8 +132,8 @@ def main():
     space. Note that if you don't need all 11 temperatures, you can used the
     --temperature argument to download only the temperatures you want.
     """.format(
-        release_details[args.release]["compressed_file_size"],
-        release_details[args.release]["uncompressed_file_size"],
+        details["compressed_file_size"],
+        details["uncompressed_file_size"],
     )
 
     # ==============================================================================
@@ -155,40 +141,43 @@ def main():
 
     if args.download:
         print(download_warning)
-        for f in release_details[args.release]["compressed_files"]:
-            download(
-                urljoin(release_details[args.release]["base_url"], f),
-                output_path=download_path,
-            )
+        for f, t in zip(details["compressed_files"], details["temperatures"]):
+            if t in args.temperatures or t is None:
+                download(
+                    urljoin(details["base_url"], f),
+                    output_path=download_path,
+                )
 
     # ==============================================================================
     # EXTRACT FILES FROM TGZ
 
     if args.extract:
-        for f in release_details[args.release]["compressed_files"]:
-            # Extract files
-            if f.endswith(".zip"):
-                with zipfile.ZipFile(download_path / f, "r") as zipf:
-                    print("Extracting {}...".format(f))
-                    zipf.extractall(ace_files_dir)
+        for f, t in zip(details["compressed_files"], details["temperatures"]):
+            if t in args.temperatures or t is None:
+                # Extract files
+                if f.endswith(".zip"):
+                    with zipfile.ZipFile(download_path / f, "r") as zipf:
+                        print("Extracting {}...".format(f))
+                        zipf.extractall(ace_files_dir)
 
-            else:
-                suffix = "ACEs_293K" if "293" in f else ""
-                with tarfile.open(download_path / f, "r") as tgz:
-                    print("Extracting {}...".format(f))
-                    tgz.extractall(ace_files_dir / suffix)
+                else:
+                    suffix = "ACEs_293K" if t == "293" else ""
+                    with tarfile.open(download_path / f, "r") as tgz:
+                        print("Extracting {}...".format(f))
+                        tgz.extractall(ace_files_dir / suffix)
 
-                # Remove thermal scattering tables from 293K data since they are
-                # redundant
-                if "293" in f:
-                    for path in release_details[args.release]["redundant"]:
-                        print(f"removing {path}")
-                        path.unlink()
+                    # Remove thermal scattering tables from 293K data since they
+                    # are redundant
+                    if t == "293":
+                        redundants = ace_files_dir.glob(details["redundant"])
+                        for path in redundants:
+                            print(f"removing {path}")
+                            path.unlink()
 
     # ==============================================================================
     # CHANGE ZAID FOR METASTABLES
 
-    metastables = release_details[args.release]["metastables"]
+    metastables = ace_files_dir.rglob(details["metastables"])
     for path in metastables:
         print("    Fixing {} (ensure metastable)...".format(path))
         text = open(path, "r").read()
@@ -201,7 +190,7 @@ def main():
     # GENERATE HDF5 LIBRARY -- NEUTRON FILES
 
     # Get a list of all ACE files
-    neutron_files = release_details[args.release]["neutron_files"]
+    neutron_files = ace_files_dir.rglob(details["neutron_files"])
 
     # Group together tables for same nuclide
     tables = defaultdict(list)
@@ -241,7 +230,8 @@ def main():
 
     # Group together tables for same nuclide
     tables = defaultdict(list)
-    for filename in sorted(release_details[args.release]["sab_files"]):
+    sab_files = ace_files_dir.glob(details["sab_files"])
+    for filename in sorted(sab_files):
         name = filename.name.split("-")[0]
         tables[name].append(filename)
 
