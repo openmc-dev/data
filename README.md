@@ -25,7 +25,7 @@ You should have already installed OpenMC, see the [docs](https://docs.openmc.org
 Currently the package can be installed from this temporary repository.
 
 ```bash
-pip install git+https://github.com/openmc-data-storage/openmc_data.git
+pip install openmc_data
 ```
 
 In the future pip installing from PyPi or Conda could be provided
