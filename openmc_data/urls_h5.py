@@ -1,6 +1,6 @@
 all_h5_release_details = {
     "nndc": {
-        "7.1": {
+        "b7.1": {
             "neutron-photon": {
                 "base_url": "https://anl.box.com/shared/static/",
                 "compressed_files": ["9igk353zpy8fn9ttvtrqgzvw1vtejoz6.xz"],
