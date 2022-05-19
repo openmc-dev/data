@@ -40,7 +40,6 @@ jobs:
         # the scripts are not run or checked for correct behaviour
       - name: Test convert scripts exist
         run: |
-          combine_libraries --help
           convert_fendl --help
           convert_jeff32 --help
           convert_jeff33 --help
@@ -49,7 +48,6 @@ jobs:
           convert_mcnp71 --help
           convert_nndc71 --help
           convert_tendl --help
-          convert_tendl_rand --help
 
       - name: Test generate scripts exist
         run: |
@@ -64,6 +62,8 @@ jobs:
    
       - name: Test other scripts exist
         run: |
+          combine_libraries --help
+          convert_tendl_rand --help
           # make_compton --help commented out as the script needs adapting
           # make_stopping_powers --help commented out as the script needs adapting
           sample_sandy --help
