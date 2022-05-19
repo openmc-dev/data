@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 import openmc.data
-from .utils import download, extract
+from .utils import download, extract, state_download_size
 from .urls import all_release_details
 
 # Make sure Python version is sufficient
@@ -100,21 +100,15 @@ def main():
         compressed_file_size += release_details[p]["compressed_file_size"]
         uncompressed_file_size += release_details[p]["uncompressed_file_size"]
 
-    download_warning = """
-    WARNING: This script will download up to {} MB of data. Extracting and
-    processing the data may require as much as {} MB of additional free disk
-    space. This script downloads ENDF/B-VII.1 incident neutron ACE data and
-    incident photon ENDF data from NNDC and convert it to an HDF5 library
-    for use with OpenMC. This data is used for OpenMC's regression test suite.
-    """.format(
-        compressed_file_size, uncompressed_file_size
-    )
-
     # ==============================================================================
     # DOWNLOAD FILES FROM NNDC SITE
 
     if args.download:
-        print(download_warning)
+        state_download_size(
+            compressed_file_size,
+            uncompressed_file_size,
+            'MB'
+        )
         for particle in args.particles:
             particle_download_path = download_path / particle
             for f, checksum in zip(

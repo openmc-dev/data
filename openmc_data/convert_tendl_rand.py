@@ -10,7 +10,7 @@ from multiprocessing import Pool
 
 import openmc.data
 
-from .utils import download
+from .utils import download, state_download_size
 
 description = """
 Download random TENDL libraries from PSI and convert it to a HDF5 library for use with OpenMC. 
@@ -253,27 +253,10 @@ def main():
             uncompressed_file_size += nuclide_details[i]["file_size"]
             num_of_files += nuclide_details[i]["file_num"]
 
-        download_size = f"{download_file_size} MB"
-        uncom_file_size = f"{uncompressed_file_size} MB"
-        if download_file_size > 1000:
-            download_size = f"{download_file_size / 1000} GB"
-        if uncompressed_file_size > 1000:
-            uncom_file_size = f"{uncompressed_file_size / 1000} GB"
-
-        download_warning = """
-        WARNING: This script will download {} of 
-        data, which is {} of data when processed. 
-        This corresponds to {} random cross sections.
-
-        The nuclides to be processed are: 
-        {}
-
-        Are you sure you want to continue? ([y]/n)
-        """.format(
-            download_size, uncom_file_size, num_of_files, nuclides
-        )
-
-        print(download_warning)
+        state_download_size(download_file_size, uncompressed_file_size, 'MB')
+        extra_download_warning = f"""This corresponds to {num_of_files} random
+            cross sections. The nuclides to be processed are: {nuclides}"""
+        print(extra_download_warning)
 
         # ==============================================================================
         # DOWNLOAD FILES FROM WEBSITE

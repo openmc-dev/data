@@ -11,7 +11,7 @@ from pathlib import Path
 from urllib.parse import urljoin
 
 import openmc.data
-from .utils import download, extract, process_neutron
+from .utils import download, extract, process_neutron, state_download_size
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
@@ -71,30 +71,29 @@ def main():
             'compressed_files': ['CENDL-31.zip'],
             'neutron_files': endf_files_dir.glob('*.C31'),
             'metastables': endf_files_dir.glob('*m.C31'),
-            'compressed_file_size': '0.03 GB',
-            'uncompressed_file_size': '0.4 GB'
+            'compressed_file_size': '0.03',
+            'uncompressed_file_size': '0.4'
         },
         '3.2': {
-        'base_url': 'http://www.nuclear.csdb.cn/endf/CENDL/',
-        'compressed_files': ['n-CENDL-3.2.zip'],
-        'neutron_files': endf_files_dir.glob('n-CENDL-3.2/CENDL-3.2/*.C32'),
-        'metastables': endf_files_dir.glob('n-CENDL-3.2/CENDL-3.2/*m.C32'),
-        'compressed_file_size': '0.11 GB',
-        'uncompressed_file_size': '0.41 GB'
+            'base_url': 'http://www.nuclear.csdb.cn/endf/CENDL/',
+            'compressed_files': ['n-CENDL-3.2.zip'],
+            'neutron_files': endf_files_dir.glob('n-CENDL-3.2/CENDL-3.2/*.C32'),
+            'metastables': endf_files_dir.glob('n-CENDL-3.2/CENDL-3.2/*m.C32'),
+            'compressed_file_size': '0.11',
+            'uncompressed_file_size': '0.41'
         }
     }
 
-    download_warning = """
-    WARNING: This script will download {} of data.
-    Extracting and processing the data requires {} of additional free disk space.
-    """.format(release_details[args.release]['compressed_file_size'],
-            release_details[args.release]['uncompressed_file_size'])
 
     # ==============================================================================
     # DOWNLOAD FILES FROM WEBSITE
 
     if args.download:
-        print(download_warning)
+        state_download_size(
+            release_details[args.release]['compressed_file_size'],
+            release_details[args.release]['uncompressed_file_size'],
+            'GB'
+        )
         for f in release_details[args.release]['compressed_files']:
             # Establish connection to URL
             download(urljoin(release_details[args.release]['base_url'], f),

@@ -1,4 +1,5 @@
 import hashlib
+import imp
 import tarfile
 import warnings
 import zipfile
@@ -6,10 +7,21 @@ from pathlib import Path
 from shutil import rmtree
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
+import warnings
 
 import openmc.data
 
 _BLOCK_SIZE = 16384
+
+
+def state_download_size(download_size, uncompressed_size, units):
+    """Prints a standard message to users displaying the amount of storage
+    space required to run the script"""
+
+    msg = (f"WARNING: This script will download up to {download_size} {units} "
+           "of data. Extracting and processing the data may require as much "
+           f"as {uncompressed_size} {units} of additional free disk space.")
+    warnings.warn(msg)
 
 
 def process_neutron(path, output_dir, libver, temperatures=None):
