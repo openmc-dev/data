@@ -15,8 +15,7 @@ from textwrap import dedent
 from urllib.parse import urljoin
 
 import openmc.data
-from openmc_data.utils import download, state_download_size
-from openmc_data.urls import all_release_details
+from openmc_data import download, state_download_size, all_release_details
 
 
 class CustomFormatter(
