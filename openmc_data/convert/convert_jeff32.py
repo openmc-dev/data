@@ -14,8 +14,8 @@ from string import digits
 from urllib.parse import urljoin
 
 import openmc.data
-from .utils import download, state_download_size
-from .urls import all_release_details
+from openmc_data.utils import download, state_download_size
+from openmc_data.urls import all_release_details
 
 
 class CustomFormatter(

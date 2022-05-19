@@ -58,7 +58,10 @@ jobs:
           generate_jeff33 --help
           generate_jendl --help
       
-
+      - name: Test download scripts exist
+        run: |
+          download_nndc --help
+   
       - name: Test other scripts exist
         run: |
           # make_compton --help commented out as the script needs adapting
