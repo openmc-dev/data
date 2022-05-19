@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
 
 import argparse
-import glob
 import os
-import sys
 import tarfile
 from pathlib import Path
 from multiprocessing import Pool
 
 import openmc.data
 
-from .utils import download, state_download_size
+from openmc_data import download, state_download_size
 
 description = """
 Download random TENDL libraries from PSI and convert it to a HDF5 library for use with OpenMC. 

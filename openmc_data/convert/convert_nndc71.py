@@ -11,8 +11,7 @@ import sys
 from pathlib import Path
 
 import openmc.data
-from .utils import download, extract, state_download_size
-from .urls import all_release_details
+from openmc_data import download, extract, state_download_size, all_release_details
 
 # Make sure Python version is sufficient
 assert sys.version_info >= (3, 6), "Python 3.6+ is required"

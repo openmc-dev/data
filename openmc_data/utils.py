@@ -89,14 +89,18 @@ def extract(
                     print(f'Extracting {f}...')
                 zipf.extractall(path=extraction_dir)
 
-        if str(f).endswith('.tar.gz') or str(f).endswith('.tgz') or str(f).endswith('.tar.bz2'):
+        if str(f).endswith('.tar.gz') or str(f).endswith('.tgz') or str(f).endswith('.tar.bz2') or str(f).endswith('.tar.xz')  or str(f).endswith('.xz'):
             with tarfile.open(f, 'r') as tgz:
                 if verbose:
                     print(f'Extracting {f}...')
                 tgz.extractall(path=extraction_dir)
 
+        else:
+            raise ValueError('File type not currently supported by extraction '
+                             f'function {str(f)}')
+
     if del_compressed_file:
-        rmtree(compressed_files,ignore_errors=True)
+        rmtree(compressed_files, ignore_errors=True)
 
 
 def download(url, checksum=None, as_browser=False, output_path=None, **kwargs):
@@ -141,7 +145,7 @@ def download(url, checksum=None, as_browser=False, output_path=None, **kwargs):
                 return local_path
 
         # Copy file to disk in chunks
-        print('Downloading {}... '.format(local_path), end='')
+        print(f'Downloading {local_path}... ', end='')
         downloaded = 0
         with open(local_path, 'wb') as fh:
             while True:

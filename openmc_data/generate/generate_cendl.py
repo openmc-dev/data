@@ -11,7 +11,7 @@ from pathlib import Path
 from urllib.parse import urljoin
 
 import openmc.data
-from .utils import download, extract, process_neutron, state_download_size
+from openmc_data import download, extract, process_neutron, state_download_size
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,

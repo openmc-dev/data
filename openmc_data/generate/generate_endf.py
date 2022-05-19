@@ -16,7 +16,7 @@ from pathlib import Path
 from shutil import rmtree, copy, copyfileobj
 
 import openmc.data
-from .utils import download, process_neutron, process_thermal, state_download_size
+from openmc_data import download, process_neutron, process_thermal, state_download_size
 
 # Make sure Python version is sufficient
 assert sys.version_info >= (3, 6), "Python 3.6+ is required"
