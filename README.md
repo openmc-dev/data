@@ -80,9 +80,9 @@ A few categories of scripts are available:
 
 | Sctipt name | Description |
 |-|-|
-| convert_tendl_rand | |
-| sample_sandy | |
+| convert_tendl_rand | Download random TENDL libraries from PSI and convert it to a HDF5 library for use with OpenMC. Only certain nuclides are available from PSI. This script generates a cross_sections_tendl.xml file with random TENDL evaluations plus a standard library located in 'OPENMC_CROSS_SECTIONS' |
+| sample_sandy | This scripts generates random (gaussian) evaluations of a nuclear data file following its covariance matrix using SANDY, and converts them to HDF5 for use in OpenMC. Script generates a cross_sections_sandy.xml file with the standard library plus the sampled evaluations. |
 | make_compton | |
 | make_stopping_powers | |
-| add_branching_ratios | |
+| add_branching_ratios | Writes a depletion chain XML file from a depletion chain XML file and branching ratios |
 | reduce_chain | |
