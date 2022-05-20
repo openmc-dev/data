@@ -21,6 +21,13 @@ class CustomFormatter(
 
 parser = argparse.ArgumentParser(description=__doc__, formatter_class=CustomFormatter)
 parser.add_argument(
+    "-d",
+    "--destination",
+    type=Path,
+    default=None,
+    help="Directory to create new library in",
+)
+parser.add_argument(
     "-f",
     "--filename",
     type=Path,
@@ -48,11 +55,13 @@ def main():
     cwd = Path.cwd()
 
     if args.filename is None:
-        args.filename = Path("-".join(["chain", library_name, args.release, '.xml']))
+        args.filename = Path("-".join(["chain", library_name, args.release])+".xml")
+    print(args.filename)
 
     download(
-        urljoin(details["url"]),
-        output_path=args.filename,
+        details["url"],
+        output_path=args.destination,
+        output_filename=args.filename,
     )
 
 
