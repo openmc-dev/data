@@ -24,6 +24,7 @@ jobs:
         with:
           files: |
             openmc_data/convert/convert_*.py
+            openmc_data/download/download_*.py
 
       - name: Set up Python
         if: steps.changed-files-specific.outputs.any_changed == 'true'
@@ -88,3 +89,16 @@ jobs:
         run: |
           echo "convert_tendl_rand.py file has been modified."
           convert_tendl_rand --nuclides O16 --cleanup
+
+      # download scripts
+      - name: test default download_nndc
+        if: contains(steps.changed-files-specific.outputs.modified_files, 'openmc_data/download/download_nndc.py')
+        run: |
+          echo "download_nndc.py file has been modified."
+          download_nndc
+
+      - name: test default download_nndc_chain
+        if: contains(steps.changed-files-specific.outputs.modified_files, 'openmc_data/download/download_nndc_chain.py')
+        run: |
+          echo "download_nndc_chain.py file has been modified."
+          download_nndc_chain
