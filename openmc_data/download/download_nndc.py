@@ -43,10 +43,10 @@ parser.add_argument(
 parser.add_argument(
     "-r",
     "--release",
-    choices=["7.1"],
-    default="7.1",
+    choices=["b7.1"],
+    default="b7.1",
     help="The nuclear data library release version. The currently supported "
-         "options are 7.1",
+         "options are b7.1",
 )
 parser.add_argument(
     "--cleanup",
