@@ -142,6 +142,7 @@ _version.py
 *.zip
 mcnp_endfb70/
 mcnp_endfb71/
+*.h5
 
 # standard output folders produced by data scripts
 *-ace/
