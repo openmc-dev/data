@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 """
-Download preprocessed ENDF HDF5 files and cross_sections.xml for use with OpenMC
+Downloads preprocessed ENDF HDF5 files and cross_sections.xml from openmc.org
+for use with OpenMC.
 """
 
 import argparse

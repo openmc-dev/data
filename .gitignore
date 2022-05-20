@@ -149,3 +149,8 @@ mcnp_endfb71/
 *-hdf5/
 *-download/
 tendl_rand/
+
+# output folders made when generating chaain file, these should be standardised
+decay/
+neutrons/
+nfy/
