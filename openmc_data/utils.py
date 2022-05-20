@@ -103,7 +103,7 @@ def extract(
         rmtree(compressed_files, ignore_errors=True)
 
 
-def download(url, checksum=None, as_browser=False, output_path=None, **kwargs):
+def download(url, checksum=None, as_browser=False, output_path=None, output_filename=None, **kwargs):
     """Download file from a URL
 
     Parameters
@@ -115,7 +115,10 @@ def download(url, checksum=None, as_browser=False, output_path=None, **kwargs):
     as_browser : bool
         Change User-Agent header to appear as a browser
     output_path : str or Path
-        Specifies a location to save the downloaded file
+        Specifies the directory location to save the downloaded file
+    output_filename : str or Path
+        Specifies the filename save the downloaded file. If left as None the
+        filename of the download file is obtained from the url filename
     kwargs : dict
         Keyword arguments passed to :func:`urllib.request.urlopen`
 
@@ -134,7 +137,14 @@ def download(url, checksum=None, as_browser=False, output_path=None, **kwargs):
         # Get file size from header
         file_size = response.length
 
-        local_path = Path(Path(urlparse(url).path).name)
+        if output_filename is None:
+            local_path = Path(Path(urlparse(url).path).name)
+        else:
+            if output_path is None:
+                local_path = Path(output_filename)
+            else:
+                local_path = Path(output_path)/Path(output_filename)
+
         if output_path is not None:
             Path(output_path).mkdir(parents=True, exist_ok=True)
             local_path = output_path / local_path

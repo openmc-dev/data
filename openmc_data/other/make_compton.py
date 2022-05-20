@@ -6,7 +6,7 @@ import tarfile
 import numpy as np
 import h5py
 
-from .utils import download
+from openmc_data.utils import download
 
 def main():
 
