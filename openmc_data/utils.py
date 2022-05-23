@@ -89,7 +89,7 @@ def extract(
                     print(f'Extracting {f}...')
                 zipf.extractall(path=extraction_dir)
 
-        if str(f).endswith('.tar.gz') or str(f).endswith('.tgz') or str(f).endswith('.tar.bz2') or str(f).endswith('.tar.xz')  or str(f).endswith('.xz'):
+        elif str(f).endswith('.tar.gz') or str(f).endswith('.tgz') or str(f).endswith('.tar.bz2') or str(f).endswith('.tar.xz')  or str(f).endswith('.xz'):
             with tarfile.open(f, 'r') as tgz:
                 if verbose:
                     print(f'Extracting {f}...')
