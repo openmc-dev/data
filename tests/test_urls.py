@@ -47,10 +47,10 @@ def test_xml_urls():
     print("library, release, particle, responce.status_code")
     for library, releases in all_chain_release_details.items():
         for release, chains in releases.items():
-                url = chains['chain']['url']
-                print(library, release, url)
-                responce = requests.get(url, stream=True)
-                print(library, release, url, responce.status_code)
-                # printing output so that in the event of a failure the
-                # failing url can be identified
-                assert responce.status_code == 200
+            url = chains['chain']['url']
+            print(library, release, url)
+            responce = requests.get(url, stream=True)
+            print(library, release, url, responce.status_code)
+            # printing output so that in the event of a failure the
+            # failing url can be identified
+            assert responce.status_code == 200
