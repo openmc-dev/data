@@ -136,3 +136,4 @@ A few categories of scripts are available:
 | make_stopping_powers | |
 | add_branching_ratios | Writes a depletion chain XML file from a depletion chain XML file and branching ratios |
 | reduce_chain | |
+| combine_libraries | Combines multiple cross_section.xml files into a single cross_section.xml |
