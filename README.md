@@ -69,9 +69,9 @@ A few categories of scripts are available:
 |convert_nndc | ENDF/B | VII.1 | NNDC |
 |convert_lib80x | ENDF/B | VIII.0 | LANL |
 |convert_fendl | FENDL | 2.1<br>3.0<br>3.1a<br>3.1d<br>3.2|
-|convert_jeff32 | JENDL | 4.0 |
-|convert_jeff33 | JEFF | 3.2 |
-|convert_tendl | JEFF | 3.3 |
+|convert_jeff32 | JEFF | 3.2 |
+|convert_jeff33 | JEFF | 3.3 |
+|convert_tendl | TENDL | 2015<br>2017<br>2019<br>2021 |
 
 ### Generate cross sections
 
