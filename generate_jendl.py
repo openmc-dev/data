@@ -8,9 +8,10 @@ use with OpenMC.
 import argparse
 import ssl
 import tarfile
+import gzip
 from multiprocessing import Pool
 from pathlib import Path
-from shutil import rmtree
+from shutil import rmtree, copyfileobj
 from urllib.parse import urljoin
 
 import openmc.data
@@ -76,8 +77,10 @@ release_details = {
         'uncompressed_file_size': '2 GB'
     },
     '5.0':{
-        'base_url': 'https://wwwndc.jaea.go.jp/ftpnd/ftp/JENDL/',
-        'compressed_files': ['jendl5-n.tar.gz'],
+        'base_url': 'https://wwwndc.jaea.go.jp/ftpnd/',
+        'compressed_files': ['ftp/JENDL/jendl5-n.tar.gz',
+                             'jendl/jendl5-update/data/jendl5_upd6.tar.gz',
+                             'jendl/jendl5-update/data/n_059-Pr-141.dat.gz'],
         'endf_files': endf_files_dir.joinpath('jendl5-n').glob('*.dat'),
         'metastables': endf_files_dir.joinpath('jendl5-n').glob('*m1.dat'),
         'compressed_file_size': '4.1 GB',
@@ -106,9 +109,19 @@ if args.download:
 # EXTRACT FILES FROM TGZ
 if args.extract:
     for f in release_details[args.release]['compressed_files']:
-        with tarfile.open(download_path / f, 'r') as tgz:
+        fname = Path(f).name
+        if fname.endswith('.tar.gz'):
+            with tarfile.open(download_path / f, 'r') as tgz:
             print('Extracting {0}...'.format(f))
             tgz.extractall(path=endf_files_dir)
+
+        else:
+            # get the file name
+            filename = Path(download_path / f)
+            source = gzip.open(filename)
+            target = open(endf_files_dir / filename.name.rsplit('.', 1)[0], 'wb')
+            with source, target:
+                copyfileobj(source, target)
 
     if args.cleanup and download_path.exists():
         rmtree(download_path)
