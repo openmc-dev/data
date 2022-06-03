@@ -81,8 +81,8 @@ release_details = {
         'compressed_files': ['ftp/JENDL/jendl5-n.tar.gz',
                              'jendl/jendl5-update/data/jendl5_upd6.tar.gz',
                              'jendl/jendl5-update/data/n_059-Pr-141.dat.gz'],
-        'endf_files': endf_files_dir.joinpath('jendl5-n').glob('*.dat'),
-        'metastables': endf_files_dir.joinpath('jendl5-n').glob('*m1.dat'),
+        'endf_files': endf_files_dir.glob('*.dat'),
+        'metastables': endf_files_dir.glob('*m1.dat'),
         'compressed_file_size': '4.1 GB',
         'uncompressed_file_size': '16 GB'
     }
@@ -109,15 +109,19 @@ if args.download:
 # EXTRACT FILES FROM TGZ
 if args.extract:
     for f in release_details[args.release]['compressed_files']:
-        fname = Path(f).name
+        fname = Path(f).parts[-1]
         if fname.endswith('.tar.gz'):
-            with tarfile.open(download_path / f, 'r') as tgz:
-            print('Extracting {0}...'.format(f))
-            tgz.extractall(path=endf_files_dir)
+            with tarfile.open(download_path / fname, 'r') as tgz:
+                print('Extracting {}...'.format(fname))
+                # extract files ignoring internal folder structure
+                for member in tgz.getmembers():
+                    if member.isreg():
+                        member.name = Path(member.name).name
+                        tgz.extract(member, path=endf_files_dir)
 
         else:
             # get the file name
-            filename = Path(download_path / f)
+            filename = Path(download_path / fname)
             source = gzip.open(filename)
             target = open(endf_files_dir / filename.name.rsplit('.', 1)[0], 'wb')
             with source, target:
