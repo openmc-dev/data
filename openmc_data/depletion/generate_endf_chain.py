@@ -65,11 +65,11 @@ def main():
             },
             'decay': {
                 'base_url': ['https://www.nndc.bnl.gov/endf-b8.0/zips/'],
-                'compressed_files': ['ENDF-B-VIII.0-decay.zip']
+                'compressed_files': ['ENDF-B-VIII.0_decay.zip']
             },
             'nfy':{
                 'base_url': ['https://www.nndc.bnl.gov/endf-b8.0/zips/'],
-                'compressed_files': ['ENDF-B-VIII.0-nfy.zip']
+                'compressed_files': ['ENDF-B-VIII.0_nfy.zip']
             }
         }
     }
@@ -82,11 +82,11 @@ def main():
                 output_path=download_path
             )
 
-        extract(downloaded_file, endf_files_dir)
+        extract(downloaded_file, extract_dir)
 
-    neutron_files = list(neutron_dir.glob("*endf"))
-    decay_files = list(decay_dir.glob("*endf"))
-    nfy_files = list(nfy_dir.glob("*endf"))
+    neutron_files = list(neutron_dir.rglob("*endf"))
+    decay_files = list(decay_dir.rglob("*endf"))
+    nfy_files = list(nfy_dir.rglob("*endf"))
 
     if args.release == 'vii.1':
         # Remove erroneous Be7 evaluation from vii.1 that can cause problems
@@ -100,6 +100,9 @@ def main():
             raise IOError("No {} endf files found in {}".format(ftype, endf_files_dir))
 
     chain = openmc.deplete.Chain.from_endf(decay_files, nfy_files, neutron_files)
+
+    if args.destination is None:
+        args.destination=f'chain_{library_name}_{args.release}.xml'
 
     chain.export_to_xml(args.destination)
     print(f'Chain file written to {args.destination}')
