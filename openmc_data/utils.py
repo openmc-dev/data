@@ -1,6 +1,7 @@
 import hashlib
 import imp
 import tarfile
+from typing import Iterable
 import warnings
 import zipfile
 from pathlib import Path
@@ -70,8 +71,8 @@ def extract(
 
     Parameters
     ----------
-    compressed_files : iterable
-        The files to extract.
+    compressed_files : [os.PathLike, str iterable]
+        The file or and iterables of files to extract.
     extraction_dir : str
         The directory to extract the files to.
     del_compressed_file : bool
@@ -82,17 +83,20 @@ def extract(
     """
     Path.mkdir(extraction_dir, parents=True, exist_ok=True)
 
+    if not isinstance(compressed_files, Iterable):
+        compressed_files = [compressed_files]
+
     for f in compressed_files:
         if str(f).endswith('.zip'):
             with zipfile.ZipFile(f, 'r') as zipf:
                 if verbose:
-                    print(f'Extracting {f}...')
+                    print(f'Extracting {f} to {extraction_dir}')
                 zipf.extractall(path=extraction_dir)
 
         elif str(f).endswith('.tar.gz') or str(f).endswith('.tgz') or str(f).endswith('.tar.bz2') or str(f).endswith('.tar.xz')  or str(f).endswith('.xz'):
             with tarfile.open(f, 'r') as tgz:
                 if verbose:
-                    print(f'Extracting {f}...')
+                    print(f'Extracting {f} to {extraction_dir}')
                 tgz.extractall(path=extraction_dir)
 
         else:
