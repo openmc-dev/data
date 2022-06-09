@@ -109,7 +109,7 @@ A few categories of scripts are available:
 | Script name | Library | Release | Processed by |
 |-|-|-|-|
 |generate_endf71_chain_casl | ENDF/B |  |  |
-|generate_endf71_chain | ENDF/B |  |  |
+|generate_endf_chain | ENDF/B | VII.1<br>VIII.0  |  |
 |generate_serpent_fissq | |  |  |
 |generate_tendl_chain | TENDL | 2019<br>2021 | |
 
