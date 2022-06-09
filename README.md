@@ -122,7 +122,7 @@ A few categories of scripts are available:
 <!-- | Sctipt name | Library | Release | Download available | Download ENDF files and generates XML chain files |
 |-|-|-|-|-|
 |generate_endf71_chain_casl|ENDF/B|-|[https://github.com/openmc-dev/data/tree/master/depletion](https://github.com/openmc-dev/data/tree/master/depletion)|:heavy_check_mark:|
-|generate_endf71_chain|ENDF/B|-|[https://github.com/openmc-dev/data/tree/master/depletion](https://github.com/openmc-dev/data/tree/master/depletion)|:heavy_check_mark:|
+|generate_endf_chain|ENDF/B|-|[https://github.com/openmc-dev/data/tree/master/depletion](https://github.com/openmc-dev/data/tree/master/depletion)|:heavy_check_mark:|
 |generate_serpent_fissq|-|-|[https://github.com/openmc-dev/data/tree/master/depletion](https://github.com/openmc-dev/data/tree/master/depletion)|:heavy_check_mark:|
 |generate_tendl_chain|TENDL|2019<br>2021|[https://github.com/openmc-dev/data/tree/master/depletion](https://github.com/openmc-dev/data/tree/master/depletion)|:heavy_check_mark:| -->
 
