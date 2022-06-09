@@ -13,11 +13,12 @@ from argparse import ArgumentParser
 from pathlib import Path
 from urllib.parse import urljoin
 from zipfile import ZipFile
+import openmc_data
 
 import openmc.data
 import openmc.deplete as dep
 
-from openmc_data.utils import download
+from openmc_data.utils import download, extract
 
 # Parse command line arguments
 parser = ArgumentParser()
@@ -36,20 +37,6 @@ parser.add_argument(
     "the filename will follow this format 'chain_tendl_{release}_{lib}.xml'",
 )
 args = parser.parse_args()
-
-
-def extract(filename, path=".", verbose=True):
-    # Determine function to open archive
-    if Path(filename).suffix == '.zip':
-        func = ZipFile
-    else:
-        func = tarfile.open
-
-    # Open archive and extract files
-    with func(filename, 'r') as fh:
-        if verbose:
-            print(f'Extracting {filename} to {path}')
-        fh.extractall(path)
 
 
 def fix_jeff33_nfy(path):
@@ -113,11 +100,10 @@ def main():
             output_path=download_path
         )
 
-    for f in release_details[args.release]['compressed_files']:
         extract(downloaded_file, neutron_dir)
 
     # Get list of transport nuclides in TENDL-2019
-    with open(release_details[args.release]['transport_nuclides'], 'r') as fh:
+    with open(Path(openmc_data.__path__[0])/release_details[args.release]['transport_nuclides'], 'r') as fh:
         transport_nuclides = set(json.load(fh))
 
     neutron_files = [
@@ -151,9 +137,10 @@ def main():
     )
 
     if args.destination is None:
-        chain.export_to_xml(f'chain_{library_name}_{args.release}_{args.lib}.xml')
-    else:
-        chain.export_to_xml(args.destination)
+        args.destination=f'chain_{library_name}_{args.release}_{args.lib}.xml'
+
+    chain.export_to_xml(args.destination)
+    print(f'Chain file written to {args.destination}')
 
 
 if __name__ == "__main__":

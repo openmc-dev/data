@@ -76,7 +76,7 @@ jobs:
         run: |
           add_branching_ratios --help
           generate_endf71_chain_casl --help
-          generate_endf71_chain --help
+          generate_endf_chain --help
           generate_serpent_fissq --help
           generate_tendl_chain --help
           reduce_chain --help
