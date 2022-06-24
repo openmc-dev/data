@@ -11,6 +11,7 @@ import argparse
 import sys
 import tarfile
 import zipfile
+import multiprocessing as mp
 from multiprocessing import Pool
 from pathlib import Path
 from shutil import rmtree, copy, copyfileobj
@@ -298,6 +299,7 @@ for particle in args.particles:
     particle_destination.mkdir(parents=True, exist_ok=True)
 
 library = openmc.data.DataLibrary()
+mp.set_start_method('fork')
 
 if 'neutron' in args.particles:
     particle = 'neutron'
