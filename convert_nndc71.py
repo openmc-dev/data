@@ -2,8 +2,7 @@
 
 """
 Download ENDF/B-VII.1 incident neutron ACE data and incident photon ENDF data
-from NNDC and convert it to an HDF5 library for use with OpenMC. This data is
-used for OpenMC's regression test suite.
+from NNDC and convert it to an HDF5 library for use with OpenMC.
 """
 
 import argparse
