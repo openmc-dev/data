@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 """
-Download FENDL-3.1d, FENDL-3.1a, FENDL-3.0 or FENDL-2.1 ACE data from the IAEA
-and convert it to a HDF5 library for use with OpenMC.
+Download FENDL-3.2 FENDL-3.1d, FENDL-3.1a, FENDL-3.0 or FENDL-2.1 ACE
+data from the IAEA and convert it to a HDF5 library for use with OpenMC.
 """
 
 import argparse
