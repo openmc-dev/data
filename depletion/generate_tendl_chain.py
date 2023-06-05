@@ -77,14 +77,9 @@ def main():
     neutron_tgz = download(NEUTRON_LIB, output_path=endf_dir)
     extract(neutron_tgz, neutron_dir)
 
-    # Get list of transport nuclides in TENDL-2019
-    with open('tendl2019_nuclides.json', 'r') as fh:
-        transport_nuclides = set(json.load(fh))
-
     neutron_files = [
         p
         for p in (endf_dir / "neutrons").glob("*.tendl")
-        if p.name[2:-6] in transport_nuclides  # filename is n-XXNNN.tendl
     ]
 
     # ==========================================================================
