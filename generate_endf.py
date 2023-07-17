@@ -134,8 +134,8 @@ def main():
                 'checksums': ['5192f94e61f0b385cf536f448ffab4a4',
                             'fddb6035e7f2b6931e51a58fc754bd10'],
                 'file_type': 'endf',
-                'photo_files': endf_files_dir.joinpath('photoat').rglob('*.endf'),
-                'atom_files': endf_files_dir.joinpath('atomic_relax').rglob('*.endf'),
+                'photo_files': endf_files_dir.joinpath('photon').rglob('photoat*.endf'),
+                'atom_files': endf_files_dir.joinpath('photon').rglob('atom*.endf'),
                 'compressed_file_size': 9,
                 'uncompressed_file_size': 45
             },
@@ -204,8 +204,8 @@ def main():
                 'checksums': ['d49f5b54be278862e1ce742ccd94f5c0',
                             '805f877c59ad22dcf57a0446d266ceea'],
                 'file_type': 'endf',
-                'photo_files': endf_files_dir.joinpath('photoat').rglob('*.endf'),
-                'atom_files': endf_files_dir.joinpath('atom').rglob('*.endf'),
+                'photo_files': endf_files_dir.joinpath('photon').rglob('photoat*.endf'),
+                'atom_files': endf_files_dir.joinpath('photon').rglob('atom*.endf'),
                 'compressed_file_size': 1.2+35,
                 'uncompressed_file_size': 999999
             }
@@ -253,7 +253,7 @@ def main():
         for particle in args.particles:
 
             if release_details[args.release][particle]['file_type'] == 'wmp':
-                extraction_dir = args.destination / 'wmp' / particle
+                extraction_dir = args.destination / particle
             elif release_details[args.release][particle]['file_type'] == 'endf':
                 extraction_dir = endf_files_dir / particle
             Path.mkdir(extraction_dir, parents=True, exist_ok=True)
@@ -352,7 +352,7 @@ def main():
     # INCIDENT WMP NEUTRON DATA
 
     if 'wmp' in args.particles:
-        for h5_file in Path(args.destination / 'wmp').rglob('*.h5'):
+        for h5_file in sorted(Path(args.destination / 'wmp').rglob('*.h5')):
             library.register_file(h5_file)
 
     # Write cross_sections.xml
