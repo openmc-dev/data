@@ -10,11 +10,9 @@ atomic relaxation data so these are obtained from ENDF/B-VIII.0.
 
 import argparse
 import os
-import shutil
 import sys
 import tarfile
 import tempfile
-import warnings
 import zipfile
 from multiprocessing import Pool
 from pathlib import Path
@@ -38,7 +36,7 @@ def main():
         description=__doc__,
         formatter_class=CustomFormatter
     )
-    parser.add_argument('-d', '--destination', type=Path, default=Path('jeff33_hdf5'),
+    parser.add_argument('-d', '--destination', type=Path, default=Path('jeff-3.3-hdf5'),
                         help='Directory to create new library in')
     parser.add_argument('--libver', choices=['earliest', 'latest'],
                         default='earliest', help="Output HDF5 versioning. Use "
