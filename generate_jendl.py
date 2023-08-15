@@ -51,6 +51,9 @@ def main():
     parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
                         help="Do not remove download directories when data has "
                         "been processed")
+    parser.add_argument('--temperatures', type=float,
+                        default=[250.0, 293.6, 600.0, 900.0, 1200.0, 2500.0],
+                        help="Temperatures in Kelvin", nargs='+')
     parser.set_defaults(download=True, extract=True, cleanup=False)
     args = parser.parse_args()
 
@@ -142,11 +145,10 @@ def main():
 
     library = openmc.data.DataLibrary()
 
-
     with Pool() as pool:
         results = []
         for filename in sorted(neutron_files):
-            func_args = (filename, args.destination, args.libver)
+            func_args = (filename, args.destination, args.libver, args.temperatures)
             r = pool.apply_async(process_neutron, func_args)
             results.append(r)
 
