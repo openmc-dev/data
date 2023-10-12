@@ -10,9 +10,9 @@ from utils import download
 
 
 URLS = [
-    'https://www.nndc.bnl.gov/endf-b7.1/zips/ENDF-B-VII.1-neutrons.zip',
-    'https://www.nndc.bnl.gov/endf-b7.1/zips/ENDF-B-VII.1-decay.zip',
-    'https://www.nndc.bnl.gov/endf-b7.1/zips/ENDF-B-VII.1-nfy.zip'
+    "https://www.nndc.bnl.gov/endf-b7.1/zips/ENDF-B-VII.1-neutrons.zip",
+    "https://www.nndc.bnl.gov/endf-b7.1/zips/ENDF-B-VII.1-decay.zip",
+    "https://www.nndc.bnl.gov/endf-b7.1/zips/ENDF-B-VII.1-nfy.zip"
 ]
 
 def main():
@@ -24,8 +24,8 @@ def main():
     else:
         for url in URLS:
             basename = download(url)
-            with ZipFile(basename, 'r') as zf:
-                print('Extracting {}...'.format(basename))
+            with ZipFile(basename, "r") as zf:
+                print("Extracting {}...".format(basename))
                 zf.extractall()
         endf_dir = Path(".")
 
@@ -44,8 +44,8 @@ def main():
             raise IOError("No {} endf files found in {}".format(ftype, endf_dir))
 
     chain = openmc.deplete.Chain.from_endf(decay_files, nfy_files, neutron_files)
-    chain.export_to_xml('chain_endfb71.xml')
+    chain.export_to_xml("chain_endfb71.xml")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
