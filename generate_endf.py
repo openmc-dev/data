@@ -220,6 +220,9 @@ def main():
     # EXTRACT FILES FROM TGZ
 
     if args.extract:
+        # Avoid deprecation warning on Python 3.12+
+        extract_kwargs = {'filter': 'data'} if sys.version_info >= (3, 12) else {}
+
         for particle in args.particles:
 
             if release_details[args.release][particle]['file_type'] == 'wmp':
@@ -251,7 +254,7 @@ def main():
                         for member in tgz.getmembers():
                             if member.isreg():
                                 member.name = Path(member.name).name
-                                tgz.extract(member, path=extraction_dir)
+                                tgz.extract(member, path=extraction_dir, **extract_kwargs)
                 else:
                     # File is not compressed. Used for erratafiles. This ensures
                     # the n-005_B_010.endf erratafile overwrites the orginal
