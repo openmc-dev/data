@@ -346,7 +346,7 @@ def main():
                 ],
                 'checksums': [
                     '6d5f4830f6290d6c618803a8391ba0cf',
-                    'ee614444ed4a5ae6358da9d6f170212c',
+                    '70e9ca0c481236499b7a3e0a490f4ef2',
                 ],
                 'file_type': 'endf',
                 'photo_files': endf_files_dir.joinpath('photon').rglob('photoat*.endf'),
