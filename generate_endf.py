@@ -124,8 +124,6 @@ def main():
                     (neutron_dir / 'n-040_Zr_090.endf', neutron_dir / 'tsl-ZrinZrH.endf'),
                     (neutron_dir / 'n-092_U_238.endf', neutron_dir / 'tsl-UinUO2.endf')
                 ],
-                'compressed_file_size': 226,
-                'uncompressed_file_size': 916
             },
             'photon': {
                 'base_url': 'http://www.nndc.bnl.gov/endf-b7.1/zips/',
@@ -136,15 +134,11 @@ def main():
                 'file_type': 'endf',
                 'photo_files': endf_files_dir.joinpath('photon').rglob('photoat*.endf'),
                 'atom_files': endf_files_dir.joinpath('photon').rglob('atom*.endf'),
-                'compressed_file_size': 9,
-                'uncompressed_file_size': 45
             },
             'wmp': {
                 'base_url': 'https://github.com/mit-crpg/WMP_Library/releases/download/v1.1/',
                 'compressed_files': ['WMP_Library_v1.1.tar.gz'],
                 'file_type': 'wmp',
-                'compressed_file_size': 12,
-                'uncompressed_file_size': 17
             }
         },
         'viii.0': {
@@ -194,8 +188,6 @@ def main():
                     (neutron_dir / 'n-092_U_238.endf', neutron_dir / 'tsl-UinUN.endf'),
                     (neutron_dir / 'n-092_U_238.endf', neutron_dir / 'tsl-UinUO2.endf')
                 ],
-                'compressed_file_size': 296+59+0.849,
-                'uncompressed_file_size': 999999
             },
             'photon': {
                 'base_url': 'https://www.nndc.bnl.gov/endf-b8.0/',
@@ -206,45 +198,23 @@ def main():
                 'file_type': 'endf',
                 'photo_files': endf_files_dir.joinpath('photon').rglob('photoat*.endf'),
                 'atom_files': endf_files_dir.joinpath('photon').rglob('atom*.endf'),
-                'compressed_file_size': 1.2+35,
-                'uncompressed_file_size': 999999
             }
         }
     }
-
-    compressed_file_size, uncompressed_file_size = 0, 0
-    for r in args.release:
-        for p in args.particles:
-            compressed_file_size += release_details[args.release][p]['compressed_file_size']
-            uncompressed_file_size += release_details[args.release][p]['uncompressed_file_size']
-
-    download_warning = """
-    WARNING: This script will download up to {} MB of data. Extracting and
-    processing the data may require as much as {} MB of additional free disk
-    space. This script downloads ENDF/B incident neutron ACE data and
-    incident photon ENDF data from NNDC and convert it to an HDF5 library
-    for use with OpenMC.
-    """.format(compressed_file_size, uncompressed_file_size)
-
 
     # ==============================================================================
     # DOWNLOAD FILES FROM NNDC SITE
 
     if args.download:
-        print(download_warning)
         for particle in args.particles:
             details = release_details[args.release][particle]
             for i, f in enumerate(details['compressed_files']):
                 url = details['base_url'] + f
                 if 'checksums' in details.keys():
                     checksum = details['checksums'][i]
-                    downloaded_file = download(url,
-                                            output_path=download_path / particle,
-                                            checksum=checksum)
+                    download(url, output_path=download_path / particle, checksum=checksum)
                 else:
-                    downloaded_file = download(url,
-                                            output_path=download_path / particle,
-                                            )
+                    download(url, output_path=download_path / particle)
 
     # ==============================================================================
     # EXTRACT FILES FROM TGZ
