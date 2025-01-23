@@ -51,8 +51,8 @@ def main():
                         default='viii.1', help="The nuclear data library release "
                         "version. The currently supported options are vii.1, "
                         "viii.0, viii.1")
-    parser.add_argument('-p', '--particles', choices=['neutron', 'photon', 'wmp'],
-                        nargs='+', default=['neutron', 'photon'],
+    parser.add_argument('-p', '--particles', choices=['neutron', 'thermal', 'photon', 'wmp'],
+                        nargs='+', default=['neutron', 'thermal', 'photon'],
                         help="Incident particles to include, wmp is not available "
                         "for release b8.0 at the moment")
     parser.add_argument('--cleanup', action='store_true',
@@ -82,7 +82,7 @@ def main():
 
     endf_files_dir = cwd.joinpath('-'.join([library_name, args.release, 'endf']))
     neutron_dir = endf_files_dir / 'neutron'
-    thermal_dir = endf_files_dir / 'thermal_scatt'
+    thermal_dir = endf_files_dir / 'thermal'
     download_path = cwd.joinpath('-'.join([library_name, args.release, 'download']))
     # the destination is decided after the release is known
     # to avoid putting the release in a folder with a misleading name
@@ -95,16 +95,16 @@ def main():
         'vii.1': {
             'neutron': {
                 'base_url': 'http://www.nndc.bnl.gov/endf-b7.1/zips/',
-                'compressed_files': [
-                    'ENDF-B-VII.1-neutrons.zip',
-                    'ENDF-B-VII.1-thermal_scatt.zip'
-                ],
-                'checksums': [
-                    'e5d7f441fc4c92893322c24d1725e29c',
-                    'fe590109dde63b2ec5dc228c7b8cab02'
-                ],
+                'compressed_files': ['ENDF-B-VII.1-neutrons.zip'],
+                'checksums': ['e5d7f441fc4c92893322c24d1725e29c'],
                 'file_type': 'endf',
                 'endf_files': neutron_dir.rglob('n-*.endf'),
+            },
+            'thermal': {
+                'base_url': 'http://www.nndc.bnl.gov/endf-b7.1/zips/',
+                'compressed_files': ['ENDF-B-VII.1-thermal_scatt.zip'],
+                'checksums': ['fe590109dde63b2ec5dc228c7b8cab02'],
+                'file_type': 'endf',
                 'sab_files': [
                     ('n-001_H_001.endf', 'tsl-HinH2O.endf'),
                     ('n-001_H_001.endf', 'tsl-HinCH2.endf'),
@@ -131,10 +131,14 @@ def main():
             },
             'photon': {
                 'base_url': 'http://www.nndc.bnl.gov/endf-b7.1/zips/',
-                'compressed_files': ['ENDF-B-VII.1-photoat.zip',
-                                    'ENDF-B-VII.1-atomic_relax.zip'],
-                'checksums': ['5192f94e61f0b385cf536f448ffab4a4',
-                            'fddb6035e7f2b6931e51a58fc754bd10'],
+                'compressed_files': [
+                    'ENDF-B-VII.1-photoat.zip',
+                    'ENDF-B-VII.1-atomic_relax.zip'
+                ],
+                'checksums': [
+                    '5192f94e61f0b385cf536f448ffab4a4',
+                    'fddb6035e7f2b6931e51a58fc754bd10'
+                ],
                 'file_type': 'endf',
                 'photo_files': endf_files_dir.joinpath('photon').rglob('photoat*.endf'),
                 'atom_files': endf_files_dir.joinpath('photon').rglob('atom*.endf'),
@@ -150,16 +154,21 @@ def main():
                 'base_url': 'https://www.nndc.bnl.gov/endf-b8.0/',
                 'compressed_files': [
                     'zips/ENDF-B-VIII.0_neutrons.zip',
-                    'zips/ENDF-B-VIII.0_thermal_scatt.zip',
                     'erratafiles/n-005_B_010.endf'
                 ],
                 'checksums': [
                     '90c1b1a6653a148f17cbf3c5d1171859',
-                    'ecd503d3f8214f703e95e17cc947062c',
                     'eaf71eb22258f759abc205a129d8715a'
                 ],
                 'file_type': 'endf',
                 'endf_files': neutron_dir.rglob('n-*.endf'),
+
+            },
+            'thermal': {
+                'base_url': 'https://www.nndc.bnl.gov/endf-b8.0/zips/',
+                'compressed_files': ['ENDF-B-VIII.0_thermal_scatt.zip'],
+                'checksums': ['ecd503d3f8214f703e95e17cc947062c'],
+                'file_type': 'endf',
                 'sab_files': [
                     ('n-001_H_001.endf', 'tsl-HinC5O2H8.endf'),
                     ('n-001_H_001.endf', 'tsl-HinH2O.endf'),
@@ -210,17 +219,17 @@ def main():
         },
         'viii.1': {
             'neutron': {
-                'base_url': 'https://www.nndc.bnl.gov/endf-releases/releases/B-VIII.1/',
-                'compressed_files': [
-                    'neutrons/neutrons-version.VIII.1.tar.gz',
-                    'thermal_scatt/thermal_scatt-version.VIII.1.tar.gz',
-                ],
-                'checksums': [
-                    'dc622c0f1c3c4477433e698266e0fc80',
-                    'f7bcae02b2da577e28a3a083e07a3a3a',
-                ],
+                'base_url': 'https://www.nndc.bnl.gov/endf-releases/releases/B-VIII.1/neutrons/',
+                'compressed_files': ['neutrons-version.VIII.1.tar.gz'],
+                'checksums': ['dc622c0f1c3c4477433e698266e0fc80'],
                 'file_type': 'endf',
                 'endf_files': neutron_dir.rglob('n-*.endf'),
+            },
+            'thermal': {
+                'base_url': 'https://www.nndc.bnl.gov/endf-releases/releases/B-VIII.1/thermal_scatt/',
+                'compressed_files': ['thermal_scatt-version.VIII.1.tar.gz'],
+                'checksums': ['f7bcae02b2da577e28a3a083e07a3a3a'],
+                'file_type': 'endf',
                 'sab_files': [
                     ('n-001_H_001.endf', 'tsl-H1inCaH2.endf'),
                     ('n-001_H_001.endf', 'tsl-H2inCaH2.endf'),
@@ -417,7 +426,7 @@ def main():
             rmtree(download_path)
 
     # =========================================================================
-    # PROCESS INCIDENT NEUTRON AND THERMAL SCATTERING DATA IN PARALLEL
+    # PROCESS INCIDENT NEUTRON DATA
 
     # Create output directory if it doesn't exist
     for particle in args.particles:
@@ -438,13 +447,27 @@ def main():
                     continue
 
                 func_args = (filename, args.destination / particle, args.libver,
-                            args.temperatures)
+                             args.temperatures)
                 r = pool.apply_async(process_neutron, func_args)
                 results.append(r)
 
+            for r in results:
+                r.wait()
+
+        for p in sorted((args.destination / particle).glob('*.h5'), key=sort_key):
+            library.register_file(p)
+
+    # =========================================================================
+    # PROCESS THERMAL SCATTERING DATA
+
+    if 'thermal' in args.particles:
+        particle = 'thermal'
+        with Pool() as pool:
+            details = release_details[args.release][particle]
+            results = []
             for path_neutron, path_thermal in details['sab_files']:
-                func_args = (neutron_dir / path_neutron, neutron_dir / path_thermal,
-                            args.destination / particle, args.libver)
+                func_args = (neutron_dir / path_neutron, thermal_dir / path_thermal,
+                             args.destination / particle, args.libver)
                 r = pool.apply_async(process_thermal, func_args)
                 results.append(r)
 
