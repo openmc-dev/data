@@ -16,7 +16,7 @@ URLS = [
 ]
 
 
-def main(chain_path, release, endf_path=None):
+def main(chain_path, endf_path=None):
     if endf_path is not None:
         endf_path = Path(endf_path)
     elif all(Path(lib).is_dir() for lib in ("neutrons", "decay", "nfy")):
