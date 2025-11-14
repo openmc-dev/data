@@ -1,9 +1,14 @@
 import hashlib
+import sys
+import tarfile
 import warnings
-import openmc.data
+import zipfile
 from pathlib import Path
 from urllib.parse import urlparse
 from urllib.request import urlopen, Request
+
+import openmc.data
+
 
 _BLOCK_SIZE = 16384
 
@@ -76,9 +81,11 @@ def download(url, checksum=None, as_browser=False, output_path=None, **kwargs):
         file_size = response.length
 
         local_path = Path(Path(urlparse(url).path).name)
-        if output_path is not None:
+        if output_path is None:
+            local_path = Path.cwd()
+        else:
             Path(output_path).mkdir(parents=True, exist_ok=True)
-            local_path = output_path / local_path
+        local_path = output_path / local_path
         # Check if file already downloaded
         if local_path.is_file():
             if local_path.stat().st_size == file_size:
@@ -110,3 +117,54 @@ def download(url, checksum=None, as_browser=False, output_path=None, **kwargs):
                           "openmc-users@googlegroups.com.".format(local_path))
 
     return local_path
+
+
+def extract(
+    compressed_file,
+    extraction_dir=None,
+    del_compressed_file=False,
+    verbose=True,
+):
+    """Extracts zip, tar.gz or tgz compressed files
+
+    Parameters
+    ----------
+    compressed_file : path-like
+        The file to extract.
+    extraction_dir : str
+        The directory to extract the files to.
+    del_compressed_file : bool
+        Whether the compressed file should be deleted (True) or not (False)
+    verbose : bool
+        Controls the printing to terminal, if True filenames of the extracted
+        files will be printed.
+    """
+    if extraction_dir is None:
+        extraction_dir = Path.cwd()
+    else:
+        extraction_dir = Path(extraction_dir)
+    Path.mkdir(extraction_dir, parents=True, exist_ok=True)
+
+    path = Path(compressed_file)
+
+    if path.suffix == '.zip':
+        with zipfile.ZipFile(path, 'r') as zipf:
+            if verbose:
+                print(f'Extracting {path} to {extraction_dir}')
+            zipf.extractall(path=extraction_dir)
+
+    elif path.suffix in {'.gz', '.bz2', '.xz', '.lzma', '.zst', '.tgz', '.tar'}:
+        with tarfile.open(path, 'r') as tar:
+            if verbose:
+                print(f'Extracting {path} to {extraction_dir}')
+            # Use filter argument for Python 3.12+ to avoid deprecation warning
+            if sys.version_info >= (3, 12):
+                tar.extractall(path=extraction_dir, filter='data')
+            else:
+                tar.extractall(path=extraction_dir)
+    else:
+        raise ValueError('File type not currently supported by extraction '
+                         f'function {str(path)}')
+
+    if del_compressed_file:
+        path.unlink()
