@@ -39,7 +39,7 @@ def main(chain_path, endf_path=None):
     for flist, ftype in [(decay_files, "decay"), (neutron_files, "neutron"),
                          (nfy_files, "neutron fission product yield")]:
         if not flist:
-            raise IOError(f"No {ftype} endf files found in {endf_path}")
+            raise FileNotFoundError(f"No {ftype} endf files found in {endf_path}")
 
     chain = Chain.from_endf(decay_files, nfy_files, neutron_files)
     chain.export_to_xml(chain_path)
