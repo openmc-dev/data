@@ -2,11 +2,10 @@
 
 import argparse
 from pathlib import Path
-from zipfile import ZipFile
 
 from openmc.deplete import Chain
 
-from utils import download
+from utils import download, extract
 
 URLS = [
     'https://www.nndc.bnl.gov/endf-b8.0/zips/ENDF-B-VIII.0_neutrons.zip',
@@ -21,12 +20,10 @@ def main(chain_path, endf_path=None):
     elif all(Path(lib).is_dir() for lib in ("neutrons", "decay", "nfy")):
         endf_path = Path(".")
     else:
-        # Download and extract zip files
+        # Download and extract archives
         for url in URLS:
             basename = download(url)
-            with ZipFile(basename, 'r') as zf:
-                print(f'Extracting {basename}...')
-                zf.extractall()
+            extract(basename)
 
         # Rename extracted directories
         Path('ENDF-B-VIII.0_decay').rename('decay')

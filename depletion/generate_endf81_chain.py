@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 
 import argparse
-import sys
-import tarfile
 from pathlib import Path
 
 from openmc.deplete import Chain
 
-from utils import download
+from utils import download, extract
 
 URLS = [
     'https://www.nndc.bnl.gov/endf-releases/releases/B-VIII.1/neutrons/neutrons-version.VIII.1.tar.gz',
@@ -22,16 +20,10 @@ def main(chain_path, endf_path=None):
     elif all(Path(lib).is_dir() for lib in ("neutrons", "decay", "nfy")):
         endf_path = Path(".")
     else:
-        # Download and extract tar files
+        # Download and extract archives
         for url in URLS:
             basename = download(url)
-            with tarfile.open(basename, 'r:*') as tf:
-                print(f'Extracting {basename}...')
-                # Use filter argument for Python 3.12+ to avoid deprecation warning
-                if sys.version_info >= (3, 12):
-                    tf.extractall(filter='data')
-                else:
-                    tf.extractall()
+            extract(basename)
 
         # Rename extracted directories
         Path('decay-version.VIII.1').rename('decay')
