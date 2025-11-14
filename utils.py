@@ -82,7 +82,7 @@ def download(url, checksum=None, as_browser=False, output_path=None, **kwargs):
 
         local_path = Path(Path(urlparse(url).path).name)
         if output_path is None:
-            local_path = Path.cwd()
+            output_path = Path.cwd()
         else:
             Path(output_path).mkdir(parents=True, exist_ok=True)
         local_path = output_path / local_path
