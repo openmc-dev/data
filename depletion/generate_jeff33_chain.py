@@ -13,9 +13,9 @@ import openmc.data
 from utils import download
 
 URLS = [
-    'https://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/JEFF33-n.tgz',
-    'https://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/JEFF33-rdd.zip',
-    'https://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/JEFF33-nfy.asc',
+    'https://data.oecd-nea.org/records/bh7jn-rm903/files/JEFF33-n.tgz?download=1',
+    'https://data.oecd-nea.org/records/qfhqd-s0y84/files/JEFF33-rdd.zip?download=1',
+    'https://data.oecd-nea.org/records/nhfqy-hvz09/files/JEFF33-nfy.asc?download=1',
 ]
 
 
