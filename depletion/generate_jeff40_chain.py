@@ -3,12 +3,11 @@
 import argparse
 from pathlib import Path
 import tempfile
-import zipfile
 
 from openmc.deplete import Chain
 import openmc.data
 
-from utils import download
+from utils import download, extract
 
 URLS = [
     'https://data.oecd-nea.org/records/e9ajn-a3p20/files/JEFF40-Evaluations-Neutron-593.zip?download=1',
@@ -36,9 +35,7 @@ def main(chain_path, endf_path=None):
             basename = download(url)
             for url in URLS:
                 if basename.suffix == '.zip':
-                    with zipfile.ZipFile(basename, 'r') as zf:
-                        print(f'Extracting {basename}...')
-                        zf.extractall(path='neutrons')
+                    extract(basename, extraction_dir='neutrons')
 
         # Rename extracted directories and move files into the appropriate directories
         Path(nfy_file).rename(Path('nfy') / nfy_file)

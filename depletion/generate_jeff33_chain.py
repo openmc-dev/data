@@ -2,15 +2,12 @@
 
 import argparse
 from pathlib import Path
-import sys
-import tarfile
 import tempfile
-import zipfile
 
 from openmc.deplete import Chain
 import openmc.data
 
-from utils import download
+from utils import download, extract
 
 URLS = [
     'https://data.oecd-nea.org/records/bh7jn-rm903/files/JEFF33-n.tgz?download=1',
@@ -33,17 +30,9 @@ def main(chain_path, endf_path=None):
         for url in URLS:
             basename = download(url)
             if basename.suffix == '.tgz':
-                with tarfile.open(basename, 'r:*') as tf:
-                    print(f'Extracting {basename}...')
-                    # Use filter argument for Python 3.12+ to avoid deprecation warning
-                    if sys.version_info >= (3, 12):
-                        tf.extractall(filter='data')
-                    else:
-                        tf.extractall()
+                extract(basename)
             elif basename.suffix == '.zip':
-                with zipfile.ZipFile(basename, 'r') as zf:
-                    print(f'Extracting {basename}...')
-                    zf.extractall(path='decay')
+                extract(basename, extraction_dir='decay')
 
         # Rename extracted directories and move JEFF33-nfy.asc into the nfy directory
         Path('endf6').rename('neutrons')
