@@ -1,6 +1,8 @@
+from contextlib import contextmanager
 import hashlib
 import sys
 import tarfile
+import tempfile
 import warnings
 import zipfile
 from pathlib import Path
@@ -168,3 +170,28 @@ def extract(
 
     if del_compressed_file:
         path.unlink()
+
+
+@contextmanager
+def fix_missing_tpid(path):
+    """Fix missing TPID line in ENDF-format file.
+
+    Parameters
+    ----------
+    path : path-like
+        Path to the original evaluation.
+
+    Yields
+    ------
+    new_path : pathlib.Path
+        Path to the new evaluation file with TPID line added.
+    """
+    with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_f:
+        temp_f.write(" "*69 + "1 0  0    0\n")
+        temp_f.write(Path(path).read_text())
+        temp_path = Path(temp_f.name)
+
+    try:
+        yield temp_path
+    finally:
+        temp_path.unlink()

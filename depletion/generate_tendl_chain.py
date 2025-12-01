@@ -9,7 +9,6 @@ library should be used for decay and FPY evaluations and defaults to JEFF 3.3.
 
 from argparse import ArgumentParser
 import json
-import os
 from pathlib import Path
 import tarfile
 from zipfile import ZipFile
@@ -17,7 +16,7 @@ from zipfile import ZipFile
 import openmc.deplete as dep
 import openmc.data
 
-from utils import download
+from utils import download, fix_missing_tpid
 
 
 NEUTRON_LIB = 'https://tendl.web.psi.ch/tendl_2019/tar_files/TENDL-n.tgz'
@@ -43,19 +42,6 @@ def extract(filename, path=".", verbose=True):
         if verbose:
             print(f'Extracting {filename}...')
         fh.extractall(path)
-
-
-def fix_jeff33_nfy(path):
-    print(f'Fixing TPID in {path}...')
-    new_path = path.with_name(path.name + '_fixed')
-    if not new_path.exists():
-        with path.open('r') as f:
-            data = f.read()
-        with new_path.open('w') as f:
-            # Write missing TPID line
-            f.write(" "*66 + "   1 0  0    0\n")
-            f.write(data)
-    return new_path
 
 
 def main():
@@ -97,8 +83,8 @@ def main():
     if args.lib == 'jeff33':
         decay_files = list(decay_dir.glob('*.ASC'))
 
-        nfy_file_fixed = fix_jeff33_nfy(nfy_file)
-        nfy_files = openmc.data.endf.get_evaluations(nfy_file_fixed)
+        with fix_missing_tpid(nfy_file) as nfy_file_fixed:
+            nfy_files = openmc.data.endf.get_evaluations(nfy_file_fixed)
 
     elif args.lib == 'endf80':
         decay_files = list(decay_dir.rglob('*.endf'))

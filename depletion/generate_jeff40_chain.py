@@ -2,12 +2,11 @@
 
 import argparse
 from pathlib import Path
-import tempfile
 
 from openmc.deplete import Chain
 import openmc.data
 
-from utils import download, extract
+from utils import download, extract, fix_missing_tpid
 
 URLS = [
     'https://data.oecd-nea.org/records/e9ajn-a3p20/files/JEFF40-Evaluations-Neutron-593.zip?download=1',
@@ -33,9 +32,8 @@ def main(chain_path, endf_path=None):
         # Download and extract zip files
         for url in URLS:
             basename = download(url)
-            for url in URLS:
-                if basename.suffix == '.zip':
-                    extract(basename, extraction_dir='neutrons')
+            if basename.suffix == '.zip':
+                extract(basename, extraction_dir='neutrons')
 
         # Rename extracted directories and move files into the appropriate directories
         Path(nfy_file).rename(Path('nfy') / nfy_file)
@@ -47,17 +45,9 @@ def main(chain_path, endf_path=None):
     decay_path = (endf_path / "decay") / decay_file
     nfy_path = (endf_path / "nfy") / nfy_file
 
-    # Create temporary file with TPID line and append nfy_path content
-    with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_f:
-        temp_f.write(" "*69 + "1 0  0    0\n")
-        temp_f.write(nfy_path.read_text())
-        temp_path = Path(temp_f.name)
-
-    # Get evaluations from the single files
-    try:
-        nfy_evals = openmc.data.endf.get_evaluations(temp_path)
-    finally:
-        temp_path.unlink()
+    # Get evaluations from the single files; note that FPY file need TPID fix
+    with fix_missing_tpid(nfy_path) as nfy_path_fixed:
+        nfy_evals = openmc.data.endf.get_evaluations(nfy_path_fixed)
     decay_evals = openmc.data.endf.get_evaluations(decay_path)
 
     chain = Chain.from_endf(decay_evals, nfy_evals, neutron_files)

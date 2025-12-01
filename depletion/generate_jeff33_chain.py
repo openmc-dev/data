@@ -2,12 +2,11 @@
 
 import argparse
 from pathlib import Path
-import tempfile
 
 from openmc.deplete import Chain
 import openmc.data
 
-from utils import download, extract
+from utils import download, extract, fix_missing_tpid
 
 URLS = [
     'https://data.oecd-nea.org/records/bh7jn-rm903/files/JEFF33-n.tgz?download=1',
@@ -44,18 +43,9 @@ def main(chain_path, endf_path=None):
     neutron_files = list((endf_path / "neutrons").glob("*.jeff33"))
     nfy_file = (endf_path / "nfy") / "JEFF33-nfy.asc"
 
-    # Create temporary file with TPID line and append nfy_file content
-    with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_f:
-        temp_f.write(" "*69 + "1 0  0    0\n")
-        temp_f.write(nfy_file.read_text())
-        temp_path = Path(temp_f.name)
-
-    try:
-        # Get evaluations from the patched file
-        nfy_evals = openmc.data.endf.get_evaluations(temp_path)
-    finally:
-        # Clean up temporary file
-        temp_path.unlink()
+    # Load NFY evaluations from the single file; needs TPID fix
+    with fix_missing_tpid(nfy_file) as nfy_path_fixed:
+        nfy_evals = openmc.data.endf.get_evaluations(nfy_path_fixed)
 
     chain = Chain.from_endf(decay_files, nfy_evals, neutron_files)
     chain.export_to_xml(chain_path)
