@@ -20,8 +20,7 @@ def process_neutron(path, output_dir, libver, temperatures=None):
     specified output directory."""
     print(f'Converting: {path}')
     try:
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', UserWarning)
+        with warnings.catch_warnings(action='ignore', category=UserWarning):
             data = openmc.data.IncidentNeutron.from_njoy(
                 path, temperatures=temperatures
             )
@@ -37,11 +36,21 @@ def process_thermal(path_neutron, path_thermal, output_dir, libver):
     """Process ENDF thermal scattering sublibrary file into HDF5 and write into a
     specified output directory."""
     print(f'Converting: {path_thermal}')
+
+    # Check if divide_incoherent_elastic should be set
+    divide_incoherent_elastic = False
+    with warnings.catch_warnings(action='error', category=UserWarning):
+        try:
+            openmc.data.ThermalScattering.from_endf(path_thermal)
+        except UserWarning as e:
+            if 'divide_incoherent_elastic' in str(e):
+                divide_incoherent_elastic = True
+
     try:
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', UserWarning)
+        with warnings.catch_warnings(action='ignore', category=UserWarning):
             data = openmc.data.ThermalScattering.from_njoy(
-                path_neutron, path_thermal
+                path_neutron, path_thermal,
+                divide_incoherent_elastic=divide_incoherent_elastic
             )
     except Exception as e:
         print(path_neutron, path_thermal, e)
