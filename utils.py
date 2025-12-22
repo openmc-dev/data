@@ -204,3 +204,24 @@ def fix_missing_tpid(path):
         yield temp_path
     finally:
         temp_path.unlink()
+
+
+def update_zsymam(path, new_zsymam):
+    """Update ZSYMAM value in ENDF-format file.
+
+    Parameters
+    ----------
+    path : path-like
+        Path to the original evaluation.
+    new_zsymam : str
+        New ZSYMAM value to write.
+    """
+    path = Path(path)
+    lines = path.read_text().splitlines(keepends=True)
+
+    # ZSYMAM is the first 11 characters of the 6th line
+    line = lines[5]
+    new_zsymam_padded = new_zsymam.ljust(11)
+    lines[5] = new_zsymam_padded + line[11:]
+
+    path.write_text(''.join(lines))
