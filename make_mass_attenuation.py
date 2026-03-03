@@ -1,16 +1,18 @@
 #!/usr/bin/env python
-"""Obtain X-ray mass attenuation coefficients from the NIST Standard Reference
-Database 126 (https://www.nist.gov/pml/x-ray-mass-attenuation-coefficients) and
-write them to an HDF5 file.
+"""Obtain photon mass attenuation coefficients for elements Z=1 to 100 from the
+NIST Standard Reference Database 8 (XCOM Photon Cross Sections Database,
+https://www.nist.gov/pml/xcom-photon-cross-sections-database) and write them
+to an HDF5 file.
 
-For each element Z=1 to 92, the data is scraped from the individual element
-pages on the NIST site. The resulting HDF5 file contains 92 datasets, each a
-2D array with shape (2, N) where row 0 is photon energy in eV and row 1 is
-the mass attenuation coefficient mu/rho in cm^2/g.
+Data are retrieved by submitting a POST request to the XCOM CGI for each
+element. The resulting HDF5 file contains 100 datasets (keyed by zero-padded
+atomic number, e.g. '001'--'100'), each a 2D array with shape (2, N) where
+row 0 is photon energy in [eV] and row 1 is the mass attenuation coefficient
+mu/rho (Total Attenuation with Coherent Scattering) in [cm^2/g].
 """
 
-import re
 import time
+from urllib.parse import urlencode
 from urllib.request import urlopen, Request
 
 from lxml import html
@@ -19,52 +21,76 @@ import h5py
 from openmc.data import ATOMIC_SYMBOL
 
 
-BASE_URL = 'https://physics.nist.gov/PhysRefData/XrayMassCoef/ElemTab/z{:02}.html'
+XCOM_URL = 'https://physics.nist.gov/cgi-bin/Xcom/xcom3_1'
 
-# Pattern to match scientific notation floats (e.g. 1.00000E-03, 7.217E+00)
-FLOAT_RE = re.compile(r'[0-9]+\.[0-9]+E[+-][0-9]+')
+# POST payload template
+# OutOpt='PIC': all quantities in cm2/g
+# Output='on':  include the standard energy grid
+# NumAdd='1':   number of additional energy input rows (hidden field default)
+# Graph0='on':  select "None" for graph (faster; data table is unaffected)
+PAYLOAD_TEMPLATE = {
+    'ZSym': '',
+    'OutOpt': 'PIC',
+    'Output': 'on',
+    'NumAdd': '1',
+    'Energies': '',
+    'WindowXmin': '0.001',
+    'WindowXmax': '100000',
+    'ResizeFlag': 'on',
+    'Graph0': 'on',
+}
 
 # ==============================================================================
-# SCRAPE DATA FROM NIST SITE AND GENERATE MASS ATTENUATION HDF5 FILE
+# QUERY XCOM AND GENERATE MASS ATTENUATION HDF5 FILE
 
 print('Generating mass_attenuation.h5...')
 
 with h5py.File('mass_attenuation.h5', 'w') as f:
 
-    for Z in range(1, 93):
+    for Z in range(1, 101):
         print(f'  Processing {ATOMIC_SYMBOL[Z]} (Z={Z})...')
 
-        # Fetch page for this element
-        url = BASE_URL.format(Z)
-        req = Request(url, headers={'User-Agent': 'openmc-data/1.0'})
+        # Build and submit POST request for this element
+        payload = urlencode(dict(PAYLOAD_TEMPLATE, ZNum=str(Z))).encode('utf-8')
+        req = Request(XCOM_URL, data=payload, headers={'User-Agent': 'openmc-data/1.0'})
         with urlopen(req) as response:
             page = response.read()
 
-        # Extract text within <pre> tags (the ASCII-formatted table)
+        # Parse the HTML results table.
+        # Row structure: rows 0-2 are headers; data rows follow.
+        # Columns: 0=edge label, 1=energy(MeV), 2=coherent, 3=incoherent,
+        #          4=photoelectric, 5=pair(nuclear), 6=pair(electron),
+        #          7=total w/ coherent, 8=total w/o coherent
         tree = html.fromstring(page)
-        pre_text = tree.xpath('//pre//text()')
+        trs = tree.xpath('//table//tr')
 
-        # The data is in the last text node, after the underline separator.
-        # Split on underlines and take the last part to skip the header.
-        data_text = pre_text[-1]
-        parts = data_text.split('____')
-        data_section = parts[-1] if len(parts) > 1 else data_text
+        energies = []
+        mu_rho = []
+        for tr in trs[3:]:  # skip 3 header rows
+            tds = tr.xpath('.//td')
+            cells = [td.text_content().strip() for td in tds]
+            if len(cells) < 8:
+                continue
+            try:
+                energies.append(1e6*float(cells[1]))  # convert MeV to eV
+                mu_rho.append(float(cells[7]))  # total attenuation w/ coherent
+            except ValueError:
+                continue
 
-        # Extract all floats in scientific notation -- this cleanly skips
-        # absorption edge labels (K, L1, L2, L3, M1, etc.) and any other text
-        values = np.array([float(x) for x in FLOAT_RE.findall(data_section)])
+        if not energies:
+            raise ValueError(f'No data parsed for Z={Z}')
 
-        if len(values) % 3 != 0:
-            raise ValueError(
-                f'Number of parsed values ({len(values)}) for Z={Z} '
-                f'is not divisible by 3'
-            )
+        # Convert to numpy arrays
+        energies = np.array(energies)
+        mu_rho = np.array(mu_rho)
 
-        # Reshape into rows of 3: energy, mu/rho, mu_en/rho
-        table = values.reshape((-1, 3))
+        # Only include values up to 20 MeV
+        mask = energies <= 20e6
+        energies = energies[mask]
+        mu_rho = mu_rho[mask]
 
-        # Create dataset as 2D array: row 0 = energy, row 1 = mu/rho
-        data = np.vstack([1e6 * table[:, 0], table[:, 1]])
+        # Create dataset as 2D array: row 0 = energy (eV), row 1 = mu/rho (cm2/g)
+        data = np.array([energies, mu_rho])
         f.create_dataset(f'{Z:03}', data=data)
 
         # Be respectful to the NIST server
