@@ -31,7 +31,7 @@ def main():
 
     decay_files = list((endf_dir / "decay").glob("*endf"))
     neutron_files = list((endf_dir / "neutrons").glob("*endf"))
-    nfy_files = list((endf_dir / "nfy").glob("*endf"))
+    fpy_files = list((endf_dir / "nfy").glob("*endf"))
 
     # Remove erroneous Be7 evaluation that can cause problems
     decay_files.remove(endf_dir / "decay" / "dec-004_Be_007.endf")
@@ -39,11 +39,16 @@ def main():
 
     # check files exist
     for flist, ftype in [(decay_files, "decay"), (neutron_files, "neutron"),
-                         (nfy_files, "neutron fission product yield")]:
+                         (fpy_files, "neutron fission product yield")]:
         if not flist:
             raise IOError("No {} endf files found in {}".format(ftype, endf_dir))
 
-    chain = openmc.deplete.Chain.from_endf(decay_files, nfy_files, neutron_files)
+    chain = openmc.deplete.Chain.from_endf(
+        decay_files=decay_files,
+        fpy_files=fpy_files,
+        neutron_files=neutron_files,
+        reactions=list(openmc.deplete.chain.REACTIONS.keys())
+    )
     chain.export_to_xml('chain_endfb71.xml')
 
 
