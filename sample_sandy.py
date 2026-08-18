@@ -7,6 +7,8 @@ from multiprocessing import Pool
 import re
 import shutil
 from pathlib import Path
+import sandy.sampling
+import subprocess
 
 import openmc.data
 
@@ -22,6 +24,23 @@ class CustomFormatter(
     argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter
 ):
     pass
+
+
+def process_neutron_random(nuc, i, out_dir, in_dir, file_num):  # Need to add temperatures
+    """Process ENDF neutron sublibrary file into HDF5 and write into a
+    specified output directory."""
+
+    #fileIn = in_dir / f"{nuc}_{i-1}.endf"
+    fileIn = in_dir / f"{nuc}_{i-1}.03c"
+    fileOut = out_dir / f"{nuc}_{i}.h5"
+
+    #data = openmc.data.IncidentNeutron.from_njoy(fileIn)
+    data = openmc.data.IncidentNeutron.from_ace(fileIn)
+    data.name = f"{nuc}_{i}"
+    data.export_to_hdf5(fileOut, "w")
+    if i % 40 == 0:
+        print(f"Nuclide {nuc} {i+1}/{file_num} finished")
+    
 
 
 def main():
@@ -75,13 +94,14 @@ def main():
     # CHECK IF REQUEST IS VALID AND IF ENDF FILES EXIST
 
     prefix = "n-"
-    suffix = ".endf"
+    suffix = ".tendl"
+    #suffix = ".endf"
 
     atomic_dict = openmc.data.ATOMIC_NUMBER
     nuc_dict = {}
 
     for nuc in nuclides:
-        mass_num = int(re.findall("(\d+)", nuc)[0])
+        mass_num = int(re.findall(r"(\d+)", nuc)[0])
         atomic_sym = "".join([i for i in nuc if not i.isdigit()])
         if atomic_sym not in atomic_dict.keys():
             print(f"Entered nuclide {nuc} does not have a valid atomic symbol")
@@ -89,12 +109,13 @@ def main():
         atomic_num = atomic_dict[atomic_sym]
 
         file_mass = f"{mass_num:03}"
-        file_atomic = f"{atomic_num:03}"
+        #file_atomic = f"{atomic_num:03}"
 
-        file_name = f"{prefix}{file_atomic}_{atomic_sym}_{file_mass}{suffix}"
+        #file_name = f"{prefix}{file_atomic}_{atomic_sym}_{file_mass}{suffix}"
+        file_name = f"{prefix}{atomic_sym}{file_mass}{suffix}"
 
-        if not (libdir / "neutron" / file_name).is_file():
-            print(f"File {libdir / 'neutron' / file_name} does not exist")
+        if not (libdir / "neutrons" / file_name).is_file():
+            print(f"File {libdir / 'neutrons' / file_name} does not exist")
             sys.exit()
         nuc_dict[nuc] = {
             "sym": atomic_sym,
@@ -116,32 +137,29 @@ def main():
             nuc_dir_endf.mkdir(exist_ok=True)
 
             shutil.copyfile(
-                libdir / "neutron" / nuc_dict[nuc]["file_name"],
+                libdir / "neutrons" / nuc_dict[nuc]["file_name"],
                 nuc_dir_endf / nuc_dict[nuc]["file_name"],
             )
             os.chdir(nuc_dir_endf)
-            sandy_command = f"sandy {nuc_dict[nuc]['file_name']} --samples {args.samples} --outname {nuc} --processes {args.processes}"
-            os.system(sandy_command)
-
+            sandy_args = [
+                nuc_dict[nuc]["file_name"],
+                "--acer", "True",
+                "--temperature", "294.0",
+                "--samples", str(args.samples),
+                "--outname", f"{nuc}_{{SMP}}",
+                "--processes", str(args.processes),
+                "--verbose"
+            ]
+            sandy_cmd = ["python", "-m", "sandy.sampling"] + sandy_args
+            try:   
+                subprocess.run(sandy_cmd, check=True)
+            except Exception as e:
+                print(f"Error sampling {nuc}: {e}")
+                raise
         os.chdir(script_dir)
 
     # ==============================================================================
     # CONVERT RANDOM EVALUATIONS TO HDF5
-
-
-    def process_neutron_random(nuc, i, out_dir, in_dir, file_num):  # Need to add temperatures
-        """Process ENDF neutron sublibrary file into HDF5 and write into a
-        specified output directory."""
-
-        fileIn = in_dir / f"{nuc}-{i}"
-        fileOut = out_dir / f"{nuc}-{i}.h5"
-
-        data = openmc.data.IncidentNeutron.from_njoy(fileIn)
-        data.name = f"{nuc}-{i}"
-        data.export_to_hdf5(fileOut, "w")
-        if i % 40 == 0:
-            print(f"Nuclide {nuc} {i+1}/{file_num} finished")
-
 
     print("Beginning NJOY processing")
     with Pool() as pool:
@@ -156,14 +174,13 @@ def main():
             out_dir.mkdir(exist_ok=True)
 
             print(f"Beginning nuclide {nuc} ...")
-            for i in range(1, file_num + 1):
+            for i in range(1, file_num+1):
                 func_args = (nuc, i, out_dir, in_dir, file_num)
                 r = pool.apply_async(process_neutron_random, func_args)
                 results.append(r)
 
         for r in results:
-            r.wait()
-
+            r.get()
 
     # ==============================================================================
     # Create xml library
@@ -174,7 +191,7 @@ def main():
     for nuc in nuclides:
         out_dir = hdf5_files_dir / nuc
         for i in range(1, file_num + 1):
-            fileOut = out_dir / f"{nuc}-{i}.h5"
+            fileOut = out_dir / f"{nuc}_{i}.h5"
             lib.register_file(fileOut)
 
     pre = output_dir / "cross_sections_pre.xml"
@@ -187,7 +204,7 @@ def main():
     else:
         lib.export_to_xml(post)
 
-    pre.unlink()
+    pre.unlink() 
 
 
 if __name__ == '__main__':
