@@ -2,7 +2,7 @@
 
 """
 Download ENDF/B-VII.1 ENDF and ACE files from NNDC and WMP files from GitHub and
-generate a full HDF5 library with incident neutron, incident photon, thermal
+generate a full HDF5 library with incident neutron, incident photon and photonuclear, thermal
 scattering data, and windowed multipole data. This data is used for OpenMC's
 regression test suite.
 """
@@ -10,6 +10,7 @@ regression test suite.
 import glob
 import os
 from pathlib import Path
+import shutil
 import tarfile
 import tempfile
 from urllib.parse import urljoin
@@ -28,6 +29,7 @@ files = [
     (base_endf, 'ENDF-B-VII.1-neutrons.zip', 'e5d7f441fc4c92893322c24d1725e29c'),
     (base_endf, 'ENDF-B-VII.1-photoat.zip', '5192f94e61f0b385cf536f448ffab4a4'),
     (base_endf, 'ENDF-B-VII.1-atomic_relax.zip', 'fddb6035e7f2b6931e51a58fc754bd10'),
+    (base_endf, 'ENDF-B-VII.1-gammas.zip', '2a9dd2223f34429c63a205fe8a8c5791'),
     (base_wmp, 'WMP_Library_v1.1.tar.gz', '8523895928dd6ba63fba803e3a45d4f3')
 ]
 
@@ -44,6 +46,7 @@ def fix_zaid(table, old, new):
 pwd = Path.cwd()
 output_dir = pwd / 'nndc_hdf5'
 os.makedirs('nndc_hdf5/photon', exist_ok=True)
+os.makedirs('nndc_hdf5/photonuclear', exist_ok=True)
 
 with tempfile.TemporaryDirectory() as tmpdir:
     # Temporarily change dir
@@ -142,10 +145,29 @@ with tempfile.TemporaryDirectory() as tmpdir:
         library.register_file(outfile)
 
     # =========================================================================
+    # INCIDENT PHOTONUCLEAR DATA
+
+    photonuclear_files = sorted(glob.glob('gammas/*.endf'))
+    for f in photonuclear_files:
+        # Skipping N014 as it causes NJOY to hang
+        if os.path.basename(f) == 'g-007_N_014.endf':
+            continue
+        
+        print('Converting {}...'.format(os.path.basename(f)))
+        data = openmc.data.IncidentPhotonuclear.from_njoy(f)
+
+        # Determine filename
+        outfile = output_dir / 'photonuclear' / (data.name + '.h5')
+        data.export_to_hdf5(outfile, 'w', 'earliest')
+
+        # Register with library
+        library.register_file(outfile)
+
+    # =========================================================================
     # WINDOWED MULTIPOLE DATA
 
     # Move data into output directory
-    os.rename('WMP_Library', str(output_dir / 'wmp'))
+    shutil.move('WMP_Library',str(output_dir / 'wmp'))
 
     # Add multipole data to library
     for f in sorted(glob.glob('{}/wmp/*.h5'.format(output_dir))):
