@@ -78,8 +78,8 @@ def main():
     ]
 
     tendl_files = [
-        'https://tendl.web.psi.ch/tendl_2019/neutron_file/C/C013/lib/endf/n-C013.tendl',
-        'https://tendl.web.psi.ch/tendl_2019/neutron_file/O/O017/lib/endf/n-O017.tendl',
+        'https://tendl.imperial.ac.uk/tendl_2017/neutron_file/C/C013/lib/endf/n-C013.tendl',
+        'https://tendl.imperial.ac.uk/tendl_2017/neutron_file/O/O017/lib/endf/n-O017.tendl',
     ]
 
     neutron_dir = Path('endf6')

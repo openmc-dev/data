@@ -19,7 +19,7 @@ import openmc.data
 from utils import download, fix_missing_tpid
 
 
-NEUTRON_LIB = 'https://tendl.web.psi.ch/tendl_2019/tar_files/TENDL-n.tgz'
+NEUTRON_LIB = 'https://tendl.imperial.ac.uk/tendl_2019/tar_files/TENDL-n.tgz'
 DECAY_LIB = {
     'jeff33': 'https://www.oecd-nea.org/dbdata/jeff/jeff33/downloads/JEFF33-rdd.zip',
     'endf80': 'https://www.nndc.bnl.gov/endf-b8.0/zips/ENDF-B-VIII.0_decay.zip',

@@ -70,7 +70,7 @@ if args.destination is None:
 # This can be exstened to accommodated new releases
 release_details = {
     '2015': {
-        'base_url': 'https://tendl.web.psi.ch/tendl_2015/tar_files/',
+        'base_url': 'https://tendl.imperial.ac.uk/tendl_2015/tar_files/',
         'compressed_files': ['ACE-n.tgz'],
         'neutron_files': ace_files_dir.glob('neutron_file/*/*/lib/endf/*-n.ace'),
         'metastables': ace_files_dir.glob('neutron_file/*/*/lib/endf/*m-n.ace'),
@@ -78,7 +78,7 @@ release_details = {
         'uncompressed_file_size': '40 GB'
     },
     '2017': {
-        'base_url': 'https://tendl.web.psi.ch/tendl_2017/tar_files/',
+        'base_url': 'https://tendl.imperial.ac.uk/tendl_2017/tar_files/',
         'compressed_files': ['tendl17c.tar.bz2'],
         'neutron_files': ace_files_dir.glob('ace-17/*'),
         'metastables': ace_files_dir.glob('ace-17/*m'),
@@ -86,7 +86,7 @@ release_details = {
         'uncompressed_file_size': '14 GB'
     },
     '2019': {
-        'base_url': 'https://tendl.web.psi.ch/tendl_2019/tar_files/',
+        'base_url': 'https://tendl.imperial.ac.uk/tendl_2019/tar_files/',
         'compressed_files': ['tendl19c.tar.bz2'],
         'neutron_files': ace_files_dir.glob('tendl19c/*'),
         'metastables': ace_files_dir.glob('tendl19c/*m'),
@@ -94,7 +94,7 @@ release_details = {
         'uncompressed_file_size': '10.1 GB'
     },
     '2021': {
-        'base_url': 'https://tendl.web.psi.ch/tendl_2021/tar_files/',
+        'base_url': 'https://tendl.imperial.ac.uk/tendl_2021/tar_files/',
         'compressed_files': ['tendl21c.tar.bz2'],
         'neutron_files': ace_files_dir.glob('tendl21c/*'),
         'metastables': ace_files_dir.glob('tendl21c/*m'),

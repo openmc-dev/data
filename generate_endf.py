@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Download ENDF/B-VIII.0 or ENDF/B-VII.1 library for use in OpenMC by first
+Download ENDF/B-VIII.1, ENDF/B-VIII.0 or ENDF/B-VII.1 library for use in OpenMC by first
 processing ENDF files using NJOY. The resulting library will contain incident
 neutron, incident photon, and thermal scattering data.
 """

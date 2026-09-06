@@ -95,15 +95,15 @@ def main():
 
     release_details = {
         "ENDF2017": {
-            "base_url": "https://tendl.web.psi.ch/tendl_2017/tar_files/",
+            "base_url": "https://tendl.imperial.ac.uk/tendl_2017/tar_files/",
             "ending": ".random.tgz",
         },
         "ENDF2015": {
-            "base_url": "https://tendl.web.psi.ch/tendl_2015/tar_files/",
+            "base_url": "https://tendl.imperial.ac.uk/tendl_2015/tar_files/",
             "ending": ".random.tgz",
         },
         "ACE2015": {
-            "base_url": "https://tendl.web.psi.ch/tendl_2015/tar_files/",
+            "base_url": "https://tendl.imperial.ac.uk/tendl_2015/tar_files/",
             "ending": ".10.2016.tgz",
         },
     }
