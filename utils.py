@@ -32,12 +32,8 @@ def process_neutron(path, output_dir, libver, temperatures=None):
     data.export_to_hdf5(h5_file, 'w', libver=libver)
 
 
-def process_thermal(path_neutron, path_thermal, output_dir, libver):
-    """Process ENDF thermal scattering sublibrary file into HDF5 and write into a
-    specified output directory."""
-    print(f'Converting: {path_thermal}')
-
-    # Check if divide_incoherent_elastic should be set
+def _thermal_from_njoy(path_neutron, path_thermal, **kwargs):
+    """Process one thermal scattering evaluation with NJOY."""
     divide_incoherent_elastic = False
     with warnings.catch_warnings(action='error', category=UserWarning):
         try:
@@ -48,13 +44,65 @@ def process_thermal(path_neutron, path_thermal, output_dir, libver):
 
     try:
         with warnings.catch_warnings(action='ignore', category=UserWarning):
-            data = openmc.data.ThermalScattering.from_njoy(
-                path_neutron, path_thermal,
-                divide_incoherent_elastic=divide_incoherent_elastic
+            return openmc.data.ThermalScattering.from_njoy(
+                path_neutron,
+                path_thermal,
+                divide_incoherent_elastic=divide_incoherent_elastic,
+                **kwargs,
             )
     except Exception as e:
         print(path_neutron, path_thermal, e)
         raise
+
+
+def process_thermal(path_neutron, path_thermal, output_dir, libver,
+                    name=None, table_name=None, zaid=None, nuclide=None,
+                    use_endf_data=True):
+    """Process ENDF thermal scattering sublibrary file into HDF5 and write into a
+    specified output directory."""
+
+    if isinstance(path_thermal, (str, Path)):
+        paths_thermal = [path_thermal]
+    else:
+        paths_thermal = path_thermal
+
+    data = None
+
+    for thermal_path in paths_thermal:
+        print(f'Converting: {thermal_path}')
+        # Needed for Zy4 mixed-elastic handling.
+        kwargs = {'use_endf_data': use_endf_data}
+        if table_name is not None:
+            kwargs.update(table_name=table_name, zaids=[zaid], nmix=1)
+
+        new_data = _thermal_from_njoy(path_neutron, thermal_path, **kwargs)
+
+        if name is not None:
+            new_data.name = name
+            new_data.nuclides = [nuclide]
+
+        if data is None:
+            data = new_data
+            continue
+
+        overlap = set(data.temperatures) & set(new_data.temperatures)
+        if overlap:
+            raise ValueError(
+                f'Duplicate temperatures: {sorted(overlap)}'
+            )
+
+        data.kTs.extend(new_data.kTs)
+
+        for reaction_name in ('elastic', 'inelastic'):
+            reaction = getattr(data, reaction_name)
+            new_reaction = getattr(new_data, reaction_name)
+
+            if new_reaction is not None and new_reaction.xs is not None:
+                reaction.xs.update(new_reaction.xs)
+                reaction.distribution.update(new_reaction.distribution)
+
+    data.kTs.sort()
+
     h5_file = output_dir / f'{data.name}.h5'
     print(f'Writing {h5_file} ...')
     data.export_to_hdf5(h5_file, 'w', libver=libver)
