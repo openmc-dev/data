@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Download TENDL 2019/2017/2015 ACE files from PSI and
+Download TENDL 2021/2019/2017/2015 ACE files from Imperial College and
 convert them to HDF5 libraries for use with OpenMC.
 """
 
@@ -31,9 +31,9 @@ parser = argparse.ArgumentParser(
 parser.add_argument('-d', '--destination', type=Path, default=None,
                     help='Directory to create new library in')
 parser.add_argument('--download', action='store_true',
-                    help='Download files from PSI')
+                    help='Download files from Imperial College')
 parser.add_argument('--no-download', dest='download', action='store_false',
-                    help='Do not download files from PSI')
+                    help='Do not download files from Imperial College')
 parser.add_argument('--extract', action='store_true',
                     help='Extract tar/zip files')
 parser.add_argument('--no-extract', dest='extract', action='store_false',
@@ -67,7 +67,7 @@ if args.destination is None:
     args.destination = Path('-'.join([library_name, args.release, 'hdf5']))
 
 # This dictionary contains all the unique information about each release.
-# This can be exstened to accommodated new releases
+# This can be extended to accommodated new releases
 release_details = {
     '2015': {
         'base_url': 'https://tendl.imperial.ac.uk/tendl_2015/tar_files/',

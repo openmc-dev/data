@@ -12,8 +12,8 @@ import openmc.data
 from utils import download
 
 description = """
-Download random TENDL libraries from PSI and convert it to a HDF5 library for use with OpenMC.
-Only certain nuclides are available from PSI. This script generates a cross_sections_tendl.xml
+Download random TENDL libraries from Imperial College and convert it to a HDF5 library for use with OpenMC.
+Only certain nuclides are available from Imperial College. This script generates a cross_sections_tendl.xml
 file with random TENDL evaluations plus a standard library located in 'OPENMC_CROSS_SECTIONS'
 """
 
