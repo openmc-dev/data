@@ -15,6 +15,87 @@ from shutil import rmtree
 import openmc.data
 from utils import download, extract, process_neutron, process_thermal
 
+# Directory-based JEFF-4.0 thermal evaluations.
+DIRECTORY_TSL = {
+    'PuO2': ('O16', 'Pu238', 'Pu239', 'Pu240', 'Pu241', 'Pu242'),
+    'ThO2': ('O16', 'Th232'),
+    'UO2':  ('O16', 'U238'),
+    'Zy4':  ('Sn112', 'Sn114', 'Sn115', 'Sn116', 'Sn117', 'Sn118', 'Sn119', 'Sn120', 'Sn122', 'Sn124',
+             'Zr90', 'Zr91', 'Zr92', 'Zr94', 'Zr96')}
+
+
+def directory_tsl_args(neutron_dir, thermal_dir, output_dir, libver):
+    """Yield arguments for directory-based JEFF-4.0 TSL evaluations."""
+    for material, nuclides in DIRECTORY_TSL.items():
+        material_dir = thermal_dir / f'tsl_{material}'
+
+        burnup_dirs = []
+        if material == 'Zy4':
+            burnup_dirs = sorted(
+                (material_dir / 'Burnup').glob('[0-9]*GWdt'),
+                key=lambda path: int(path.name[:-4]),
+            )
+            if not burnup_dirs:
+                raise FileNotFoundError('No Zy4 burnup evaluations found')
+
+        for nuclide in nuclides:
+            symbol = nuclide.rstrip('0123456789')
+            Z, A, _ = openmc.data.zam(nuclide)
+            path_neutron = (
+                neutron_dir / f'n_{Z}-{symbol}-{A:03d}g.jeff'
+            )
+
+            evaluations = [
+                ('', sorted(
+                    material_dir.glob(
+                        f'[0-9]*K/'
+                        f'tsl_{nuclide}_{material}_[0-9]*K.jeff'
+                    ),
+                    key=lambda path: int(path.parent.name[:-1]),
+                ))
+            ]
+            evaluations.extend(
+                (f'_{path.name}', [
+                    path / f'tsl_{nuclide}_{material}.jeff'
+                ])
+                for path in burnup_dirs
+            )
+
+            if nuclide == 'O16':
+                table_name = f'o{material.lower()}'
+            elif nuclide == 'U238' and material == 'UO2':
+                table_name = 'uuo2'
+            else:
+                table_name = (
+                    f'{nuclide.lower()}{material.lower()}'[:6]
+                )
+
+            isotope_specific = (
+                material == 'Zy4' or (material == 'PuO2' and symbol == 'Pu')
+            )
+            name_part = nuclide if isotope_specific else symbol
+            name = f'c_{name_part}_in_{material}'
+
+            for suffix, paths_thermal in evaluations:
+                missing = [p for p in paths_thermal if not p.is_file()]
+                if not paths_thermal or missing:
+                    raise FileNotFoundError(
+                        f'No TSL evaluations found for '
+                        f'{nuclide} in {material}{suffix}'
+                    )
+
+                yield (
+                    path_neutron,
+                    paths_thermal,
+                    output_dir,
+                    libver,
+                    name + suffix,
+                    table_name,
+                    1000*Z + A,
+                    nuclide,
+                    material != 'Zy4',
+                )
+
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
                       argparse.RawDescriptionHelpFormatter):
@@ -357,6 +438,14 @@ def main():
             for path_neutron, path_thermal in details['sab_files']:
                 func_args = (neutron_dir / path_neutron, thermal_dir / path_thermal,
                              args.destination / particle, args.libver)
+                r = pool.apply_async(process_thermal, func_args)
+                results.append(r)
+            # special treatment for directory organized tsl (PuO2, ThO2, UO2, Zy4)
+            for func_args in directory_tsl_args(
+                    neutron_dir,
+                    thermal_dir,
+                    args.destination / particle,
+                    args.libver):
                 r = pool.apply_async(process_thermal, func_args)
                 results.append(r)
 
